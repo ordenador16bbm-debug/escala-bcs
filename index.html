@@ -6,6 +6,9 @@
 
 <title>Planilha Oficial de Escala de Plantões - Bombeiros Comunitários</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+
 <!-- Biblioteca Excel -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -426,6 +429,21 @@ button, select, input { touch-action: manipulation; }
 </head>
 
 <body>
+
+<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.35);">
+    <h2 style="margin-top:0;color:#0b5d1e">🔐 Escala BCs</h2>
+    <p id="loginInfo">Entre para acessar a escala online.</p>
+    <input id="loginEmail" type="email" placeholder="E-mail" style="width:100%;padding:12px;margin:6px 0;border:1px solid #bbb;border-radius:8px;box-sizing:border-box">
+    <input id="loginSenha" type="password" placeholder="Senha" style="width:100%;padding:12px;margin:6px 0;border:1px solid #bbb;border-radius:8px;box-sizing:border-box">
+    <button id="btnEntrar" style="width:100%;padding:12px;margin-top:8px;border:0;border-radius:8px;background:#0b5d1e;color:#fff;font-weight:bold">Entrar</button>
+    <button id="btnCriarConta" style="width:100%;padding:10px;margin-top:8px;border:1px solid #0b5d1e;border-radius:8px;background:#fff;color:#0b5d1e">Criar conta</button>
+    <button id="btnOffline" style="width:100%;padding:10px;margin-top:8px;border:0;border-radius:8px;background:#eee;color:#333;font-weight:bold">Continuar offline</button>
+    <p id="loginStatus" style="font-size:13px;margin-bottom:0"></p>
+  </div>
+</div>
+
+<div id="usuarioOnline" style="position:fixed;right:10px;top:10px;z-index:9999;background:#0b5d1e;color:#fff;padding:6px 10px;border-radius:12px;font-size:11px;display:none"></div>
 
 <div class="container">
 
@@ -2364,6 +2382,119 @@ mostrarStatus(
 
 
 /* =========================================================
+   V3 - SUPABASE / SINCRONIZAÇÃO ONLINE
+========================================================= */
+let supabaseClient = null;
+let usuarioAtual = null;
+let perfilAtual = null;
+
+function supabaseConfigurado(){
+  return window.SUPABASE_URL && !window.SUPABASE_URL.includes('COLE_AQUI') &&
+         window.SUPABASE_PUBLISHABLE_KEY && !window.SUPABASE_PUBLISHABLE_KEY.includes('COLE_AQUI');
+}
+
+function setLoginStatus(msg, ok=false){
+  const el=document.getElementById('loginStatus');
+  if(el){ el.textContent=msg; el.style.color=ok?'#0b5d1e':'#b00020'; }
+}
+
+async function entrarOnline(){
+  if(!supabaseClient) return;
+  const email=document.getElementById('loginEmail').value.trim();
+  const senha=document.getElementById('loginSenha').value;
+  if(!email || !senha){ setLoginStatus('Informe e-mail e senha.'); return; }
+  setLoginStatus('Entrando...');
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:senha});
+  if(error){ setLoginStatus('Erro: '+error.message); return; }
+  usuarioAtual=data.user;
+  await prepararUsuarioOnline();
+}
+
+async function criarContaOnline(){
+  if(!supabaseClient) return;
+  const email=document.getElementById('loginEmail').value.trim();
+  const senha=document.getElementById('loginSenha').value;
+  if(!email || !senha){ setLoginStatus('Informe e-mail e senha para criar a conta.'); return; }
+  if(senha.length<6){ setLoginStatus('Use uma senha com pelo menos 6 caracteres.'); return; }
+  setLoginStatus('Criando conta...');
+  const {data,error}=await supabaseClient.auth.signUp({email,password:senha});
+  if(error){ setLoginStatus('Erro: '+error.message); return; }
+  if(data.session){ usuarioAtual=data.user; await prepararUsuarioOnline(); }
+  else setLoginStatus('Conta criada. Se o projeto exigir confirmação por e-mail, confirme o e-mail e depois entre.', true);
+}
+
+async function prepararUsuarioOnline(){
+  try{
+    const {data:perfil,error}=await supabaseClient.from('profiles').select('*').eq('id',usuarioAtual.id).single();
+    if(error) throw error;
+    perfilAtual=perfil;
+    document.getElementById('loginOverlay').style.display='none';
+    const u=document.getElementById('usuarioOnline');
+    u.style.display='block';
+    u.textContent=(perfil.nome||perfil.email)+' · '+perfil.role;
+    await carregarEscalaNuvem();
+  }catch(e){
+    setLoginStatus('Não foi possível carregar seu perfil: '+e.message);
+  }
+}
+
+async function carregarEscalaNuvem(){
+  if(!supabaseClient || !usuarioAtual) return;
+  try{
+    const {data,error}=await supabaseClient.from('escalas_mensais').select('mes,dados').eq('ano',ANO_ESCALA);
+    if(error) throw error;
+    (data||[]).forEach(linha=>{ escalasPorMes[linha.mes]=linha.dados||{}; });
+    const mes=document.getElementById('inputMes').value||'09';
+    dadosEscalaMemoria={...(escalasPorMes[mes]||{})};
+    montarCalendarioDireto(mes); recalcularTurnos();
+    salvarNoLocalStorage();
+    mostrarStatus('☁️ Escala sincronizada com a nuvem.');
+  }catch(e){ mostrarStatus('⚠️ Nuvem indisponível: '+e.message); }
+}
+
+async function salvarEscalaNaNuvem(){
+  if(!supabaseClient || !usuarioAtual) return false;
+  if(perfilAtual && perfilAtual.role!=='admin'){
+    mostrarStatus('🔒 Seu usuário pode consultar a escala, mas não alterá-la.');
+    return false;
+  }
+  salvarEscalaAtualNaMemoria();
+  const registros=Object.keys(escalasPorMes).filter(m=>/^\d{2}$/.test(m)).map(m=>({ano:ANO_ESCALA,mes:m,dados:escalasPorMes[m]||{},updated_by:usuarioAtual.id,updated_at:new Date().toISOString()}));
+  const {error}=await supabaseClient.from('escalas_mensais').upsert(registros,{onConflict:'ano,mes'});
+  if(error){ console.error(error); mostrarStatus('❌ Erro ao sincronizar: '+error.message); return false; }
+  mostrarStatus('☁️ Escala salva na nuvem.');
+  return true;
+}
+
+async function inicializarOnline(){
+  if(!supabaseConfigurado()){
+    console.warn('Supabase ainda não configurado. O aplicativo continua em modo local.');
+    return;
+  }
+  supabaseClient=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  document.getElementById('btnEntrar').onclick=entrarOnline;
+  document.getElementById('btnCriarConta').onclick=criarContaOnline;
+  const btnOffline=document.getElementById('btnOffline');
+  if(btnOffline){ btnOffline.onclick=()=>{ document.getElementById('loginOverlay').style.display='none'; mostrarStatus('📱 Modo offline: alterações ficam neste aparelho até você entrar online.'); }; }
+  const {data}=await supabaseClient.auth.getSession();
+  if(data.session){ usuarioAtual=data.session.user; await prepararUsuarioOnline(); }
+  else document.getElementById('loginOverlay').style.display='flex';
+}
+
+const salvarLocalOriginalV3=salvarEEstocarArquivo;
+salvarEEstocarArquivo=async function(){
+  const localOk=salvarNoLocalStorage();
+  if(!localOk){ alert('❌ Erro ao salvar localmente.'); return; }
+  if(supabaseClient && usuarioAtual){
+    const ok=await salvarEscalaNaNuvem();
+    if(ok) alert('☁️ Escala salva localmente e na nuvem.');
+  }else{
+    mostrarStatus('✅ Escala salva neste aparelho.');
+    alert('✅ Alterações salvas neste aparelho.');
+  }
+};
+
+/* =========================================================
    INICIALIZAÇÃO
 ========================================================= */
 
@@ -2470,3 +2601,7 @@ if ("serviceWorker" in navigator) {
 
 </body>
 </html>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{ setTimeout(inicializarOnline,300); });
+</script>
