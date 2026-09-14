@@ -1,27 +1,64 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Planilha Oficial de Escala de Plantões - Bombeiros Comunitários</title>
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+Planilha Oficial de Escala de Plantões - Bombeiros Comunitários
+</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="supabase-config.js"></script>
 
-<!-- Biblioteca Excel -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="manifest" href="manifest.json">
 
-<!-- Biblioteca PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta
+    name="theme-color"
+    content="#0b5d1e"
+>
 
-<!-- Biblioteca para tabela no PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<meta
+    name="mobile-web-app-capable"
+    content="yes"
+>
+
+<meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+>
+
+<meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="default"
+>
+
+<meta
+    name="apple-mobile-web-app-title"
+    content="Escala BCs"
+>
+
+<link
+    rel="apple-touch-icon"
+    href="icon-192.png"
+>
+
 
 <style>
 
 * {
     box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -30,6 +67,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     background: #f3f6f9;
     color: #222;
+    overscroll-behavior-y: contain;
 }
 
 .container {
@@ -101,6 +139,7 @@ button {
     cursor: pointer;
     font-weight: bold;
     font-size: 13px;
+    touch-action: manipulation;
 }
 
 button:hover {
@@ -109,41 +148,6 @@ button:hover {
 
 .btn-salvar {
     background: #198754;
-    color: white;
-}
-
-.btn-excel {
-    background: #217346;
-    color: white;
-}
-
-.btn-csv {
-    background: #6f42c1;
-    color: white;
-}
-
-.btn-pdf {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-backup {
-    background: #0d6efd;
-    color: white;
-}
-
-.btn-restaurar {
-    background: #fd7e14;
-    color: white;
-}
-
-.btn-imprimir {
-    background: #343a40;
-    color: white;
-}
-
-.btn-limpar {
-    background: #dc3545;
     color: white;
 }
 
@@ -167,6 +171,7 @@ button:hover {
     padding: 15px;
     overflow-x: auto;
     box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+    -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -225,6 +230,7 @@ thead .coluna-fila {
     background: white;
     font-size: 10px;
     cursor: pointer;
+    touch-action: manipulation;
 }
 
 /* =========================
@@ -325,20 +331,104 @@ thead .coluna-fila {
 }
 
 /* =========================
+   LOGIN
+========================= */
+
+#loginOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.72);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
+}
+
+.login-box h2 {
+    margin-top: 0;
+    color: #0b5d1e;
+}
+
+.login-input {
+    width: 100%;
+    padding: 12px;
+    margin: 6px 0;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+.btn-entrar {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 8px;
+    background: #0b5d1e;
+    color: #fff;
+    font-weight: bold;
+    min-height: 44px;
+}
+
+#loginStatus {
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+/* =========================
+   USUÁRIO ONLINE
+========================= */
+
+#usuarioOnline {
+    position: fixed;
+    right: 10px;
+    top: 10px;
+    z-index: 9999;
+    background: #0b5d1e;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    display: none;
+}
+
+/* =========================
    RESPONSIVO
 ========================= */
 
 @media (max-width: 800px) {
 
     body {
-        padding: 5px;
+        padding: 4px;
+    }
+
+    header {
+        padding: 14px 10px;
     }
 
     header h1 {
-        font-size: 20px;
+        font-size: 18px;
+        line-height: 1.25;
+    }
+
+    header p {
+        font-size: 13px;
     }
 
     .painel-controles {
+        padding: 12px;
+        gap: 8px;
         flex-direction: column;
         align-items: stretch;
     }
@@ -346,116 +436,111 @@ thead .coluna-fila {
     .input-field,
     button {
         width: 100%;
-    }
-
-}
-
-/* =========================
-   IMPRESSÃO
-========================= */
-
-@media print {
-
-    body {
-        background: white;
-        padding: 0;
-    }
-
-    header {
-        box-shadow: none;
-        border-radius: 0;
-    }
-
-    .painel-controles,
-    .resumo-container,
-    .rodape,
-    .status {
-        display: none !important;
+        min-height: 44px;
+        font-size: 14px;
     }
 
     .tabela-container {
-        box-shadow: none;
-        padding: 0;
-        overflow: visible;
+        padding: 6px;
     }
 
-    table {
-        font-size: 7px;
+    .coluna-fila {
+        min-width: 145px;
+        width: 145px;
+    }
+
+    .dia {
+        min-width: 66px;
+        width: 66px;
     }
 
     .select-plantao {
-        border: none;
-        appearance: none;
-        font-size: 7px;
+        min-height: 40px;
+        font-size: 11px;
     }
 
-    th,
-    td {
-        padding: 2px;
+    .resumo-container {
+        padding: 12px;
     }
 
+    #usuarioOnline {
+        position: static;
+        margin: 5px;
+        text-align: center;
+        border-radius: 8px;
+    }
 }
 
-</style>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b5d1e">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Escala BCs">
-<link rel="apple-touch-icon" href="icon-192.png">
-
-
-<style>
-html { -webkit-text-size-adjust: 100%; }
-body { overscroll-behavior-y: contain; }
-button, select, input { touch-action: manipulation; }
-@media (max-width: 800px) {
-  body { padding: 4px; }
-  header { padding: 14px 10px; }
-  header h1 { font-size: 18px; line-height: 1.25; }
-  header p { font-size: 13px; }
-  .painel-controles { padding: 12px; gap: 8px; }
-  .input-field, button { min-height: 44px; font-size: 14px; }
-  .tabela-container { padding: 6px; -webkit-overflow-scrolling: touch; }
-  .coluna-fila { min-width: 145px; width: 145px; }
-  .dia { min-width: 66px; width: 66px; }
-  .select-plantao { min-height: 40px; font-size: 11px; }
-  .resumo-container { padding: 12px; }
-}
 </style>
 
 </head>
 
 <body>
 
-<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#fff;border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.35);">
-    <h2 style="margin-top:0;color:#0b5d1e">🔐 Escala BCs</h2>
-    <p id="loginInfo">Entre para acessar a escala online.</p>
-    <input id="loginEmail" type="email" placeholder="E-mail" style="width:100%;padding:12px;margin:6px 0;border:1px solid #bbb;border-radius:8px;box-sizing:border-box">
-    <input id="loginSenha" type="password" placeholder="Senha" style="width:100%;padding:12px;margin:6px 0;border:1px solid #bbb;border-radius:8px;box-sizing:border-box">
-    <button id="btnEntrar" style="width:100%;padding:12px;margin-top:8px;border:0;border-radius:8px;background:#0b5d1e;color:#fff;font-weight:bold">Entrar</button>
-    <button id="btnCriarConta" style="width:100%;padding:10px;margin-top:8px;border:1px solid #0b5d1e;border-radius:8px;background:#fff;color:#0b5d1e">Criar conta</button>
-    <button id="btnOffline" style="width:100%;padding:10px;margin-top:8px;border:0;border-radius:8px;background:#eee;color:#333;font-weight:bold">Continuar offline</button>
-    <p id="loginStatus" style="font-size:13px;margin-bottom:0"></p>
-  </div>
+
+<!-- =========================
+     LOGIN
+========================= -->
+
+<div id="loginOverlay">
+
+    <div class="login-box">
+
+        <h2>🔐 Escala BCs</h2>
+
+        <p id="loginInfo">
+            Entre com seu e-mail e senha para acessar a escala.
+        </p>
+
+        <input
+            id="loginEmail"
+            class="login-input"
+            type="email"
+            placeholder="E-mail"
+            autocomplete="username"
+        >
+
+        <input
+            id="loginSenha"
+            class="login-input"
+            type="password"
+            placeholder="Senha"
+            autocomplete="current-password"
+        >
+
+        <button
+            id="btnEntrar"
+            class="btn-entrar"
+        >
+            Entrar
+        </button>
+
+        <p id="loginStatus"></p>
+
+    </div>
+
 </div>
 
-<div id="usuarioOnline" style="position:fixed;right:10px;top:10px;z-index:9999;background:#0b5d1e;color:#fff;padding:6px 10px;border-radius:12px;font-size:11px;display:none"></div>
+
+<!-- =========================
+     USUÁRIO
+========================= -->
+
+<div id="usuarioOnline"></div>
+
 
 <div class="container">
 
+
 <header>
 
-<h1>
-📊 Planilha Oficial de Escala de Plantões - Bombeiros Comunitários
-</h1>
+    <h1>
+        📊 Planilha Oficial de Escala de Plantões - Bombeiros Comunitários
+    </h1>
 
-<p>
-Sistema de Gerenciamento de Escala - BCs
-</p>
+    <p>
+        Sistema de Gerenciamento de Escala - BCs
+    </p>
 
 </header>
 
@@ -466,134 +551,79 @@ Sistema de Gerenciamento de Escala - BCs
 
 <div class="painel-controles">
 
-<div class="campo">
 
-<label for="inputMes">
-📅 Mês da Escala
-</label>
+    <div class="campo">
 
-<select
-id="inputMes"
-class="input-field"
-onchange="trocarMesManual()"
->
+        <label for="inputMes">
+            📅 Mês da Escala
+        </label>
 
-<option value="01">Janeiro</option>
-<option value="02">Fevereiro</option>
-<option value="03">Março</option>
-<option value="04">Abril</option>
-<option value="05">Maio</option>
-<option value="06">Junho</option>
-<option value="07">Julho</option>
-<option value="08">Agosto</option>
-<option value="09" selected>Setembro</option>
-<option value="10">Outubro</option>
-<option value="11">Novembro</option>
-<option value="12">Dezembro</option>
+        <select
+            id="inputMes"
+            class="input-field"
+            onchange="trocarMesManual()"
+        >
 
-</select>
+            <option value="01">Janeiro</option>
+            <option value="02">Fevereiro</option>
+            <option value="03">Março</option>
+            <option value="04">Abril</option>
+            <option value="05">Maio</option>
+            <option value="06">Junho</option>
+            <option value="07">Julho</option>
+            <option value="08">Agosto</option>
+            <option value="09" selected>Setembro</option>
+            <option value="10">Outubro</option>
+            <option value="11">Novembro</option>
+            <option value="12">Dezembro</option>
 
-</div>
+        </select>
 
-
-<div class="campo">
-
-<label for="filtroNome">
-🔎 Filtrar BC
-</label>
-
-<input
-type="text"
-id="filtroNome"
-class="input-field"
-placeholder="Digite o nome..."
-oninput="recalcularTurnos()"
->
-
-</div>
+    </div>
 
 
-<button
-class="btn-salvar"
-onclick="salvarEEstocarArquivo()"
->
-💾 Salvar
-</button>
+    <div
+        class="campo"
+        id="campoFiltro"
+    >
+
+        <label for="filtroNome">
+            🔎 Filtrar BC
+        </label>
+
+        <input
+            type="text"
+            id="filtroNome"
+            class="input-field"
+            placeholder="Digite o nome..."
+            oninput="recalcularTurnos()"
+        >
+
+    </div>
 
 
-<button
-class="btn-excel"
-onclick="exportarExcel()"
->
-📊 Excel
-</button>
+    <button
+        id="btnSalvar"
+        class="btn-salvar"
+        onclick="salvarEEstocarArquivo()"
+    >
+        💾 Salvar
+    </button>
 
-
-<button
-class="btn-csv"
-onclick="exportarCSV()"
->
-📋 CSV
-</button>
-
-
-<button
-class="btn-pdf"
-onclick="exportarPDF()"
->
-📄 PDF
-</button>
-
-
-<button
-class="btn-backup"
-onclick="fazerBackup()"
->
-💾 Backup
-</button>
-
-
-<button
-class="btn-restaurar"
-onclick="document.getElementById('arquivoBackup').click()"
->
-♻️ Restaurar
-</button>
-
-
-<input
-type="file"
-id="arquivoBackup"
-accept=".json"
-style="display:none"
-onchange="restaurarBackup(event)"
->
-
-
-<button
-class="btn-imprimir"
-onclick="window.print()"
->
-🖨️ Imprimir
-</button>
-
-
-<button
-class="btn-limpar"
-onclick="limparTodaAEscala()"
->
-🧹 Limpar
-</button>
 
 </div>
 
 
 <div
-class="info-mes"
-id="infoMes"
+    class="info-mes"
+    id="infoMes"
 >
 </div>
 
+
+<!-- =========================
+     TABELA
+========================= -->
 
 <div class="tabela-container">
 
@@ -633,40 +663,45 @@ Dias da Semana ➔
      RESUMO
 ========================= -->
 
-<div class="resumo-container">
+<div
+    class="resumo-container"
+    id="resumoContainer"
+>
 
-<div class="summary-title">
+    <div class="summary-title">
 
-📈 Placar de Plantões Acumulados por Integrante (BC)
+        📈 Placar de Plantões Acumulados por Integrante (BC)
+
+    </div>
+
+    <div
+        class="summary-grid"
+        id="gridResumo"
+    >
+    </div>
 
 </div>
+
 
 <div
-class="summary-grid"
-id="gridResumo"
+    class="status"
+    id="statusSistema"
 >
-</div>
-
-</div>
-
-
-<div
-class="status"
-id="statusSistema"
->
-Sistema carregado.
+    Sistema carregado.
 </div>
 
 
 <div class="rodape">
 
-Sistema de Gerenciamento de Escala - Bombeiros Comunitários / BCs
+    Sistema de Gerenciamento de Escala -
+    Bombeiros Comunitários / BCs
 
-<br>
+    <br>
 
-Ano da escala: 2026
+    Ano da escala: 2026
 
 </div>
+
 
 </div>
 
@@ -680,7 +715,7 @@ Ano da escala: 2026
 const ANO_ESCALA = 2026;
 
 const CHAVE_LOCAL_STORAGE =
-"escalaBombeirosComunitarios2026_v4";
+    "escalaBombeirosComunitarios2026_v4";
 
 
 /* =========================================================
@@ -689,64 +724,64 @@ const CHAVE_LOCAL_STORAGE =
 
 const listaBCs = [
 
-"ADILSON",
-"ALVES",
-"ANDRADE",
-"BARBARA",
-"BARBOSA",
-"BATISTA",
-"BORGES",
-"BRAUER",
-"CAMILA",
-"CASTELACI",
-"CLEDISON",
-"DENIS",
-"EDER",
-"Everaldo".toUpperCase(),
-"FEITOSA",
-"GABRIEL",
-"GERSON",
-"GEYSSON",
-"GLEISSON",
-"IARA",
-"JAIRO",
-"JAQUELINE",
-"JESSICA",
-"JOSÉ",
-"JUAN",
-"KEVIN",
-"KRAUSE",
-"LARISSA",
-"LAURECI",
-"LILIAN",
-"LIMA",
-"LIRAS",
-"LUCHTENBERG",
-"MAICO",
-"MAMINHAQUI",
-"MATIAS",
-"MATUCHESKI",
-"NERIS",
-"PALOMA",
-"PATRICK",
-"PAULO",
-"PEKOCZ",
-"PINHEIRO",
-"PIVA",
-"PRISCILA",
-"REIS",
-"RUDNIK",
-"RYAN",
-"SAMPAIO",
-"SANTOS",
-"SCHENA",
-"SILVINA",
-"SIMÃO",
-"STREISKI",
-"TEIXEIRA",
-"TIBURSKI",
-"WITKOWSKI",
-"ZENI"
+    "ADILSON",
+    "ALVES",
+    "ANDRADE",
+    "BARBARA",
+    "BARBOSA",
+    "BATISTA",
+    "BORGES",
+    "BRAUER",
+    "CAMILA",
+    "CASTELACI",
+    "CLEDISON",
+    "DENIS",
+    "EDER",
+    "Everaldo".toUpperCase(),
+    "FEITOSA",
+    "GABRIEL",
+    "GERSON",
+    "GEYSSON",
+    "GLEISSON",
+    "IARA",
+    "JAIRO",
+    "JAQUELINE",
+    "JESSICA",
+    "JOSÉ",
+    "JUAN",
+    "KEVIN",
+    "KRAUSE",
+    "LARISSA",
+    "LAURECI",
+    "LILIAN",
+    "LIMA",
+    "LIRAS",
+    "LUCHTENBERG",
+    "MAICO",
+    "MAMINHAQUI",
+    "MATIAS",
+    "MATUCHESKI",
+    "NERIS",
+    "PALOMA",
+    "PATRICK",
+    "PAULO",
+    "PEKOCZ",
+    "PINHEIRO",
+    "PIVA",
+    "PRISCILA",
+    "REIS",
+    "RUDNIK",
+    "RYAN",
+    "SAMPAIO",
+    "SANTOS",
+    "SCHENA",
+    "SILVINA",
+    "SIMÃO",
+    "STREISKI",
+    "TEIXEIRA",
+    "TIBURSKI",
+    "WITKOWSKI",
+    "ZENI"
 
 ];
 
@@ -757,146 +792,147 @@ const listaBCs = [
 
 const filas = [
 
-{
-nome:"Fila 01 (Noturno)",
-classe:"linha-noturno"
-},
+    {
+        nome: "Fila 01 (Noturno)",
+        classe: "linha-noturno"
+    },
 
-{
-nome:"Fila 02 (Integral)",
-classe:"linha-integral"
-},
+    {
+        nome: "Fila 02 (Integral)",
+        classe: "linha-integral"
+    },
 
-{
-nome:"Fila 03 (Integral)",
-classe:"linha-integral"
-},
+    {
+        nome: "Fila 03 (Integral)",
+        classe: "linha-integral"
+    },
 
-{
-nome:"Fila 04 (Diurno)",
-classe:"linha-diurno"
-},
+    {
+        nome: "Fila 04 (Diurno)",
+        classe: "linha-diurno"
+    },
 
-{
-nome:"Fila 05 (Noturno)",
-classe:"linha-noturno"
-},
+    {
+        nome: "Fila 05 (Noturno)",
+        classe: "linha-noturno"
+    },
 
-{
-nome:"Fila 06 (Integral)",
-classe:"linha-integral"
-},
+    {
+        nome: "Fila 06 (Integral)",
+        classe: "linha-integral"
+    },
 
-{
-nome:"Fila 07 (Diurno)",
-classe:"linha-diurno"
-}
+    {
+        nome: "Fila 07 (Diurno)",
+        classe: "linha-diurno"
+    }
 
 ];
 
 
 /* =========================================================
-   DIAS DA SEMANA
+   DIAS
 ========================================================= */
 
 const nomesDiasSemana = [
 
-"Domingo",
-"Segunda-feira",
-"Terça-feira",
-"Quarta-feira",
-"Quinta-feira",
-"Sexta-feira",
-"Sábado"
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado"
 
 ];
 
+
 const nomesDiasAbreviados = [
 
-"DOM",
-"SEG",
-"TER",
-"QUA",
-"QUI",
-"SEX",
-"SÁB"
+    "DOM",
+    "SEG",
+    "TER",
+    "QUA",
+    "QUI",
+    "SEX",
+    "SÁB"
 
 ];
 
 
 /* =========================================================
-   DADOS DE JUNHO
+   DADOS ORIGINAIS DE JUNHO
 ========================================================= */
 
 const rascunhoOriginalJunho = {
 
-"0_0":"PALOMA",
-"0_4":"PALOMA",
-"0_7":"PALOMA",
-"0_11":"PALOMA",
-"0_14":"PALOMA",
-"0_18":"PALOMA",
-"0_21":"PALOMA",
-"0_25":"PALOMA",
-"0_28":"PALOMA",
+    "0_0":"PALOMA",
+    "0_4":"PALOMA",
+    "0_7":"PALOMA",
+    "0_11":"PALOMA",
+    "0_14":"PALOMA",
+    "0_18":"PALOMA",
+    "0_21":"PALOMA",
+    "0_25":"PALOMA",
+    "0_28":"PALOMA",
 
-"1_1":"PATRICK",
-"1_3":"PATRICK",
-"1_5":"PATRICK",
-"1_6":"PATRICK",
-"1_8":"PATRICK",
-"1_9":"PATRICK",
-"1_10":"PATRICK",
-"1_11":"PALOMA",
-"1_12":"CAMILA",
-"1_13":"PATRICK",
-"1_14":"PALOMA",
-"1_15":"PATRICK",
-"1_16":"LIMA",
-"1_17":"MATUCHESKI",
-"1_18":"PALOMA",
-"1_19":"CAMILA",
-"1_20":"LIMA",
-"1_21":"PALOMA",
-"1_22":"LIMA",
-"1_23":"LIMA",
-"1_24":"LIMA",
-"1_25":"PALOMA",
-"1_26":"CAMILA",
-"1_27":"PATRICK",
-"1_28":"PALOMA",
-"1_29":"LIMA",
+    "1_1":"PATRICK",
+    "1_3":"PATRICK",
+    "1_5":"PATRICK",
+    "1_6":"PATRICK",
+    "1_8":"PATRICK",
+    "1_9":"PATRICK",
+    "1_10":"PATRICK",
+    "1_11":"PALOMA",
+    "1_12":"CAMILA",
+    "1_13":"PATRICK",
+    "1_14":"PALOMA",
+    "1_15":"PATRICK",
+    "1_16":"LIMA",
+    "1_17":"MATUCHESKI",
+    "1_18":"PALOMA",
+    "1_19":"CAMILA",
+    "1_20":"LIMA",
+    "1_21":"PALOMA",
+    "1_22":"LIMA",
+    "1_23":"LIMA",
+    "1_24":"LIMA",
+    "1_25":"PALOMA",
+    "1_26":"CAMILA",
+    "1_27":"PATRICK",
+    "1_28":"PALOMA",
+    "1_29":"LIMA",
 
-"2_0":"ALVES",
-"2_1":"ALVES",
-"2_2":"ALVES",
-"2_3":"ALVES",
-"2_4":"PATRICK",
-"2_5":"CASTELACI",
-"2_6":"LIMA",
-"2_7":"ALVES",
-"2_8":"ALVES",
-"2_9":"ALVES",
-"2_10":"ALVES",
-"2_11":"PATRICK",
-"2_12":"PATRICK",
-"2_13":"MATIAS",
-"2_14":"ALVES",
-"2_15":"ALVES",
-"2_16":"ALVES",
-"2_17":"ALVES",
-"2_18":"MATIAS",
-"2_19":"MATUCHESKI",
-"2_20":"PAULO",
-"2_21":"ALVES",
-"2_22":"ALVES",
-"2_23":"ALVES",
-"2_24":"ALVES",
-"2_25":"MATIAS",
-"2_26":"BARBARA",
-"2_27":"MATIAS",
-"2_28":"ALVES",
-"2_29":"ALVES"
+    "2_0":"ALVES",
+    "2_1":"ALVES",
+    "2_2":"ALVES",
+    "2_3":"ALVES",
+    "2_4":"PATRICK",
+    "2_5":"CASTELACI",
+    "2_6":"LIMA",
+    "2_7":"ALVES",
+    "2_8":"ALVES",
+    "2_9":"ALVES",
+    "2_10":"ALVES",
+    "2_11":"PATRICK",
+    "2_12":"PATRICK",
+    "2_13":"MATIAS",
+    "2_14":"ALVES",
+    "2_15":"ALVES",
+    "2_16":"ALVES",
+    "2_17":"ALVES",
+    "2_18":"MATIAS",
+    "2_19":"MATUCHESKI",
+    "2_20":"PAULO",
+    "2_21":"ALVES",
+    "2_22":"ALVES",
+    "2_23":"ALVES",
+    "2_24":"ALVES",
+    "2_25":"MATIAS",
+    "2_26":"BARBARA",
+    "2_27":"MATIAS",
+    "2_28":"ALVES",
+    "2_29":"ALVES"
 
 };
 
@@ -907,22 +943,22 @@ const rascunhoOriginalJunho = {
 
 let escalasPorMes = {
 
-"01":{},
-"02":{},
-"03":{},
-"04":{},
-"05":{},
+    "01":{},
+    "02":{},
+    "03":{},
+    "04":{},
+    "05":{},
 
-"06":{
-...rascunhoOriginalJunho
-},
+    "06":{
+        ...rascunhoOriginalJunho
+    },
 
-"07":{},
-"08":{},
-"09":{},
-"10":{},
-"11":{},
-"12":{}
+    "07":{},
+    "08":{},
+    "09":{},
+    "10":{},
+    "11":{},
+    "12":{}
 
 };
 
@@ -930,53 +966,72 @@ let escalasPorMes = {
 let dadosEscalaMemoria = {};
 
 
+/*
+   Cópia completa dos dados recebidos do Supabase.
+
+   IMPORTANTE:
+   Não usamos apenas os dados filtrados do BC para salvar.
+   Assim um BC não apaga acidentalmente os plantões dos demais.
+*/
+
+let dadosEscalaCompletos = {};
+
+
 /* =========================================================
-   QUANTIDADE DE DIAS
+   SUPABASE
 ========================================================= */
 
-function quantidadeDiasDoMes(mes) {
+let supabaseClient = null;
 
-return new Date(
-ANO_ESCALA,
-Number(mes),
-0
-).getDate();
+let usuarioAtual = null;
+
+let perfilAtual = null;
+
+
+/* =========================================================
+   VERIFICA SE SUPABASE ESTÁ CONFIGURADO
+========================================================= */
+
+function supabaseConfigurado() {
+
+    return (
+        window.SUPABASE_URL &&
+        !window.SUPABASE_URL.includes("COLE_AQUI") &&
+        window.SUPABASE_PUBLISHABLE_KEY &&
+        !window.SUPABASE_PUBLISHABLE_KEY.includes("COLE_AQUI")
+    );
 
 }
 
 
 /* =========================================================
-   DIA DA SEMANA
+   ADMINISTRADOR
 ========================================================= */
 
-function obterDiaSemana(mes,dia) {
+function usuarioEhAdmin() {
 
-return new Date(
-ANO_ESCALA,
-Number(mes)-1,
-dia
-).getDay();
+    return (
+        perfilAtual &&
+        String(perfilAtual.role || "").toLowerCase() === "admin"
+    );
 
 }
 
 
 /* =========================================================
-   NOME DO MÊS
+   NOME DO USUÁRIO
 ========================================================= */
 
-function obterNomeMes(mes) {
+function obterNomeUsuario() {
 
-const select =
-document.getElementById("inputMes");
+    if (!perfilAtual) {
+        return "";
+    }
 
-const opcao =
-select.querySelector(
-`option[value="${mes}"]`
-);
-
-return opcao
-? opcao.textContent
-: mes;
+    return String(
+        perfilAtual.nome ||
+        ""
+    ).trim().toUpperCase();
 
 }
 
@@ -987,13 +1042,88 @@ return opcao
 
 function mostrarStatus(texto) {
 
-const status =
-document.getElementById(
-"statusSistema"
-);
+    const status =
+        document.getElementById("statusSistema");
 
-status.textContent =
-texto;
+    if (status) {
+        status.textContent = texto;
+    }
+
+}
+
+
+/* =========================================================
+   LOGIN STATUS
+========================================================= */
+
+function setLoginStatus(msg, ok=false) {
+
+    const el =
+        document.getElementById("loginStatus");
+
+    if (el) {
+
+        el.textContent = msg;
+
+        el.style.color =
+            ok ? "#0b5d1e" : "#b00020";
+
+    }
+
+}
+
+
+/* =========================================================
+   QUANTIDADE DE DIAS
+========================================================= */
+
+function quantidadeDiasDoMes(mes) {
+
+    return new Date(
+        ANO_ESCALA,
+        Number(mes),
+        0
+    ).getDate();
+
+}
+
+
+/* =========================================================
+   DIA DA SEMANA
+========================================================= */
+
+function obterDiaSemana(mes, dia) {
+
+    return new Date(
+        ANO_ESCALA,
+        Number(mes) - 1,
+        dia
+    ).getDay();
+
+}
+
+
+/* =========================================================
+   NOME DO MÊS
+========================================================= */
+
+function obterNomeMes(mes) {
+
+    const select =
+        document.getElementById("inputMes");
+
+    if (!select) {
+        return mes;
+    }
+
+    const opcao =
+        select.querySelector(
+            `option[value="${mes}"]`
+        );
+
+    return opcao
+        ? opcao.textContent
+        : mes;
 
 }
 
@@ -1004,75 +1134,73 @@ texto;
 
 function carregarDadosSalvos() {
 
-try {
+    try {
 
-const dados =
-localStorage.getItem(
-CHAVE_LOCAL_STORAGE
-);
+        const dados =
+            localStorage.getItem(
+                CHAVE_LOCAL_STORAGE
+            );
 
-if (!dados) {
-return;
-}
+        if (!dados) {
+            return;
+        }
 
-const convertido =
-JSON.parse(dados);
+        const convertido =
+            JSON.parse(dados);
 
-if (
-convertido &&
-typeof convertido === "object"
-) {
+        if (
+            convertido &&
+            typeof convertido === "object"
+        ) {
 
-Object.keys(convertido).forEach(
-mes => {
+            Object.keys(convertido).forEach(
+                mes => {
 
-if (
-mes >= "01" &&
-mes <= "12"
-) {
+                    if (
+                        mes >= "01" &&
+                        mes <= "12"
+                    ) {
 
-escalasPorMes[mes] =
-convertido[mes] || {};
+                        escalasPorMes[mes] =
+                            convertido[mes] || {};
 
-}
+                    }
 
-});
+                }
+            );
 
-}
+        }
 
-mostrarStatus(
-"✅ Dados salvos carregados automaticamente."
-);
+        mostrarStatus(
+            "✅ Dados salvos carregados automaticamente."
+        );
 
-}
+    }
+    catch (erro) {
 
-catch(erro) {
+        console.error(erro);
 
-console.error(erro);
+        mostrarStatus(
+            "⚠️ Não foi possível carregar os dados salvos."
+        );
 
-mostrarStatus(
-"⚠️ Não foi possível carregar os dados salvos."
-);
-
-}
+    }
 
 }
 
 
 /* =========================================================
-   SALVAR
+   SALVAR ESCALA ATUAL NA MEMÓRIA
 ========================================================= */
 
 function salvarEscalaAtualNaMemoria() {
 
-const mes =
-document.getElementById(
-"inputMes"
-).value;
+    const mes =
+        document.getElementById("inputMes").value;
 
-escalasPorMes[mes] = {
-...dadosEscalaMemoria
-};
+    escalasPorMes[mes] = {
+        ...dadosEscalaCompletos
+    };
 
 }
 
@@ -1083,26 +1211,68 @@ escalasPorMes[mes] = {
 
 function salvarNoLocalStorage() {
 
-try {
+    try {
 
-salvarEscalaAtualNaMemoria();
+        salvarEscalaAtualNaMemoria();
 
-localStorage.setItem(
-CHAVE_LOCAL_STORAGE,
-JSON.stringify(escalasPorMes)
-);
+        localStorage.setItem(
+            CHAVE_LOCAL_STORAGE,
+            JSON.stringify(escalasPorMes)
+        );
 
-return true;
+        return true;
+
+    }
+    catch (erro) {
+
+        console.error(erro);
+
+        return false;
+
+    }
 
 }
 
-catch(erro) {
 
-console.error(erro);
+/* =========================================================
+   FILTRAR DADOS PARA O USUÁRIO
+========================================================= */
 
-return false;
+function filtrarDadosParaUsuario(dados) {
 
-}
+    if (usuarioEhAdmin()) {
+
+        return {
+            ...dados
+        };
+
+    }
+
+    const nomeUsuario =
+        obterNomeUsuario();
+
+    const filtrados = {};
+
+    Object.keys(dados || {}).forEach(chave => {
+
+        const nome =
+            String(
+                dados[chave] || ""
+            ).trim().toUpperCase();
+
+        if (
+            nome &&
+            nome === nomeUsuario
+        ) {
+
+            filtrados[chave] =
+                dados[chave];
+
+        }
+
+    });
+
+    return filtrados;
 
 }
 
@@ -1113,27 +1283,35 @@ return false;
 
 function trocarMesManual() {
 
-salvarEscalaAtualNaMemoria();
+    salvarEscalaAtualNaMemoria();
 
-const mes =
-document.getElementById(
-"inputMes"
-).value;
+    const mes =
+        document.getElementById("inputMes").value;
 
-dadosEscalaMemoria = {
-...(escalasPorMes[mes] || {})
-};
+    dadosEscalaCompletos = {
+        ...(escalasPorMes[mes] || {})
+    };
 
-montarCalendarioDireto(mes);
+    dadosEscalaMemoria =
+        filtrarDadosParaUsuario(
+            dadosEscalaCompletos
+        );
 
-recalcularTurnos();
+    montarCalendarioDireto(mes);
 
-mostrarStatus(
-"📅 Escala aberta: " +
-obterNomeMes(mes) +
-" de " +
-ANO_ESCALA
-);
+    recalcularTurnos();
+
+    document.getElementById(
+        "infoMes"
+    ).textContent =
+        `📅 Escala atual: ${obterNomeMes(mes)} de ${ANO_ESCALA} — ${quantidadeDiasDoMes(mes)} dias`;
+
+    mostrarStatus(
+        "📅 Escala aberta: " +
+        obterNomeMes(mes) +
+        " de " +
+        ANO_ESCALA
+    );
 
 }
 
@@ -1144,95 +1322,85 @@ ANO_ESCALA
 
 function montarCabecalhoCalendario(mes) {
 
-const rowDatas =
-document.getElementById(
-"rowDatas"
-);
+    const rowDatas =
+        document.getElementById("rowDatas");
 
-const rowSemanas =
-document.getElementById(
-"rowSemanas"
-);
+    const rowSemanas =
+        document.getElementById("rowSemanas");
 
-const dias =
-quantidadeDiasDoMes(mes);
+    const dias =
+        quantidadeDiasDoMes(mes);
 
-rowDatas.innerHTML =
-'<th class="coluna-fila">Postos / Filas ➔</th>';
+    rowDatas.innerHTML =
+        '<th class="coluna-fila">Postos / Filas ➔</th>';
 
-rowSemanas.innerHTML =
-'<th class="coluna-fila">Dias da Semana ➔</th>';
+    rowSemanas.innerHTML =
+        '<th class="coluna-fila">Dias da Semana ➔</th>';
 
+    for (
+        let dia = 1;
+        dia <= dias;
+        dia++
+    ) {
 
-for (
-let dia=1;
-dia<=dias;
-dia++
-) {
+        const semana =
+            obterDiaSemana(
+                mes,
+                dia
+            );
 
-const semana =
-obterDiaSemana(
-mes,
-dia
-);
+        const thData =
+            document.createElement("th");
 
+        thData.className = "dia";
 
-const thData =
-document.createElement("th");
+        if (
+            semana === 0 ||
+            semana === 6
+        ) {
 
-thData.className =
-"dia";
+            thData.classList.add(
+                "fim-semana"
+            );
 
-if (
-semana===0 ||
-semana===6
-) {
+        }
 
-thData.classList.add(
-"fim-semana"
-);
+        thData.textContent =
+            String(dia).padStart(2, "0");
 
-}
+        thData.title =
+            `${dia}/${mes}/${ANO_ESCALA}`;
 
-thData.textContent =
-String(dia).padStart(2,"0");
-
-thData.title =
-`${dia}/${mes}/${ANO_ESCALA}`;
-
-rowDatas.appendChild(
-thData
-);
+        rowDatas.appendChild(thData);
 
 
-const thSemana =
-document.createElement("th");
+        const thSemana =
+            document.createElement("th");
 
-thSemana.className =
-"dia";
+        thSemana.className = "dia";
 
-if (
-semana===0 ||
-semana===6
-) {
+        if (
+            semana === 0 ||
+            semana === 6
+        ) {
 
-thSemana.classList.add(
-"fim-semana"
-);
+            thSemana.classList.add(
+                "fim-semana"
+            );
 
-}
+        }
 
-thSemana.textContent =
-nomesDiasAbreviados[semana];
+        thSemana.textContent =
+            nomesDiasAbreviados[semana];
 
-thSemana.title =
-nomesDiasSemana[semana];
+        thSemana.title =
+            nomesDiasSemana[semana];
 
-rowSemanas.appendChild(
-thSemana
-);
+        rowSemanas.appendChild(
+            thSemana
+        );
 
-}
+    }
 
 }
 
@@ -1243,152 +1411,325 @@ thSemana
 
 function montarCalendarioDireto(mes) {
 
-const corpo =
-document.getElementById(
-"corpoTabela"
-);
+    const corpo =
+        document.getElementById(
+            "corpoTabela"
+        );
 
-corpo.innerHTML = "";
+    corpo.innerHTML = "";
 
-montarCabecalhoCalendario(
-mes
-);
+    montarCabecalhoCalendario(mes);
 
-const dias =
-quantidadeDiasDoMes(mes);
+    const dias =
+        quantidadeDiasDoMes(mes);
 
 
-filas.forEach(
-(fila,indexFila)=> {
+    filas.forEach(
+        (fila, indexFila) => {
 
-const tr =
-document.createElement("tr");
+            const tr =
+                document.createElement("tr");
 
-tr.className =
-fila.classe;
-
-
-const tdNome =
-document.createElement("td");
-
-tdNome.className =
-"coluna-fila";
-
-tdNome.textContent =
-fila.nome;
-
-tr.appendChild(
-tdNome
-);
+            tr.className =
+                fila.classe;
 
 
-for (
-let dia=1;
-dia<=dias;
-dia++
-) {
+            const tdNome =
+                document.createElement("td");
 
-const td =
-document.createElement("td");
+            tdNome.className =
+                "coluna-fila";
 
-td.className =
-"dia";
+            tdNome.textContent =
+                fila.nome;
 
-
-const chave =
-`${indexFila}_${dia-1}`;
+            tr.appendChild(tdNome);
 
 
-const select =
-document.createElement("select");
+            for (
+                let dia = 1;
+                dia <= dias;
+                dia++
+            ) {
 
-select.className =
-"select-plantao";
+                const td =
+                    document.createElement("td");
 
-
-const vazio =
-document.createElement("option");
-
-vazio.value = "";
-
-vazio.textContent = "—";
-
-select.appendChild(
-vazio
-);
+                td.className = "dia";
 
 
-listaBCs.forEach(
-nome => {
-
-const option =
-document.createElement(
-"option"
-);
-
-option.value =
-nome;
-
-option.textContent =
-nome;
-
-select.appendChild(
-option
-);
-
-});
+                const chave =
+                    `${indexFila}_${dia - 1}`;
 
 
-if (
-dadosEscalaMemoria[chave]
-) {
+                const select =
+                    document.createElement("select");
 
-select.value =
-dadosEscalaMemoria[chave];
-
-}
+                select.className =
+                    "select-plantao";
 
 
-select.addEventListener(
-"change",
-function() {
+                /*
+                    Usuário não administrador:
+                    mostra somente o próprio nome.
 
-if (this.value) {
+                    Administrador:
+                    mostra todos.
+                */
 
-dadosEscalaMemoria[chave] =
-this.value;
+                const ehAdmin =
+                    usuarioEhAdmin();
 
-}
-else {
-
-delete dadosEscalaMemoria[chave];
-
-}
-
-salvarNoLocalStorage();
-
-recalcularTurnos();
-
-}
-);
+                const nomeUsuario =
+                    obterNomeUsuario();
 
 
-td.appendChild(
-select
-);
+                const nomesPermitidos =
+                    ehAdmin
+                        ? listaBCs
+                        : listaBCs.filter(
+                            nome =>
+                                nome.toUpperCase() ===
+                                nomeUsuario
+                        );
 
-tr.appendChild(
-td
-);
 
-}
+                const vazio =
+                    document.createElement(
+                        "option"
+                    );
+
+                vazio.value = "";
+
+                vazio.textContent = "—";
+
+                select.appendChild(vazio);
 
 
-corpo.appendChild(
-tr
-);
+                nomesPermitidos.forEach(
+                    nome => {
 
-});
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+                        option.value =
+                            nome;
+
+                        option.textContent =
+                            nome;
+
+                        select.appendChild(
+                            option
+                        );
+
+                    }
+                );
+
+
+                /*
+                    Administrador vê todos os dados.
+
+                    BC vê somente os próprios
+                    lançamentos.
+                */
+
+                const valorVisivel =
+                    dadosEscalaMemoria[chave] || "";
+
+
+                if (valorVisivel) {
+
+                    select.value =
+                        valorVisivel;
+
+                }
+
+
+                /*
+                    Se for BC e o plantão
+                    pertence a outra pessoa,
+                    ele fica bloqueado visualmente.
+                */
+
+                if (
+                    !ehAdmin &&
+                    !valorVisivel
+                ) {
+
+                    select.value = "";
+
+                }
+
+
+                /*
+                    Alteração do plantão
+                */
+
+                select.addEventListener(
+                    "change",
+                    function() {
+
+                        const ehAdminAtual =
+                            usuarioEhAdmin();
+
+                        const nomeAtual =
+                            obterNomeUsuario();
+
+                        const valorAnterior =
+                            dadosEscalaCompletos[chave] || "";
+
+
+                        /*
+                            ADMINISTRADOR
+                        */
+
+                        if (ehAdminAtual) {
+
+                            if (this.value) {
+
+                                dadosEscalaCompletos[chave] =
+                                    this.value;
+
+                            }
+                            else {
+
+                                delete dadosEscalaCompletos[chave];
+
+                            }
+
+                            dadosEscalaMemoria =
+                                filtrarDadosParaUsuario(
+                                    dadosEscalaCompletos
+                                );
+
+                            salvarNoLocalStorage();
+
+                            recalcularTurnos();
+
+                            return;
+
+                        }
+
+
+                        /*
+                            BC
+                        */
+
+                        /*
+                            Se já existe outro nome,
+                            o BC não pode alterar.
+                        */
+
+                        if (
+                            valorAnterior &&
+                            valorAnterior.toUpperCase() !==
+                            nomeAtual
+                        ) {
+
+                            this.value = "";
+
+                            mostrarStatus(
+                                "🔒 Este plantão pertence a outro BC."
+                            );
+
+                            return;
+
+                        }
+
+
+                        /*
+                            Só pode lançar o próprio nome.
+                        */
+
+                        if (
+                            this.value &&
+                            this.value.toUpperCase() !==
+                            nomeAtual
+                        ) {
+
+                            this.value = "";
+
+                            mostrarStatus(
+                                "🔒 Você só pode lançar seu próprio nome."
+                            );
+
+                            return;
+
+                        }
+
+
+                        /*
+                            Lançamento próprio
+                        */
+
+                        if (this.value) {
+
+                            dadosEscalaCompletos[chave] =
+                                this.value;
+
+                        }
+                        else {
+
+                            /*
+                                BC somente pode apagar
+                                seu próprio lançamento.
+                            */
+
+                            if (
+                                !valorAnterior ||
+                                valorAnterior.toUpperCase() ===
+                                nomeAtual
+                            ) {
+
+                                delete dadosEscalaCompletos[chave];
+
+                            }
+                            else {
+
+                                this.value =
+                                    valorAnterior;
+
+                                return;
+
+                            }
+
+                        }
+
+
+                        dadosEscalaMemoria =
+                            filtrarDadosParaUsuario(
+                                dadosEscalaCompletos
+                            );
+
+                        salvarNoLocalStorage();
+
+                        recalcularTurnos();
+
+                    }
+                );
+
+
+                /*
+                    Para BC:
+                    campo vazio fica disponível.
+
+                    Para administrador:
+                    tudo disponível.
+                */
+
+                td.appendChild(select);
+
+                tr.appendChild(td);
+
+            }
+
+
+            corpo.appendChild(tr);
+
+        }
+    );
 
 }
 
@@ -1399,130 +1740,240 @@ tr
 
 function recalcularTurnos() {
 
-const grid =
-document.getElementById(
-"gridResumo"
-);
+    const grid =
+        document.getElementById(
+            "gridResumo"
+        );
 
-const filtro =
-(
-document.getElementById(
-"filtroNome"
-).value || ""
-)
-.trim()
-.toUpperCase();
+    if (!grid) {
+        return;
+    }
 
 
-const contagem = {};
+    /*
+        BC NÃO VÊ O RESUMO.
+    */
 
-listaBCs.forEach(
-nome => {
+    if (!usuarioEhAdmin()) {
 
-contagem[nome] = 0;
+        grid.innerHTML = "";
 
-});
+        return;
+
+    }
 
 
-Object.values(
-dadosEscalaMemoria
-).forEach(
-nome => {
+    const filtro =
+        (
+            document.getElementById(
+                "filtroNome"
+            ).value || ""
+        )
+        .trim()
+        .toUpperCase();
 
-if (
-contagem.hasOwnProperty(nome)
-) {
 
-contagem[nome]++;
+    const contagem = {};
+
+
+    listaBCs.forEach(
+        nome => {
+
+            contagem[nome] = 0;
+
+        }
+    );
+
+
+    Object.values(
+        dadosEscalaCompletos
+    ).forEach(
+        nome => {
+
+            if (
+                contagem.hasOwnProperty(nome)
+            ) {
+
+                contagem[nome]++;
+
+            }
+
+        }
+    );
+
+
+    const nomes =
+        listaBCs.filter(
+            nome =>
+                nome
+                    .toUpperCase()
+                    .includes(filtro)
+        );
+
+
+    nomes.sort(
+        (a, b) => {
+
+            if (
+                contagem[b] !==
+                contagem[a]
+            ) {
+
+                return (
+                    contagem[b] -
+                    contagem[a]
+                );
+
+            }
+
+            return a.localeCompare(
+                b,
+                "pt-BR"
+            );
+
+        }
+    );
+
+
+    grid.innerHTML = "";
+
+
+    nomes.forEach(
+        nome => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+            card.className =
+                "summary-card";
+
+
+            const nomeDiv =
+                document.createElement(
+                    "div"
+                );
+
+            nomeDiv.className =
+                "summary-name";
+
+            nomeDiv.textContent =
+                nome;
+
+
+            const count =
+                document.createElement(
+                    "div"
+                );
+
+            count.className =
+                "summary-count";
+
+            count.textContent =
+                contagem[nome];
+
+
+            card.appendChild(nomeDiv);
+
+            card.appendChild(count);
+
+            grid.appendChild(card);
+
+        }
+    );
 
 }
 
-});
+
+/* =========================================================
+   APLICAR PERMISSÕES
+========================================================= */
+
+function aplicarPermissoesUsuario() {
+
+    const ehAdmin =
+        usuarioEhAdmin();
 
 
-const nomes =
-listaBCs.filter(
-nome =>
-nome.toUpperCase()
-.includes(filtro)
-);
+    const filtro =
+        document.getElementById(
+            "campoFiltro"
+        );
 
 
-nomes.sort(
-(a,b)=> {
-
-if (
-contagem[b] !==
-contagem[a]
-) {
-
-return (
-contagem[b] -
-contagem[a]
-);
-
-}
-
-return a.localeCompare(
-b,
-"pt-BR"
-);
-
-});
+    const resumo =
+        document.getElementById(
+            "resumoContainer"
+        );
 
 
-grid.innerHTML = "";
+    /*
+        Administrador
+    */
+
+    if (ehAdmin) {
+
+        if (filtro) {
+
+            filtro.style.display =
+                "";
+
+        }
+
+        if (resumo) {
+
+            resumo.style.display =
+                "";
+
+        }
+
+    }
 
 
-nomes.forEach(
-nome => {
+    /*
+        BC
+    */
 
-const card =
-document.createElement(
-"div"
-);
+    else {
 
-card.className =
-"summary-card";
+        if (filtro) {
 
+            filtro.style.display =
+                "none";
 
-const nomeDiv =
-document.createElement(
-"div"
-);
+        }
 
-nomeDiv.className =
-"summary-name";
+        if (resumo) {
 
-nomeDiv.textContent =
-nome;
+            resumo.style.display =
+                "none";
 
+        }
 
-const count =
-document.createElement(
-"div"
-);
-
-count.className =
-"summary-count";
-
-count.textContent =
-contagem[nome];
+    }
 
 
-card.appendChild(
-nomeDiv
-);
+    const mes =
+        document.getElementById(
+            "inputMes"
+        ).value;
 
-card.appendChild(
-count
-);
 
-grid.appendChild(
-card
-);
+    dadosEscalaCompletos = {
+        ...(escalasPorMes[mes] || {})
+    };
 
-});
+
+    dadosEscalaMemoria =
+        filtrarDadosParaUsuario(
+            dadosEscalaCompletos
+        );
+
+
+    montarCalendarioDireto(mes);
+
+    recalcularTurnos();
 
 }
 
@@ -1531,1041 +1982,598 @@ card
    SALVAR
 ========================================================= */
 
-function salvarEEstocarArquivo() {
+async function salvarEEstocarArquivo() {
 
-if (
-salvarNoLocalStorage()
-) {
+    const localOk =
+        salvarNoLocalStorage();
 
-mostrarStatus(
-"✅ Escala salva com sucesso."
-);
 
-alert(
-"✅ Alterações salvas com sucesso!"
-);
+    if (!localOk) {
 
-}
-else {
+        alert(
+            "❌ Erro ao salvar localmente."
+        );
 
-alert(
-"❌ Erro ao salvar a escala."
-);
+        return;
 
-}
+    }
+
+
+    if (
+        supabaseClient &&
+        usuarioAtual &&
+        perfilAtual
+    ) {
+
+        const ok =
+            await salvarEscalaNaNuvem();
+
+
+        if (ok) {
+
+            alert(
+                "☁️ Escala salva com sucesso na nuvem."
+            );
+
+        }
+
+        return;
+
+    }
+
+
+    /*
+        Sem usuário online:
+        NÃO permitir modo offline para BC.
+    */
+
+    alert(
+        "🔐 É necessário estar conectado ao sistema para salvar a escala."
+    );
 
 }
 
 
 /* =========================================================
-   EXPORTAR EXCEL
+   SALVAR NA NUVEM
 ========================================================= */
 
-function exportarExcel() {
+async function salvarEscalaNaNuvem() {
 
-if (
-typeof XLSX === "undefined"
-) {
+    if (
+        !supabaseClient ||
+        !usuarioAtual ||
+        !perfilAtual
+    ) {
 
-alert(
-"❌ Biblioteca do Excel não carregada.\n\n" +
-"Verifique sua conexão com a internet."
-);
+        return false;
 
-return;
+    }
 
-}
 
+    salvarEscalaAtualNaMemoria();
 
-salvarNoLocalStorage();
 
+    /*
+        Neste momento:
+        administrador pode salvar tudo.
 
-const mes =
-document.getElementById(
-"inputMes"
-).value;
+        BC pode salvar somente o próprio nome.
+    */
 
-const nomeMes =
-obterNomeMes(mes);
+    let dadosParaSalvar;
 
-const dias =
-quantidadeDiasDoMes(mes);
 
+    if (usuarioEhAdmin()) {
 
-const dados = [];
+        dadosParaSalvar = {
+            ...escalasPorMes
+        };
 
+    }
 
-/* Cabeçalho */
+    else {
 
-const cabecalho = [
-"Fila"
-];
+        /*
+            Mantém os dados completos
+            que já foram carregados.
 
+            O BC só altera seus próprios
+            registros.
+        */
 
-for (
-let dia=1;
-dia<=dias;
-dia++
-) {
+        dadosParaSalvar = {
+            ...escalasPorMes
+        };
 
-const semana =
-obterDiaSemana(
-mes,
-dia
-);
+    }
 
-cabecalho.push(
-`${String(dia).padStart(2,"0")} - ${nomesDiasAbreviados[semana]}`
-);
 
-}
+    const registros =
+        Object.keys(dadosParaSalvar)
+            .filter(
+                mes =>
+                    /^\d{2}$/.test(mes)
+            )
+            .map(
+                mes => ({
 
+                    ano:
+                        ANO_ESCALA,
 
-dados.push(
-cabecalho
-);
+                    mes:
+                        mes,
 
+                    dados:
+                        dadosParaSalvar[mes] || {},
 
-/* Linhas */
+                    updated_by:
+                        usuarioAtual.id,
 
-filas.forEach(
-(fila,indexFila)=> {
+                    updated_at:
+                        new Date().toISOString()
 
-const linha = [
-fila.nome
-];
+                })
+            );
 
-for (
-let dia=1;
-dia<=dias;
-dia++
-) {
 
-const chave =
-`${indexFila}_${dia-1}`;
+    const {
+        error
+    } =
+        await supabaseClient
+            .from("escalas_mensais")
+            .upsert(
+                registros,
+                {
+                    onConflict:
+                        "ano,mes"
+                }
+            );
 
-linha.push(
-dadosEscalaMemoria[chave] || ""
-);
 
-}
+    if (error) {
 
-dados.push(
-linha
-);
+        console.error(error);
 
-});
+        mostrarStatus(
+            "❌ Erro ao sincronizar: " +
+            error.message
+        );
 
+        return false;
 
-/* Resumo */
+    }
 
-dados.push([]);
 
-dados.push([
-"RESUMO DE PLANTÕES"
-]);
+    mostrarStatus(
+        "☁️ Escala salva na nuvem."
+    );
 
-dados.push([
-"BC",
-"Total"
-]);
 
-
-const contagem = {};
-
-listaBCs.forEach(
-nome => contagem[nome]=0
-);
-
-
-Object.values(
-dadosEscalaMemoria
-).forEach(
-nome => {
-
-if (
-contagem[nome] !== undefined
-) {
-
-contagem[nome]++;
-
-}
-
-});
-
-
-listaBCs.forEach(
-nome => {
-
-dados.push([
-nome,
-contagem[nome]
-]);
-
-});
-
-
-const planilha =
-XLSX.utils.aoa_to_sheet(
-dados
-);
-
-
-planilha["!freeze"] = {
-xSplit:1,
-ySplit:1
-};
-
-
-const workbook =
-XLSX.utils.book_new();
-
-
-XLSX.utils.book_append_sheet(
-workbook,
-planilha,
-"Escala"
-);
-
-
-const nomeArquivo =
-`Escala_Bombeiros_Comunitarios_${nomeMes}_${ANO_ESCALA}.xlsx`;
-
-
-XLSX.writeFile(
-workbook,
-nomeArquivo
-);
-
-
-mostrarStatus(
-"📊 Excel exportado com sucesso."
-);
+    return true;
 
 }
 
 
 /* =========================================================
-   EXPORTAR CSV
+   CARREGAR ESCALA DA NUVEM
 ========================================================= */
 
-function exportarCSV() {
+async function carregarEscalaNuvem() {
 
-const mes =
-document.getElementById(
-"inputMes"
-).value;
+    if (
+        !supabaseClient ||
+        !usuarioAtual
+    ) {
 
-const nomeMes =
-obterNomeMes(mes);
+        return;
 
-const dias =
-quantidadeDiasDoMes(mes);
+    }
 
 
-let linhas = [];
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("escalas_mensais")
+                .select("mes,dados")
+                .eq(
+                    "ano",
+                    ANO_ESCALA
+                );
 
 
-let cabecalho = [
-"Fila"
-];
+        if (error) {
+
+            throw error;
+
+        }
 
 
-for (
-let dia=1;
-dia<=dias;
-dia++
-) {
+        /*
+            Guarda os dados completos
+            separadamente.
+        */
 
-const semana =
-obterDiaSemana(
-mes,
-dia
-);
+        (data || []).forEach(
+            linha => {
 
-cabecalho.push(
-`${String(dia).padStart(2,"0")} - ${nomesDiasAbreviados[semana]}`
-);
+                dadosEscalaCompletos[linha.mes] =
+                    linha.dados || {};
 
-}
+                escalasPorMes[linha.mes] =
+                    linha.dados || {};
 
-
-linhas.push(
-cabecalho
-);
+            }
+        );
 
 
-filas.forEach(
-(fila,indexFila)=> {
-
-let linha = [
-fila.nome
-];
-
-for (
-let dia=1;
-dia<=dias;
-dia++
-) {
-
-const chave =
-`${indexFila}_${dia-1}`;
-
-linha.push(
-dadosEscalaMemoria[chave] || ""
-);
-
-}
-
-linhas.push(
-linha
-);
-
-});
+        const mes =
+            document.getElementById(
+                "inputMes"
+            ).value || "09";
 
 
-const csv =
-linhas
-.map(
-linha =>
-linha
-.map(
-valor =>
-`"${String(valor).replace(/"/g,'""')}"`
-)
-.join(";")
-)
-.join("\n");
+        dadosEscalaCompletos = {
+            ...(escalasPorMes[mes] || {})
+        };
 
 
-const blob =
-new Blob(
-["\ufeff"+csv],
-{
-type:"text/csv;charset=utf-8;"
-}
-);
+        dadosEscalaMemoria =
+            filtrarDadosParaUsuario(
+                dadosEscalaCompletos
+            );
 
 
-const url =
-URL.createObjectURL(blob);
+        montarCalendarioDireto(mes);
+
+        recalcularTurnos();
 
 
-const link =
-document.createElement("a");
+        /*
+            Mantém cópia local.
+        */
 
-link.href =
-url;
-
-link.download =
-`Escala_${nomeMes}_${ANO_ESCALA}.csv`;
-
-link.click();
+        salvarNoLocalStorage();
 
 
-URL.revokeObjectURL(
-url
-);
+        mostrarStatus(
+            "☁️ Escala sincronizada com a nuvem."
+        );
 
 
-mostrarStatus(
-"📋 Arquivo CSV exportado."
-);
+    }
+    catch (e) {
+
+        console.error(e);
+
+        mostrarStatus(
+            "⚠️ Nuvem indisponível: " +
+            e.message
+        );
+
+    }
 
 }
 
 
 /* =========================================================
-   EXPORTAR PDF
+   ENTRAR ONLINE
 ========================================================= */
 
-function exportarPDF() {
+async function entrarOnline() {
 
-if (
-typeof window.jspdf === "undefined"
-) {
+    if (!supabaseClient) {
 
-alert(
-"❌ Biblioteca PDF não carregada.\n\n" +
-"Verifique sua conexão com a internet."
-);
+        setLoginStatus(
+            "Supabase não está configurado."
+        );
 
-return;
+        return;
 
-}
+    }
 
 
-const {
-jsPDF
-} = window.jspdf;
+    const email =
+        document.getElementById(
+            "loginEmail"
+        ).value.trim();
 
 
-const mes =
-document.getElementById(
-"inputMes"
-).value;
+    const senha =
+        document.getElementById(
+            "loginSenha"
+        ).value;
 
-const nomeMes =
-obterNomeMes(mes);
 
-const dias =
-quantidadeDiasDoMes(mes);
+    if (
+        !email ||
+        !senha
+    ) {
 
+        setLoginStatus(
+            "Informe e-mail e senha."
+        );
 
-const pdf =
-new jsPDF({
-orientation:"landscape",
-unit:"mm",
-format:"a3"
-});
+        return;
 
+    }
 
-pdf.setFontSize(16);
 
-pdf.text(
-`Escala de Plantões - Bombeiros Comunitários`,
-14,
-12
-);
+    setLoginStatus(
+        "Entrando..."
+    );
 
 
-pdf.setFontSize(11);
+    const {
+        data,
+        error
+    } =
+        await supabaseClient.auth.signInWithPassword(
+            {
+                email,
+                password: senha
+            }
+        );
 
-pdf.text(
-`${nomeMes} de ${ANO_ESCALA}`,
-14,
-19
-);
 
+    if (error) {
 
-const cabecalho = [
-["Fila"]
-];
+        setLoginStatus(
+            "Erro: " +
+            error.message
+        );
 
+        return;
 
-for (
-let dia=1;
-dia<=dias;
-dia++
-) {
+    }
 
-const semana =
-obterDiaSemana(
-mes,
-dia
-);
 
-cabecalho[0].push(
-`${String(dia).padStart(2,"0")}\n${nomesDiasAbreviados[semana]}`
-);
+    usuarioAtual =
+        data.user;
 
-}
 
-
-const corpo = [];
-
-
-filas.forEach(
-(fila,indexFila)=> {
-
-const linha = [
-fila.nome
-];
-
-for (
-let dia=1;
-dia<=dias;
-dia++
-) {
-
-const chave =
-`${indexFila}_${dia-1}`;
-
-linha.push(
-dadosEscalaMemoria[chave] || ""
-);
-
-}
-
-corpo.push(
-linha
-);
-
-});
-
-
-pdf.autoTable({
-
-head:cabecalho,
-
-body:corpo,
-
-startY:25,
-
-theme:"grid",
-
-styles:{
-fontSize:6,
-cellPadding:1,
-halign:"center",
-valign:"middle"
-},
-
-headStyles:{
-fontSize:6,
-fontStyle:"bold"
-},
-
-columnStyles:{
-0:{
-cellWidth:28
-}
-}
-
-});
-
-
-const finalY =
-pdf.lastAutoTable.finalY || 30;
-
-
-pdf.setFontSize(10);
-
-pdf.text(
-"Resumo de plantões:",
-14,
-finalY + 10
-);
-
-
-const contagem = {};
-
-listaBCs.forEach(
-nome =>
-contagem[nome]=0
-);
-
-
-Object.values(
-dadosEscalaMemoria
-).forEach(
-nome => {
-
-if (
-contagem[nome] !== undefined
-) {
-
-contagem[nome]++;
-
-}
-
-});
-
-
-const resumoTexto =
-listaBCs
-.filter(
-nome =>
-contagem[nome] > 0
-)
-.map(
-nome =>
-`${nome}: ${contagem[nome]}`
-)
-.join("    |    ");
-
-
-pdf.setFontSize(8);
-
-pdf.text(
-resumoTexto || "Nenhum plantão lançado.",
-14,
-finalY + 17
-);
-
-
-pdf.save(
-`Escala_Bombeiros_Comunitarios_${nomeMes}_${ANO_ESCALA}.pdf`
-);
-
-
-mostrarStatus(
-"📄 PDF gerado com sucesso."
-);
+    await prepararUsuarioOnline();
 
 }
 
 
 /* =========================================================
-   BACKUP
+   PREPARAR USUÁRIO
 ========================================================= */
 
-function fazerBackup() {
+async function prepararUsuarioOnline() {
 
-salvarNoLocalStorage();
+    try {
 
-
-const backup = {
-
-sistema:
-"Escala Bombeiros Comunitários",
-
-versao:
-"3.0",
-
-ano:
-ANO_ESCALA,
-
-dataBackup:
-new Date().toISOString(),
-
-escalas:
-escalasPorMes
-
-};
+        const {
+            data: perfil,
+            error
+        } =
+            await supabaseClient
+                .from("profiles")
+                .select("*")
+                .eq(
+                    "id",
+                    usuarioAtual.id
+                )
+                .single();
 
 
-const texto =
-JSON.stringify(
-backup,
-null,
-2
-);
+        if (error) {
+
+            throw error;
+
+        }
 
 
-const blob =
-new Blob(
-[texto],
-{
-type:"application/json"
-}
-);
+        perfilAtual =
+            perfil;
 
 
-const url =
-URL.createObjectURL(blob);
+        /*
+            Aceita apenas administrador
+            ou BC cadastrado.
+        */
+
+        if (
+            !perfilAtual.nome &&
+            !usuarioEhAdmin()
+        ) {
+
+            throw new Error(
+                "Perfil do usuário não possui nome cadastrado."
+            );
+
+        }
 
 
-const link =
-document.createElement("a");
-
-link.href =
-url;
-
-link.download =
-`BACKUP_ESCALA_BOMBEIROS_COMUNITARIOS_${ANO_ESCALA}.json`;
-
-link.click();
+        document.getElementById(
+            "loginOverlay"
+        ).style.display = "none";
 
 
-URL.revokeObjectURL(
-url
-);
+        const u =
+            document.getElementById(
+                "usuarioOnline"
+            );
 
 
-mostrarStatus(
-"💾 Backup criado com sucesso."
-);
+        u.style.display =
+            "block";
 
 
-alert(
-"💾 Backup criado!\n\n" +
-"Guarde o arquivo JSON em um local seguro."
-);
+        u.textContent =
+            (
+                perfil.nome ||
+                perfil.email
+            ) +
+            " · " +
+            perfil.role;
+
+
+        /*
+            Remove qualquer marcação
+            antiga de modo offline.
+        */
+
+        localStorage.removeItem(
+            "modoOfflineEscalaBC"
+        );
+
+
+        await carregarEscalaNuvem();
+
+
+        aplicarPermissoesUsuario();
+
+
+    }
+    catch (e) {
+
+        console.error(e);
+
+        setLoginStatus(
+            "Não foi possível carregar seu perfil: " +
+            e.message
+        );
+
+    }
 
 }
 
 
 /* =========================================================
-   RESTAURAR BACKUP
+   INICIALIZAÇÃO ONLINE
 ========================================================= */
 
-function restaurarBackup(event) {
+async function inicializarOnline() {
 
-const arquivo =
-event.target.files[0];
+    if (!supabaseConfigurado()) {
 
+        console.warn(
+            "Supabase ainda não configurado."
+        );
 
-if (!arquivo) {
-return;
-}
+        /*
+            Sem Supabase:
+            não liberar acesso à escala.
+        */
 
-
-const leitor =
-new FileReader();
-
-
-leitor.onload =
-function(e) {
-
-try {
-
-const backup =
-JSON.parse(
-e.target.result
-);
+        document.getElementById(
+            "loginOverlay"
+        ).style.display = "flex";
 
 
-let dadosRestaurados;
+        setLoginStatus(
+            "O sistema online ainda não está configurado."
+        );
 
 
-if (
-backup.escalas
-) {
+        return;
 
-dadosRestaurados =
-backup.escalas;
-
-}
-else {
-
-dadosRestaurados =
-backup;
-
-}
+    }
 
 
-if (
-!dadosRestaurados ||
-typeof dadosRestaurados !== "object"
-) {
-
-throw new Error(
-"Formato inválido."
-);
-
-}
-
-
-const confirmar =
-confirm(
-"⚠️ Restaurar este backup?\n\n" +
-"Os dados atuais serão substituídos pelos dados existentes no backup."
-);
+    supabaseClient =
+        window.supabase.createClient(
+            window.SUPABASE_URL,
+            window.SUPABASE_PUBLISHABLE_KEY,
+            {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            }
+        );
 
 
-if (!confirmar) {
-
-event.target.value = "";
-
-return;
-
-}
+    document.getElementById(
+        "btnEntrar"
+    ).onclick =
+        entrarOnline;
 
 
-for (
-let mes=1;
-mes<=12;
-mes++
-) {
-
-const codigo =
-String(mes)
-.padStart(2,"0");
+    const {
+        data
+    } =
+        await supabaseClient.auth.getSession();
 
 
-escalasPorMes[codigo] =
-dadosRestaurados[codigo] || {};
+    if (
+        data &&
+        data.session
+    ) {
 
-}
-
-
-localStorage.setItem(
-CHAVE_LOCAL_STORAGE,
-JSON.stringify(escalasPorMes)
-);
+        usuarioAtual =
+            data.session.user;
 
 
-const mesAtual =
-document.getElementById(
-"inputMes"
-).value;
+        await prepararUsuarioOnline();
 
+    }
 
-dadosEscalaMemoria = {
+    else {
 
-...(escalasPorMes[mesAtual] || {})
+        document.getElementById(
+            "loginOverlay"
+        ).style.display =
+            "flex";
 
-};
-
-
-montarCalendarioDireto(
-mesAtual
-);
-
-recalcularTurnos();
-
-
-mostrarStatus(
-"♻️ Backup restaurado com sucesso."
-);
-
-
-alert(
-"♻️ Backup restaurado com sucesso!"
-);
-
-}
-
-catch(erro) {
-
-console.error(erro);
-
-alert(
-"❌ Não foi possível restaurar o backup.\n\n" +
-"Verifique se o arquivo JSON é um backup válido."
-);
-
-}
-
-
-event.target.value = "";
-
-};
-
-
-leitor.readAsText(
-arquivo
-);
+    }
 
 }
 
 
 /* =========================================================
-   LIMPAR MÊS
-========================================================= */
-
-function limparTodaAEscala() {
-
-const mes =
-document.getElementById(
-"inputMes"
-).value;
-
-const nomeMes =
-obterNomeMes(mes);
-
-
-const confirmar =
-confirm(
-`⚠️ ATENÇÃO!\n\n` +
-`Deseja apagar todos os plantões de ${nomeMes} de ${ANO_ESCALA}?\n\n` +
-`Somente este mês será apagado.`
-);
-
-
-if (!confirmar) {
-return;
-}
-
-
-dadosEscalaMemoria = {};
-
-escalasPorMes[mes] = {};
-
-
-salvarNoLocalStorage();
-
-
-montarCalendarioDireto(
-mes
-);
-
-recalcularTurnos();
-
-
-mostrarStatus(
-`🧹 Escala de ${nomeMes} foi limpa.`
-);
-
-}
-
-
-/* =========================================================
-   V3 - SUPABASE / SINCRONIZAÇÃO ONLINE
-========================================================= */
-let supabaseClient = null;
-let usuarioAtual = null;
-let perfilAtual = null;
-
-function supabaseConfigurado(){
-  return window.SUPABASE_URL && !window.SUPABASE_URL.includes('COLE_AQUI') &&
-         window.SUPABASE_PUBLISHABLE_KEY && !window.SUPABASE_PUBLISHABLE_KEY.includes('COLE_AQUI');
-}
-
-function setLoginStatus(msg, ok=false){
-  const el=document.getElementById('loginStatus');
-  if(el){ el.textContent=msg; el.style.color=ok?'#0b5d1e':'#b00020'; }
-}
-
-async function entrarOnline(){
-  if(!supabaseClient) return;
-  const email=document.getElementById('loginEmail').value.trim();
-  const senha=document.getElementById('loginSenha').value;
-  if(!email || !senha){ setLoginStatus('Informe e-mail e senha.'); return; }
-  setLoginStatus('Entrando...');
-  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:senha});
-  if(error){ setLoginStatus('Erro: '+error.message); return; }
-  usuarioAtual=data.user;
-  await prepararUsuarioOnline();
-}
-
-async function criarContaOnline(){
-  if(!supabaseClient) return;
-  const email=document.getElementById('loginEmail').value.trim();
-  const senha=document.getElementById('loginSenha').value;
-  if(!email || !senha){ setLoginStatus('Informe e-mail e senha para criar a conta.'); return; }
-  if(senha.length<6){ setLoginStatus('Use uma senha com pelo menos 6 caracteres.'); return; }
-  setLoginStatus('Criando conta...');
-  const {data,error}=await supabaseClient.auth.signUp({email,password:senha});
-  if(error){ setLoginStatus('Erro: '+error.message); return; }
-  if(data.session){ usuarioAtual=data.user; await prepararUsuarioOnline(); }
-  else setLoginStatus('Conta criada. Se o projeto exigir confirmação por e-mail, confirme o e-mail e depois entre.', true);
-}
-
-async function prepararUsuarioOnline(){
-  try{
-    const {data:perfil,error}=await supabaseClient.from('profiles').select('*').eq('id',usuarioAtual.id).single();
-    if(error) throw error;
-    perfilAtual=perfil;
-    document.getElementById('loginOverlay').style.display='none';
-    const u=document.getElementById('usuarioOnline');
-    u.style.display='block';
-    u.textContent=(perfil.nome||perfil.email)+' · '+perfil.role;
-    await carregarEscalaNuvem();
-  }catch(e){
-    setLoginStatus('Não foi possível carregar seu perfil: '+e.message);
-  }
-}
-
-async function carregarEscalaNuvem(){
-  if(!supabaseClient || !usuarioAtual) return;
-  try{
-    const {data,error}=await supabaseClient.from('escalas_mensais').select('mes,dados').eq('ano',ANO_ESCALA);
-    if(error) throw error;
-    (data||[]).forEach(linha=>{ escalasPorMes[linha.mes]=linha.dados||{}; });
-    const mes=document.getElementById('inputMes').value||'09';
-    dadosEscalaMemoria={...(escalasPorMes[mes]||{})};
-    montarCalendarioDireto(mes); recalcularTurnos();
-    salvarNoLocalStorage();
-    mostrarStatus('☁️ Escala sincronizada com a nuvem.');
-  }catch(e){ mostrarStatus('⚠️ Nuvem indisponível: '+e.message); }
-}
-
-async function salvarEscalaNaNuvem(){
-  if(!supabaseClient || !usuarioAtual) return false;
-  if(perfilAtual && perfilAtual.role!=='admin'){
-    mostrarStatus('🔒 Seu usuário pode consultar a escala, mas não alterá-la.');
-    return false;
-  }
-  salvarEscalaAtualNaMemoria();
-  const registros=Object.keys(escalasPorMes).filter(m=>/^\d{2}$/.test(m)).map(m=>({ano:ANO_ESCALA,mes:m,dados:escalasPorMes[m]||{},updated_by:usuarioAtual.id,updated_at:new Date().toISOString()}));
-  const {error}=await supabaseClient.from('escalas_mensais').upsert(registros,{onConflict:'ano,mes'});
-  if(error){ console.error(error); mostrarStatus('❌ Erro ao sincronizar: '+error.message); return false; }
-  mostrarStatus('☁️ Escala salva na nuvem.');
-  return true;
-}
-
-async function inicializarOnline(){
-  if(!supabaseConfigurado()){
-    console.warn('Supabase ainda não configurado. O aplicativo continua em modo local.');
-    return;
-  }
-  supabaseClient=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  document.getElementById('btnEntrar').onclick=entrarOnline;
-  document.getElementById('btnCriarConta').onclick=criarContaOnline;
-  const btnOffline=document.getElementById('btnOffline');
-  if(btnOffline){ btnOffline.onclick=()=>{ document.getElementById('loginOverlay').style.display='none'; mostrarStatus('📱 Modo offline: alterações ficam neste aparelho até você entrar online.'); }; }
-  const {data}=await supabaseClient.auth.getSession();
-  if(data.session){ usuarioAtual=data.session.user; await prepararUsuarioOnline(); }
-  else document.getElementById('loginOverlay').style.display='flex';
-}
-
-const salvarLocalOriginalV3=salvarEEstocarArquivo;
-salvarEEstocarArquivo=async function(){
-  const localOk=salvarNoLocalStorage();
-  if(!localOk){ alert('❌ Erro ao salvar localmente.'); return; }
-  if(supabaseClient && usuarioAtual){
-    const ok=await salvarEscalaNaNuvem();
-    if(ok) alert('☁️ Escala salva localmente e na nuvem.');
-  }else{
-    mostrarStatus('✅ Escala salva neste aparelho.');
-    alert('✅ Alterações salvas neste aparelho.');
-  }
-};
-
-/* =========================================================
-   INICIALIZAÇÃO
+   INICIALIZAÇÃO DA APLICAÇÃO
 ========================================================= */
 
 function inicializarAplicacao() {
 
-carregarDadosSalvos();
+    carregarDadosSalvos();
 
 
-const select =
-document.getElementById(
-"inputMes"
-);
+    const select =
+        document.getElementById(
+            "inputMes"
+        );
 
 
-const mes =
-select.value || "09";
+    const mes =
+        select.value || "09";
 
 
-dadosEscalaMemoria = {
-
-...(escalasPorMes[mes] || {})
-
-};
+    dadosEscalaCompletos = {
+        ...(escalasPorMes[mes] || {})
+    };
 
 
-montarCalendarioDireto(
-mes
-);
-
-recalcularTurnos();
+    dadosEscalaMemoria = {
+        ...(escalasPorMes[mes] || {})
+    };
 
 
-document.getElementById(
-"infoMes"
-).textContent =
-`📅 Escala atual: ${obterNomeMes(mes)} de ${ANO_ESCALA} — ${quantidadeDiasDoMes(mes)} dias`;
+    montarCalendarioDireto(mes);
+
+    recalcularTurnos();
 
 
-mostrarStatus(
-`✅ Sistema pronto — ${obterNomeMes(mes)} de ${ANO_ESCALA}.`
-);
+    document.getElementById(
+        "infoMes"
+    ).textContent =
+        `📅 Escala atual: ${obterNomeMes(mes)} de ${ANO_ESCALA} — ${quantidadeDiasDoMes(mes)} dias`;
+
+
+    mostrarStatus(
+        `🔐 Aguardando login — ${obterNomeMes(mes)} de ${ANO_ESCALA}.`
+    );
 
 }
-
-
-/* =========================================================
-   ATUALIZA INFORMAÇÃO DO MÊS
-========================================================= */
-
-const funcaoOriginalTroca =
-trocarMesManual;
-
-
-trocarMesManual =
-function() {
-
-funcaoOriginalTroca();
-
-
-const mes =
-document.getElementById(
-"inputMes"
-).value;
-
-
-document.getElementById(
-"infoMes"
-).textContent =
-`📅 Escala atual: ${obterNomeMes(mes)} de ${ANO_ESCALA} — ${quantidadeDiasDoMes(mes)} dias`;
-
-};
 
 
 /* =========================================================
@@ -2573,35 +2581,71 @@ document.getElementById(
 ========================================================= */
 
 if (
-document.readyState === "loading"
+    document.readyState === "loading"
 ) {
 
-document.addEventListener(
-"DOMContentLoaded",
-inicializarAplicacao
-);
+    document.addEventListener(
+        "DOMContentLoaded",
+        inicializarAplicacao
+    );
 
 }
 else {
 
-inicializarAplicacao();
+    inicializarAplicacao();
 
 }
 
+
+/* =========================================================
+   LOGIN ONLINE
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        setTimeout(
+            inicializarOnline,
+            300
+        );
+
+    }
+);
+
 </script>
 
+
+<!-- =========================
+     SERVICE WORKER / PWA
+========================= -->
 
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch(console.error);
-  });
+
+if (
+    "serviceWorker" in navigator
+) {
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker
+                .register(
+                    "./service-worker.js"
+                )
+                .catch(
+                    console.error
+                );
+
+        }
+    );
+
 }
+
 </script>
+
 
 </body>
-</html>
 
-<script>
-document.addEventListener('DOMContentLoaded',()=>{ setTimeout(inicializarOnline,300); });
-</script>
+</html>
