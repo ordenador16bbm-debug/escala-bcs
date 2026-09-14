@@ -1125,57 +1125,31 @@ function usuarioEhAdmin() {
 
 function obterNomeUsuario() {
 
-    if (
-        !perfilAtual &&
-        !usuarioAtual
-    ) {
-
+    if (!perfilAtual && !usuarioAtual) {
         return "";
-
     }
 
+    // Para administrador, o nome do perfil pode ser usado normalmente.
+    // Para BC, só aceitamos um nome que realmente esteja na lista de BCs.
+    const nomePerfil = String(
+        perfilAtual?.nome || ""
+    ).trim().toUpperCase();
 
-    /*
-        Primeiro tenta o nome
-        cadastrado no perfil.
-    */
-
-    const nomePerfil =
-        String(
-            perfilAtual?.nome || ""
-        )
-        .trim()
-        .toUpperCase();
-
-
-    if (nomePerfil) {
-
+    if (nomePerfil && listaBCs.includes(nomePerfil)) {
         return nomePerfil;
-
     }
 
-
-    /*
-        Se não existir nome no perfil,
-        identifica pelo e-mail.
-    */
-
-    const email =
-        String(
-            perfilAtual?.email ||
-            usuarioAtual?.email ||
-            ""
-        )
-        .trim()
-        .toLowerCase();
-
-
-    return (
-        EMAIL_PARA_BC[email] ||
+    // Se o perfil estiver com e-mail no campo "nome" ou estiver vazio,
+    // identifica o BC pelo e-mail da conta autenticada.
+    const email = String(
+        usuarioAtual?.email ||
+        perfilAtual?.email ||
         ""
-    );
+    ).trim().toLowerCase();
 
+    return EMAIL_PARA_BC[email] || "";
 }
+
 
 
 /* =========================================================
@@ -2990,76 +2964,49 @@ function mostrarUsuarioOnline() {
             "usuarioOnline"
         );
 
-
     const nomeElemento =
         document.getElementById(
             "usuarioNomeOnline"
         );
 
-
     if (!elemento) {
         return;
     }
 
-
     let texto = "";
 
+    if (usuarioEhAdmin()) {
 
-    if (perfilAtual) {
+        texto = String(
+            perfilAtual?.nome ||
+            perfilAtual?.email ||
+            usuarioAtual?.email ||
+            "Administrador"
+        ).trim();
 
-        /*
-            Administrador:
-            mantém nome/e-mail do perfil.
-
-            BC:
-            usa o nome identificado
-            pelo e-mail.
-        */
-
-        const nomeExibicao =
-            usuarioEhAdmin()
-
-                ? (
-                    perfilAtual.nome ||
-                    perfilAtual.email ||
-                    usuarioAtual?.email ||
-                    ""
-                )
-
-                : obterNomeUsuario();
-
-
-        texto =
-            String(
-                nomeExibicao
-            );
-
-
-        if (
-            perfilAtual.role
-        ) {
-
+        if (perfilAtual?.role) {
             texto +=
                 " · " +
-                perfilAtual.role;
-
+                String(perfilAtual.role).trim();
         }
 
-    }
+    } else {
 
+        // Para BARBARA e CASTELACI, nunca mostra o e-mail.
+        texto = obterNomeUsuario();
+
+        if (!texto) {
+            texto = "Usuário";
+        }
+    }
 
     if (nomeElemento) {
-
-        nomeElemento.textContent =
-            texto;
-
+        nomeElemento.textContent = texto;
     }
 
-
-    elemento.style.display =
-        "flex";
-
+    elemento.style.display = "flex";
 }
+
 
 
 /* =========================================================
