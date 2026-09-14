@@ -53,6 +53,10 @@ Planilha Oficial de Escala de Plantões - Bombeiros Comunitários
 
 <style>
 
+/* =========================================================
+   ESTILO GERAL
+========================================================= */
+
 * {
     box-sizing: border-box;
 }
@@ -75,9 +79,10 @@ body {
     margin: auto;
 }
 
-/* =========================
+
+/* =========================================================
    CABEÇALHO
-========================= */
+========================================================= */
 
 header {
     background: #0b5d1e;
@@ -98,9 +103,10 @@ header p {
     font-size: 15px;
 }
 
-/* =========================
+
+/* =========================================================
    PAINEL
-========================= */
+========================================================= */
 
 .painel-controles {
     background: white;
@@ -151,9 +157,10 @@ button:hover {
     color: white;
 }
 
-/* =========================
+
+/* =========================================================
    BOTÃO SAIR
-========================= */
+========================================================= */
 
 .btn-sair {
     background: #b00020;
@@ -168,9 +175,10 @@ button:hover {
     background: #8b0019;
 }
 
-/* =========================
+
+/* =========================================================
    INFORMAÇÃO DO MÊS
-========================= */
+========================================================= */
 
 .info-mes {
     background: #e8f5e9;
@@ -179,9 +187,10 @@ button:hover {
     font-weight: bold;
 }
 
-/* =========================
+
+/* =========================================================
    TABELA
-========================= */
+========================================================= */
 
 .tabela-container {
     background: white;
@@ -256,9 +265,10 @@ thead .coluna-fila {
     cursor: not-allowed;
 }
 
-/* =========================
+
+/* =========================================================
    CORES DAS FILAS
-========================= */
+========================================================= */
 
 .linha-noturno {
     background-color: #e2efda;
@@ -284,9 +294,10 @@ thead .coluna-fila {
     background-color: #fce4d6;
 }
 
-/* =========================
+
+/* =========================================================
    RESUMO
-========================= */
+========================================================= */
 
 .resumo-container {
     margin-top: 20px;
@@ -329,9 +340,10 @@ thead .coluna-fila {
     font-weight: bold;
 }
 
-/* =========================
+
+/* =========================================================
    RODAPÉ
-========================= */
+========================================================= */
 
 .rodape {
     margin-top: 15px;
@@ -340,9 +352,10 @@ thead .coluna-fila {
     font-size: 12px;
 }
 
-/* =========================
+
+/* =========================================================
    STATUS
-========================= */
+========================================================= */
 
 .status {
     margin-top: 10px;
@@ -353,9 +366,10 @@ thead .coluna-fila {
     font-size: 13px;
 }
 
-/* =========================
+
+/* =========================================================
    LOGIN
-========================= */
+========================================================= */
 
 #loginOverlay {
     display: none;
@@ -409,9 +423,10 @@ thead .coluna-fila {
     margin-bottom: 0;
 }
 
-/* =========================
+
+/* =========================================================
    USUÁRIO ONLINE
-========================= */
+========================================================= */
 
 #usuarioOnline {
     position: fixed;
@@ -432,9 +447,10 @@ thead .coluna-fila {
     display: inline-block;
 }
 
-/* =========================
+
+/* =========================================================
    RESPONSIVO
-========================= */
+========================================================= */
 
 @media (max-width: 800px) {
 
@@ -514,12 +530,13 @@ thead .coluna-fila {
 
 </head>
 
+
 <body>
 
 
-<!-- =========================
+<!-- =========================================================
      LOGIN
-========================= -->
+========================================================= -->
 
 <div id="loginOverlay">
 
@@ -550,6 +567,7 @@ thead .coluna-fila {
         <button
             id="btnEntrar"
             class="btn-entrar"
+            type="button"
         >
             Entrar
         </button>
@@ -561,9 +579,9 @@ thead .coluna-fila {
 </div>
 
 
-<!-- =========================
+<!-- =========================================================
      USUÁRIO ONLINE
-========================= -->
+========================================================= -->
 
 <div id="usuarioOnline">
 
@@ -583,6 +601,10 @@ thead .coluna-fila {
 <div class="container">
 
 
+<!-- =========================================================
+     CABEÇALHO
+========================================================= -->
+
 <header>
 
     <h1>
@@ -596,9 +618,9 @@ thead .coluna-fila {
 </header>
 
 
-<!-- =========================
+<!-- =========================================================
      CONTROLES
-========================= -->
+========================================================= -->
 
 <div class="painel-controles">
 
@@ -656,6 +678,7 @@ thead .coluna-fila {
     <button
         id="btnSalvar"
         class="btn-salvar"
+        type="button"
         onclick="salvarEEstocarArquivo()"
     >
         💾 Salvar
@@ -665,6 +688,10 @@ thead .coluna-fila {
 </div>
 
 
+<!-- =========================================================
+     INFORMAÇÃO DO MÊS
+========================================================= -->
+
 <div
     class="info-mes"
     id="infoMes"
@@ -672,9 +699,9 @@ thead .coluna-fila {
 </div>
 
 
-<!-- =========================
+<!-- =========================================================
      TABELA
-========================= -->
+========================================================= -->
 
 <div class="tabela-container">
 
@@ -710,9 +737,9 @@ Dias da Semana ➔
 </div>
 
 
-<!-- =========================
+<!-- =========================================================
      RESUMO
-========================= -->
+========================================================= -->
 
 <div
     class="resumo-container"
@@ -734,6 +761,10 @@ Dias da Semana ➔
 </div>
 
 
+<!-- =========================================================
+     STATUS
+========================================================= -->
+
 <div
     class="status"
     id="statusSistema"
@@ -741,6 +772,10 @@ Dias da Semana ➔
     Sistema carregado.
 </div>
 
+
+<!-- =========================================================
+     RODAPÉ
+========================================================= -->
 
 <div class="rodape">
 
@@ -770,7 +805,20 @@ const CHAVE_LOCAL_STORAGE =
 
 
 /* =========================================================
-   BCs
+   IDENTIFICAÇÃO DOS BCs PELO E-MAIL
+========================================================= */
+
+const EMAIL_PARA_BC = {
+
+    "ahcastelaci@gmail.com": "CASTELACI",
+
+    "paah@hotmail.com": "BARBARA"
+
+};
+
+
+/* =========================================================
+   LISTA DE BCs
 ========================================================= */
 
 const listaBCs = [
@@ -882,7 +930,7 @@ const filas = [
 
 
 /* =========================================================
-   DIAS
+   DIAS DA SEMANA
 ========================================================= */
 
 const nomesDiasSemana = [
@@ -989,27 +1037,27 @@ const rascunhoOriginalJunho = {
 
 
 /* =========================================================
-   MEMÓRIA
+   ESCALAS
 ========================================================= */
 
 let escalasPorMes = {
 
-    "01":{},
-    "02":{},
-    "03":{},
-    "04":{},
-    "05":{},
+    "01": {},
+    "02": {},
+    "03": {},
+    "04": {},
+    "05": {},
 
-    "06":{
+    "06": {
         ...rascunhoOriginalJunho
     },
 
-    "07":{},
-    "08":{},
-    "09":{},
-    "10":{},
-    "11":{},
-    "12":{}
+    "07": {},
+    "08": {},
+    "09": {},
+    "10": {},
+    "11": {},
+    "12": {}
 
 };
 
@@ -1031,7 +1079,7 @@ let perfilAtual = null;
 
 
 /* =========================================================
-   SUPABASE CONFIGURADO
+   VERIFICAR SUPABASE
 ========================================================= */
 
 function supabaseConfigurado() {
@@ -1047,7 +1095,7 @@ function supabaseConfigurado() {
 
 
 /* =========================================================
-   ADMINISTRADOR
+   VERIFICAR ADMINISTRADOR
 ========================================================= */
 
 function usuarioEhAdmin() {
@@ -1072,27 +1120,66 @@ function usuarioEhAdmin() {
 
 
 /* =========================================================
-   NOME DO USUÁRIO
+   OBTER NOME DO USUÁRIO
 ========================================================= */
 
 function obterNomeUsuario() {
 
-    if (!perfilAtual) {
+    if (
+        !perfilAtual &&
+        !usuarioAtual
+    ) {
+
         return "";
+
     }
 
-    return String(
-        perfilAtual.nome ||
+
+    /*
+        Primeiro tenta o nome
+        cadastrado no perfil.
+    */
+
+    const nomePerfil =
+        String(
+            perfilAtual?.nome || ""
+        )
+        .trim()
+        .toUpperCase();
+
+
+    if (nomePerfil) {
+
+        return nomePerfil;
+
+    }
+
+
+    /*
+        Se não existir nome no perfil,
+        identifica pelo e-mail.
+    */
+
+    const email =
+        String(
+            perfilAtual?.email ||
+            usuarioAtual?.email ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    return (
+        EMAIL_PARA_BC[email] ||
         ""
-    )
-    .trim()
-    .toUpperCase();
+    );
 
 }
 
 
 /* =========================================================
-   STATUS
+   MOSTRAR STATUS
 ========================================================= */
 
 function mostrarStatus(texto) {
@@ -1113,7 +1200,7 @@ function mostrarStatus(texto) {
 
 
 /* =========================================================
-   LOGIN STATUS
+   STATUS DO LOGIN
 ========================================================= */
 
 function setLoginStatus(
@@ -1202,10 +1289,15 @@ function obterNomeMes(mes) {
 
 
 /* =========================================================
-   CARREGAR LOCAL STORAGE
+   CARREGAR LOCAL
 ========================================================= */
 
 function carregarDadosSalvos() {
+
+    /*
+        Somente o administrador
+        deve usar a cópia completa local.
+    */
 
     try {
 
@@ -1247,7 +1339,10 @@ function carregarDadosSalvos() {
     }
     catch (erro) {
 
-        console.error(erro);
+        console.error(
+            "Erro ao carregar dados locais:",
+            erro
+        );
 
     }
 
@@ -1280,14 +1375,14 @@ function salvarEscalaAtualNaMemoria() {
 
 
 /* =========================================================
-   SALVAR LOCAL
+   SALVAR LOCALMENTE
 ========================================================= */
 
 function salvarNoLocalStorage() {
 
     /*
-       Para BC não guardar uma cópia
-       completa da escala no aparelho.
+        BC não grava a escala completa
+        no aparelho.
     */
 
     if (!usuarioEhAdmin()) {
@@ -1313,7 +1408,10 @@ function salvarNoLocalStorage() {
     }
     catch (erro) {
 
-        console.error(erro);
+        console.error(
+            "Erro ao salvar localmente:",
+            erro
+        );
 
         return false;
 
@@ -1338,10 +1436,13 @@ function filtrarDadosParaUsuario(
 
     }
 
+
     const nomeUsuario =
         obterNomeUsuario();
 
+
     const filtrados = {};
+
 
     Object.keys(
         dados || {}
@@ -1355,6 +1456,7 @@ function filtrarDadosParaUsuario(
                 .trim()
                 .toUpperCase();
 
+
             if (
                 nome &&
                 nome === nomeUsuario
@@ -1367,6 +1469,7 @@ function filtrarDadosParaUsuario(
 
         }
     );
+
 
     return filtrados;
 
@@ -1403,7 +1506,10 @@ function trocarMesManual() {
         );
 
 
-    montarCalendarioDireto(mes);
+    montarCalendarioDireto(
+        mes
+    );
+
 
     recalcularTurnos();
 
@@ -1425,7 +1531,7 @@ function trocarMesManual() {
 
 
 /* =========================================================
-   CABEÇALHO
+   CABEÇALHO DO CALENDÁRIO
 ========================================================= */
 
 function montarCabecalhoCalendario(
@@ -1442,8 +1548,11 @@ function montarCabecalhoCalendario(
             "rowSemanas"
         );
 
+
     const dias =
-        quantidadeDiasDoMes(mes);
+        quantidadeDiasDoMes(
+            mes
+        );
 
 
     rowDatas.innerHTML =
@@ -1546,7 +1655,7 @@ function montarCabecalhoCalendario(
 
 
 /* =========================================================
-   MONTAR TABELA
+   MONTAR CALENDÁRIO
 ========================================================= */
 
 function montarCalendarioDireto(
@@ -1557,6 +1666,12 @@ function montarCalendarioDireto(
         document.getElementById(
             "corpoTabela"
         );
+
+
+    if (!corpo) {
+        return;
+    }
+
 
     corpo.innerHTML = "";
 
@@ -1580,6 +1695,7 @@ function montarCalendarioDireto(
                     "tr"
                 );
 
+
             tr.className =
                 fila.classe;
 
@@ -1589,11 +1705,14 @@ function montarCalendarioDireto(
                     "td"
                 );
 
+
             tdNome.className =
                 "coluna-fila";
 
+
             tdNome.textContent =
                 fila.nome;
+
 
             tr.appendChild(
                 tdNome
@@ -1611,6 +1730,7 @@ function montarCalendarioDireto(
                         "td"
                     );
 
+
                 td.className =
                     "dia";
 
@@ -1624,6 +1744,7 @@ function montarCalendarioDireto(
                         "select"
                     );
 
+
                 select.className =
                     "select-plantao";
 
@@ -1636,10 +1757,9 @@ function montarCalendarioDireto(
                     obterNomeUsuario();
 
 
-                /*
-                    ADMINISTRADOR
-                    vê todos os nomes.
-                */
+                /* =================================================
+                   ADMINISTRADOR
+                ================================================= */
 
                 if (ehAdmin) {
 
@@ -1648,10 +1768,12 @@ function montarCalendarioDireto(
                             "option"
                         );
 
+
                     vazio.value = "";
 
                     vazio.textContent =
                         "—";
+
 
                     select.appendChild(
                         vazio
@@ -1666,11 +1788,14 @@ function montarCalendarioDireto(
                                     "option"
                                 );
 
+
                             option.value =
                                 nome;
 
+
                             option.textContent =
                                 nome;
+
 
                             select.appendChild(
                                 option
@@ -1681,7 +1806,7 @@ function montarCalendarioDireto(
 
 
                     const valor =
-                        dadosEscalaMemoria[
+                        dadosEscalaCompletos[
                             chave
                         ] || "";
 
@@ -1692,14 +1817,9 @@ function montarCalendarioDireto(
                 }
 
 
-                /*
-                    BC
-                    vê somente o próprio nome
-                    nos seus lançamentos.
-
-                    Nos demais campos,
-                    o conteúdo fica oculto.
-                */
+                /* =================================================
+                   BC
+                ================================================= */
 
                 else {
 
@@ -1708,26 +1828,36 @@ function montarCalendarioDireto(
                             "option"
                         );
 
+
                     vazio.value = "";
 
                     vazio.textContent =
                         "—";
+
 
                     select.appendChild(
                         vazio
                     );
 
 
+                    /*
+                        Somente o próprio nome
+                        aparece para o BC.
+                    */
+
                     const optionProprio =
                         document.createElement(
                             "option"
                         );
 
+
                     optionProprio.value =
                         nomeUsuario;
 
+
                     optionProprio.textContent =
                         nomeUsuario;
+
 
                     select.appendChild(
                         optionProprio
@@ -1759,16 +1889,15 @@ function montarCalendarioDireto(
                     }
                     else {
 
-                        select.value = "";
+                        select.value =
+                            "";
 
                     }
 
 
                     /*
-                        Se existe outro BC
-                        naquele plantão,
-                        não revela o nome
-                        e não permite alteração.
+                        Se o plantão já pertence
+                        a outro BC, fica bloqueado.
                     */
 
                     if (
@@ -1780,9 +1909,11 @@ function montarCalendarioDireto(
                         select.disabled =
                             true;
 
+
                         select.classList.add(
                             "select-bloqueado"
                         );
+
 
                         select.title =
                             "Plantão indisponível";
@@ -1792,9 +1923,9 @@ function montarCalendarioDireto(
                 }
 
 
-                /* =========================
+                /* =================================================
                    ALTERAÇÃO
-                ========================= */
+                ================================================= */
 
                 select.addEventListener(
                     "change",
@@ -1814,9 +1945,9 @@ function montarCalendarioDireto(
                             ] || "";
 
 
-                        /* =====================
+                        /* =========================================
                            ADMINISTRADOR
-                        ===================== */
+                        ========================================= */
 
                         if (
                             ehAdminAtual
@@ -1849,16 +1980,18 @@ function montarCalendarioDireto(
 
                             salvarNoLocalStorage();
 
+
                             recalcularTurnos();
+
 
                             return;
 
                         }
 
 
-                        /* =====================
+                        /* =========================================
                            BC
-                        ===================== */
+                        ========================================= */
 
                         if (
                             valorAnterior &&
@@ -1873,9 +2006,11 @@ function montarCalendarioDireto(
                             this.value =
                                 "";
 
+
                             mostrarStatus(
                                 "🔒 Este plantão pertence a outro BC."
                             );
+
 
                             return;
 
@@ -1892,9 +2027,11 @@ function montarCalendarioDireto(
                             this.value =
                                 "";
 
+
                             mostrarStatus(
                                 "🔒 Você só pode lançar seu próprio nome."
                             );
+
 
                             return;
 
@@ -1961,6 +2098,7 @@ function montarCalendarioDireto(
                     select
                 );
 
+
                 tr.appendChild(
                     td
                 );
@@ -1989,6 +2127,7 @@ function recalcularTurnos() {
             "gridResumo"
         );
 
+
     if (!grid) {
         return;
     }
@@ -2014,7 +2153,7 @@ function recalcularTurnos() {
         (
             document.getElementById(
                 "filtroNome"
-            ).value ||
+            )?.value ||
             ""
         )
         .trim()
@@ -2080,6 +2219,7 @@ function recalcularTurnos() {
 
             }
 
+
             return a.localeCompare(
                 b,
                 "pt-BR"
@@ -2101,6 +2241,7 @@ function recalcularTurnos() {
                     "div"
                 );
 
+
             card.className =
                 "summary-card";
 
@@ -2110,8 +2251,10 @@ function recalcularTurnos() {
                     "div"
                 );
 
+
             nomeDiv.className =
                 "summary-name";
+
 
             nomeDiv.textContent =
                 nome;
@@ -2122,8 +2265,10 @@ function recalcularTurnos() {
                     "div"
                 );
 
+
             count.className =
                 "summary-count";
+
 
             count.textContent =
                 contagem[nome];
@@ -2132,6 +2277,7 @@ function recalcularTurnos() {
             card.appendChild(
                 nomeDiv
             );
+
 
             card.appendChild(
                 count
@@ -2176,55 +2322,55 @@ function aplicarPermissoesUsuario() {
         );
 
 
-    /*
-        ADMINISTRADOR
-    */
-
     if (ehAdmin) {
 
         if (filtro) {
+
             filtro.style.display =
                 "";
+
         }
+
 
         if (resumo) {
+
             resumo.style.display =
                 "";
+
         }
 
+
         if (botaoSalvar) {
+
             botaoSalvar.style.display =
                 "";
+
         }
 
     }
-
-
-    /*
-        BC
-    */
-
     else {
 
         if (filtro) {
+
             filtro.style.display =
                 "none";
+
         }
+
 
         if (resumo) {
+
             resumo.style.display =
                 "none";
+
         }
 
-        /*
-           O botão Salvar continua disponível
-           para que o BC possa salvar somente
-           o próprio lançamento.
-        */
 
         if (botaoSalvar) {
+
             botaoSalvar.style.display =
                 "";
+
         }
 
     }
@@ -2250,6 +2396,7 @@ function aplicarPermissoesUsuario() {
     montarCalendarioDireto(
         mes
     );
+
 
     recalcularTurnos();
 
@@ -2312,6 +2459,7 @@ async function salvarEEstocarArquivo() {
 
         }
 
+
         return;
 
     }
@@ -2337,7 +2485,7 @@ async function salvarEEstocarArquivo() {
 
 
 /* =========================================================
-   SALVAR ADMINISTRADOR
+   SALVAR ADMINISTRADOR NA NUVEM
 ========================================================= */
 
 async function salvarEscalaNaNuvem() {
@@ -2447,7 +2595,7 @@ async function salvarEscalaNaNuvem() {
 
 
 /* =========================================================
-   SALVAR BC
+   SALVAR BC NA NUVEM
 ========================================================= */
 
 async function salvarEscalaBCNaNuvem() {
@@ -2470,8 +2618,9 @@ async function salvarEscalaBCNaNuvem() {
     if (!nomeUsuario) {
 
         mostrarStatus(
-            "❌ Seu perfil não possui um nome cadastrado."
+            "❌ Não foi possível identificar seu nome de BC."
         );
+
 
         return false;
 
@@ -2485,11 +2634,7 @@ async function salvarEscalaBCNaNuvem() {
 
 
     /*
-        Busca novamente somente o mês atual
-        antes de salvar.
-
-        Isso ajuda a preservar as alterações
-        feitas pelo administrador ou outros BCs.
+        Busca o mês atual no servidor.
     */
 
     const {
@@ -2533,8 +2678,7 @@ async function salvarEscalaBCNaNuvem() {
 
 
     /*
-        Dados atualmente existentes
-        no servidor.
+        Dados atuais do servidor.
     */
 
     const dadosServidor = {
@@ -2583,8 +2727,8 @@ async function salvarEscalaBCNaNuvem() {
 
 
     /*
-        Adiciona novamente somente
-        os lançamentos atuais desse BC.
+        Recoloca somente os lançamentos
+        do BC atual.
     */
 
     Object.keys(
@@ -2616,6 +2760,10 @@ async function salvarEscalaBCNaNuvem() {
         }
     );
 
+
+    /*
+        Salva o resultado.
+    */
 
     const {
         error: erroSalvar
@@ -2669,8 +2817,7 @@ async function salvarEscalaBCNaNuvem() {
 
 
     /*
-        Atualiza a memória local
-        com o que foi salvo.
+        Atualiza a memória.
     */
 
     escalasPorMes[mes] = {
@@ -2747,7 +2894,7 @@ async function carregarEscalaNuvem() {
 
 
         /*
-            Guarda os dados recebidos.
+            Carrega os meses.
         */
 
         (data || []).forEach(
@@ -2784,13 +2931,13 @@ async function carregarEscalaNuvem() {
             mes
         );
 
+
         recalcularTurnos();
 
 
         /*
-            Somente o administrador
-            mantém a cópia completa
-            no armazenamento local.
+            Apenas administrador mantém
+            a cópia completa local.
         */
 
         if (
@@ -2801,11 +2948,6 @@ async function carregarEscalaNuvem() {
 
         }
         else {
-
-            /*
-                BC não mantém cópia completa
-                da escala no aparelho.
-            */
 
             localStorage.removeItem(
                 CHAVE_LOCAL_STORAGE
@@ -2818,11 +2960,11 @@ async function carregarEscalaNuvem() {
             "☁️ Escala sincronizada com a nuvem."
         );
 
-
     }
     catch (e) {
 
         console.error(
+            "Erro ao carregar escala:",
             e
         );
 
@@ -2838,7 +2980,7 @@ async function carregarEscalaNuvem() {
 
 
 /* =========================================================
-   MOSTRAR USUÁRIO
+   MOSTRAR USUÁRIO ONLINE
 ========================================================= */
 
 function mostrarUsuarioOnline() {
@@ -2860,18 +3002,36 @@ function mostrarUsuarioOnline() {
     }
 
 
-    let texto =
-        "";
+    let texto = "";
 
 
     if (perfilAtual) {
 
+        /*
+            Administrador:
+            mantém nome/e-mail do perfil.
+
+            BC:
+            usa o nome identificado
+            pelo e-mail.
+        */
+
+        const nomeExibicao =
+            usuarioEhAdmin()
+
+                ? (
+                    perfilAtual.nome ||
+                    perfilAtual.email ||
+                    usuarioAtual?.email ||
+                    ""
+                )
+
+                : obterNomeUsuario();
+
+
         texto =
-            (
-                perfilAtual.nome ||
-                perfilAtual.email ||
-                usuarioAtual?.email ||
-                ""
+            String(
+                nomeExibicao
             );
 
 
@@ -2903,17 +3063,12 @@ function mostrarUsuarioOnline() {
 
 
 /* =========================================================
-   SAIR DO SISTEMA
+   SAIR
 ========================================================= */
 
 async function sairDoSistema() {
 
     try {
-
-        /*
-            Primeiro encerra a sessão
-            no Supabase.
-        */
 
         if (
             supabaseClient
@@ -2947,13 +3102,9 @@ async function sairDoSistema() {
     }
 
 
-    /*
-        Limpa os dados da sessão
-        na memória.
-    */
-
     usuarioAtual =
         null;
+
 
     perfilAtual =
         null;
@@ -2962,13 +3113,13 @@ async function sairDoSistema() {
     dadosEscalaMemoria =
         {};
 
+
     dadosEscalaCompletos =
         {};
 
 
     /*
-        Limpa somente dados locais
-        da sessão do BC.
+        Remove sessão offline antiga.
     */
 
     localStorage.removeItem(
@@ -2995,9 +3146,7 @@ async function sairDoSistema() {
 
 
     /*
-        Limpa a tabela para que
-        nenhum dado antigo fique
-        visível atrás do login.
+        Limpa tabela.
     */
 
     const corpo =
@@ -3015,7 +3164,7 @@ async function sairDoSistema() {
 
 
     /*
-        Volta para o login.
+        Volta para login.
     */
 
     const overlay =
@@ -3061,10 +3210,6 @@ async function sairDoSistema() {
     );
 
 
-    /*
-        Coloca o cursor no e-mail.
-    */
-
     setTimeout(
         () => {
 
@@ -3072,6 +3217,7 @@ async function sairDoSistema() {
                 document.getElementById(
                     "loginEmail"
                 );
+
 
             if (email) {
 
@@ -3087,7 +3233,7 @@ async function sairDoSistema() {
 
 
 /* =========================================================
-   ENTRAR ONLINE
+   ENTRAR
 ========================================================= */
 
 async function entrarOnline() {
@@ -3098,6 +3244,7 @@ async function entrarOnline() {
             "Supabase não está configurado."
         );
 
+
         return;
 
     }
@@ -3106,7 +3253,9 @@ async function entrarOnline() {
     const email =
         document.getElementById(
             "loginEmail"
-        ).value.trim();
+        ).value
+        .trim()
+        .toLowerCase();
 
 
     const senha =
@@ -3124,6 +3273,7 @@ async function entrarOnline() {
             "Informe e-mail e senha."
         );
 
+
         return;
 
     }
@@ -3138,7 +3288,8 @@ async function entrarOnline() {
         data,
         error
     } =
-        await supabaseClient.auth
+        await supabaseClient
+            .auth
             .signInWithPassword(
                 {
                     email,
@@ -3153,6 +3304,7 @@ async function entrarOnline() {
             "Erro: " +
             error.message
         );
+
 
         return;
 
@@ -3215,8 +3367,11 @@ async function prepararUsuarioOnline() {
 
 
         /*
-            Só aceita administrador
-            ou BC com nome cadastrado.
+            Para BC:
+
+            1. tenta nome do perfil;
+            2. se estiver vazio, usa o mapa
+               de e-mail.
         */
 
         if (
@@ -3225,7 +3380,7 @@ async function prepararUsuarioOnline() {
         ) {
 
             throw new Error(
-                "Perfil do usuário não possui nome cadastrado."
+                "Não foi possível identificar este usuário como BC."
             );
 
         }
@@ -3241,7 +3396,7 @@ async function prepararUsuarioOnline() {
 
 
         /*
-            Mostra usuário.
+            Mostra o nome correto.
         */
 
         mostrarUsuarioOnline();
@@ -3251,10 +3406,18 @@ async function prepararUsuarioOnline() {
             Fecha login.
         */
 
-        document.getElementById(
-            "loginOverlay"
-        ).style.display =
-            "none";
+        const overlay =
+            document.getElementById(
+                "loginOverlay"
+            );
+
+
+        if (overlay) {
+
+            overlay.style.display =
+                "none";
+
+        }
 
 
         /*
@@ -3280,6 +3443,7 @@ async function prepararUsuarioOnline() {
                 "loginSenha"
             );
 
+
         if (senha) {
 
             senha.value =
@@ -3288,22 +3452,34 @@ async function prepararUsuarioOnline() {
         }
 
 
+        /*
+            Mensagem.
+        */
+
         mostrarStatus(
             usuarioEhAdmin()
+
                 ? "☁️ Administrador conectado. Acesso completo à escala."
-                : "☁️ Usuário conectado. Você pode lançar somente seu próprio nome."
+
+                : (
+                    "☁️ " +
+                    obterNomeUsuario() +
+                    " conectado. Você pode lançar somente seu próprio nome."
+                )
         );
 
     }
     catch (e) {
 
         console.error(
+            "Erro ao preparar usuário:",
             e
         );
 
 
         usuarioAtual =
             null;
+
 
         perfilAtual =
             null;
@@ -3319,6 +3495,7 @@ async function prepararUsuarioOnline() {
             document.getElementById(
                 "loginOverlay"
             );
+
 
         if (overlay) {
 
@@ -3386,47 +3563,73 @@ async function inicializarOnline() {
         Botão entrar.
     */
 
-    document.getElementById(
-        "btnEntrar"
-    ).onclick =
-        entrarOnline;
+    const btnEntrar =
+        document.getElementById(
+            "btnEntrar"
+        );
+
+
+    if (btnEntrar) {
+
+        btnEntrar.onclick =
+            entrarOnline;
+
+    }
 
 
     /*
         Botão sair.
     */
 
-    document.getElementById(
-        "btnSair"
-    ).onclick =
-        sairDoSistema;
+    const btnSair =
+        document.getElementById(
+            "btnSair"
+        );
+
+
+    if (btnSair) {
+
+        btnSair.onclick =
+            sairDoSistema;
+
+    }
 
 
     /*
         Enter no campo senha.
     */
 
-    document.getElementById(
-        "loginSenha"
-    ).addEventListener(
-        "keydown",
-        event => {
+    const loginSenha =
+        document.getElementById(
+            "loginSenha"
+        );
 
-            if (
-                event.key ===
-                "Enter"
-            ) {
 
-                entrarOnline();
+    if (loginSenha) {
+
+        loginSenha.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+
+                    event.preventDefault();
+
+                    entrarOnline();
+
+                }
 
             }
+        );
 
-        }
-    );
+    }
 
 
     /*
-        Verifica sessão já existente.
+        Verifica sessão existente.
     */
 
     const {
@@ -3451,17 +3654,24 @@ async function inicializarOnline() {
     }
     else {
 
-        document.getElementById(
-            "loginOverlay"
-        ).style.display =
-            "flex";
+        const overlay =
+            document.getElementById(
+                "loginOverlay"
+            );
+
+
+        if (overlay) {
+
+            overlay.style.display =
+                "flex";
+
+        }
 
     }
 
 
     /*
-        Monitora saída/login
-        da sessão.
+        Monitora sessão.
     */
 
     supabaseClient.auth.onAuthStateChange(
@@ -3493,8 +3703,8 @@ async function inicializarOnline() {
 function inicializarAplicacao() {
 
     /*
-        Inicialmente carrega somente
-        para preparar a interface.
+        Carrega dados locais apenas para
+        preparar a interface.
     */
 
     carregarDadosSalvos();
@@ -3522,7 +3732,7 @@ function inicializarAplicacao() {
 
 
     /*
-        A tela fica protegida pelo login.
+        Protege a tela com login.
     */
 
     document.getElementById(
@@ -3553,7 +3763,7 @@ function inicializarAplicacao() {
 
 
 /* =========================================================
-   INICIAR
+   INICIAR APLICAÇÃO
 ========================================================= */
 
 if (
@@ -3593,9 +3803,9 @@ document.addEventListener(
 </script>
 
 
-<!-- =========================
+<!-- =========================================================
      SERVICE WORKER / PWA
-========================= -->
+========================================================= -->
 
 <script>
 
@@ -3612,7 +3822,14 @@ if (
                     "./service-worker.js"
                 )
                 .catch(
-                    console.error
+                    erro => {
+
+                        console.error(
+                            "Erro no Service Worker:",
+                            erro
+                        );
+
+                    }
                 );
 
         }
