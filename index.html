@@ -424,6 +424,23 @@ thead .coluna-fila {
 }
 
 
+.login-link {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    border: 0;
+    background: transparent;
+    color: #0b5d1e;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#novaSenhaBox {
+    display: none;
+}
+
 /* =========================================================
    USUÁRIO ONLINE
 ========================================================= */
@@ -571,6 +588,22 @@ thead .coluna-fila {
         >
             Entrar
         </button>
+
+        <button
+            id="btnPrimeiroAcesso"
+            class="login-link"
+            type="button"
+        >
+            🔑 Primeiro acesso / Esqueci minha senha
+        </button>
+
+        <div id="novaSenhaBox">
+            <h3 style="color:#0b5d1e; margin-bottom:8px;">🔐 Criar nova senha</h3>
+            <p>Digite uma nova senha para sua conta.</p>
+            <input id="novaSenha" class="login-input" type="password" placeholder="Nova senha" autocomplete="new-password">
+            <input id="confirmarNovaSenha" class="login-input" type="password" placeholder="Confirme a nova senha" autocomplete="new-password">
+            <button id="btnSalvarNovaSenha" class="btn-entrar" type="button">Salvar nova senha</button>
+        </div>
 
         <p id="loginStatus"></p>
 
@@ -3180,6 +3213,79 @@ async function sairDoSistema() {
 
 
 /* =========================================================
+   PRIMEIRO ACESSO / RECUPERAÇÃO DE SENHA
+========================================================= */
+function mostrarTelaNovaSenha() {
+    const btnEntrar = document.getElementById("btnEntrar");
+    const btnPrimeiro = document.getElementById("btnPrimeiroAcesso");
+    const novaSenhaBox = document.getElementById("novaSenhaBox");
+    const email = document.getElementById("loginEmail");
+    const senha = document.getElementById("loginSenha");
+    if (btnEntrar) btnEntrar.style.display = "none";
+    if (btnPrimeiro) btnPrimeiro.style.display = "none";
+    if (senha) senha.style.display = "none";
+    if (novaSenhaBox) novaSenhaBox.style.display = "block";
+    if (email) email.disabled = true;
+    const titulo = document.querySelector("#loginOverlay .login-box h2");
+    const info = document.getElementById("loginInfo");
+    if (titulo) titulo.textContent = "🔐 Criar nova senha";
+    if (info) info.textContent = "Digite e confirme a senha que você deseja usar para entrar na escala.";
+    setLoginStatus("Crie sua nova senha abaixo.");
+}
+
+async function solicitarPrimeiroAcesso() {
+    if (!supabaseClient) {
+        setLoginStatus("Supabase não está configurado.");
+        return;
+    }
+    const emailEl = document.getElementById("loginEmail");
+    const email = String(emailEl?.value || "").trim().toLowerCase();
+    if (!email) {
+        setLoginStatus("Digite primeiro o seu e-mail.");
+        if (emailEl) emailEl.focus();
+        return;
+    }
+    setLoginStatus("Enviando e-mail para criar/recuperar sua senha...");
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+    if (error) {
+        setLoginStatus("Não foi possível enviar o e-mail: " + error.message);
+        return;
+    }
+    setLoginStatus("✅ E-mail enviado. Abra o link recebido para criar sua senha. Verifique também a caixa de spam.");
+}
+
+async function salvarNovaSenha() {
+    if (!supabaseClient) {
+        setLoginStatus("Supabase não está configurado.");
+        return;
+    }
+    const novaSenha = document.getElementById("novaSenha")?.value || "";
+    const confirmar = document.getElementById("confirmarNovaSenha")?.value || "";
+    if (novaSenha.length < 6) {
+        setLoginStatus("A senha deve ter pelo menos 6 caracteres.");
+        return;
+    }
+    if (novaSenha !== confirmar) {
+        setLoginStatus("As senhas não são iguais.");
+        return;
+    }
+    setLoginStatus("Salvando sua nova senha...");
+    const { error } = await supabaseClient.auth.updateUser({ password: novaSenha });
+    if (error) {
+        setLoginStatus("Não foi possível salvar a senha: " + error.message);
+        return;
+    }
+    const nova = document.getElementById("novaSenha");
+    const conf = document.getElementById("confirmarNovaSenha");
+    if (nova) nova.value = "";
+    if (conf) conf.value = "";
+    setLoginStatus("✅ Senha criada com sucesso. Entrando na escala...");
+    const { data } = await supabaseClient.auth.getUser();
+    usuarioAtual = data?.user || null;
+    if (usuarioAtual) await prepararUsuarioOnline();
+}
+
+/* =========================================================
    ENTRAR
 ========================================================= */
 
@@ -3523,6 +3629,22 @@ async function inicializarOnline() {
 
     }
 
+    const btnPrimeiroAcesso =
+        document.getElementById("btnPrimeiroAcesso");
+
+    if (btnPrimeiroAcesso) {
+        btnPrimeiroAcesso.onclick =
+            solicitarPrimeiroAcesso;
+    }
+
+    const btnSalvarNovaSenha =
+        document.getElementById("btnSalvarNovaSenha");
+
+    if (btnSalvarNovaSenha) {
+        btnSalvarNovaSenha.onclick =
+            salvarNovaSenha;
+    }
+
 
     /*
         Botão sair.
@@ -3622,7 +3744,15 @@ async function inicializarOnline() {
     */
 
     supabaseClient.auth.onAuthStateChange(
-        (event, session) => {
+        async (event, session) => {
+
+            if (event === "PASSWORD_RECOVERY") {
+                usuarioAtual = session?.user || null;
+                mostrarTelaNovaSenha();
+                const overlay = document.getElementById("loginOverlay");
+                if (overlay) overlay.style.display = "flex";
+                return;
+            }
 
             if (
                 event ===
