@@ -152,6 +152,23 @@ button:hover {
 }
 
 /* =========================
+   BOTÃO SAIR
+========================= */
+
+.btn-sair {
+    background: #b00020;
+    color: white;
+    margin-left: 8px;
+    padding: 5px 9px;
+    font-size: 11px;
+    border-radius: 7px;
+}
+
+.btn-sair:hover {
+    background: #8b0019;
+}
+
+/* =========================
    INFORMAÇÃO DO MÊS
 ========================= */
 
@@ -231,6 +248,12 @@ thead .coluna-fila {
     font-size: 10px;
     cursor: pointer;
     touch-action: manipulation;
+}
+
+.select-bloqueado {
+    background: #eeeeee;
+    color: #777;
+    cursor: not-allowed;
 }
 
 /* =========================
@@ -401,6 +424,12 @@ thead .coluna-fila {
     border-radius: 12px;
     font-size: 11px;
     display: none;
+    align-items: center;
+    gap: 5px;
+}
+
+#usuarioNomeOnline {
+    display: inline-block;
 }
 
 /* =========================
@@ -468,7 +497,17 @@ thead .coluna-fila {
         margin: 5px;
         text-align: center;
         border-radius: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
     }
+
+    .btn-sair {
+        width: auto !important;
+        min-height: 32px !important;
+        padding: 5px 10px !important;
+        margin-left: 5px;
+    }
+
 }
 
 </style>
@@ -523,10 +562,22 @@ thead .coluna-fila {
 
 
 <!-- =========================
-     USUÁRIO
+     USUÁRIO ONLINE
 ========================= -->
 
-<div id="usuarioOnline"></div>
+<div id="usuarioOnline">
+
+    <span id="usuarioNomeOnline"></span>
+
+    <button
+        id="btnSair"
+        class="btn-sair"
+        type="button"
+    >
+        Sair
+    </button>
+
+</div>
 
 
 <div class="container">
@@ -737,7 +788,7 @@ const listaBCs = [
     "CLEDISON",
     "DENIS",
     "EDER",
-    "Everaldo".toUpperCase(),
+    "EVERALDO",
     "FEITOSA",
     "GABRIEL",
     "GERSON",
@@ -965,15 +1016,6 @@ let escalasPorMes = {
 
 let dadosEscalaMemoria = {};
 
-
-/*
-   Cópia completa dos dados recebidos do Supabase.
-
-   IMPORTANTE:
-   Não usamos apenas os dados filtrados do BC para salvar.
-   Assim um BC não apaga acidentalmente os plantões dos demais.
-*/
-
 let dadosEscalaCompletos = {};
 
 
@@ -989,7 +1031,7 @@ let perfilAtual = null;
 
 
 /* =========================================================
-   VERIFICA SE SUPABASE ESTÁ CONFIGURADO
+   SUPABASE CONFIGURADO
 ========================================================= */
 
 function supabaseConfigurado() {
@@ -1010,9 +1052,20 @@ function supabaseConfigurado() {
 
 function usuarioEhAdmin() {
 
+    if (!perfilAtual) {
+        return false;
+    }
+
+    const role =
+        String(
+            perfilAtual.role || ""
+        )
+        .trim()
+        .toLowerCase();
+
     return (
-        perfilAtual &&
-        String(perfilAtual.role || "").toLowerCase() === "admin"
+        role === "admin" ||
+        role === "administrador"
     );
 
 }
@@ -1031,7 +1084,9 @@ function obterNomeUsuario() {
     return String(
         perfilAtual.nome ||
         ""
-    ).trim().toUpperCase();
+    )
+    .trim()
+    .toUpperCase();
 
 }
 
@@ -1043,10 +1098,15 @@ function obterNomeUsuario() {
 function mostrarStatus(texto) {
 
     const status =
-        document.getElementById("statusSistema");
+        document.getElementById(
+            "statusSistema"
+        );
 
     if (status) {
-        status.textContent = texto;
+
+        status.textContent =
+            texto;
+
     }
 
 }
@@ -1056,17 +1116,25 @@ function mostrarStatus(texto) {
    LOGIN STATUS
 ========================================================= */
 
-function setLoginStatus(msg, ok=false) {
+function setLoginStatus(
+    msg,
+    ok = false
+) {
 
     const el =
-        document.getElementById("loginStatus");
+        document.getElementById(
+            "loginStatus"
+        );
 
     if (el) {
 
-        el.textContent = msg;
+        el.textContent =
+            msg;
 
         el.style.color =
-            ok ? "#0b5d1e" : "#b00020";
+            ok
+                ? "#0b5d1e"
+                : "#b00020";
 
     }
 
@@ -1092,7 +1160,10 @@ function quantidadeDiasDoMes(mes) {
    DIA DA SEMANA
 ========================================================= */
 
-function obterDiaSemana(mes, dia) {
+function obterDiaSemana(
+    mes,
+    dia
+) {
 
     return new Date(
         ANO_ESCALA,
@@ -1110,7 +1181,9 @@ function obterDiaSemana(mes, dia) {
 function obterNomeMes(mes) {
 
     const select =
-        document.getElementById("inputMes");
+        document.getElementById(
+            "inputMes"
+        );
 
     if (!select) {
         return mes;
@@ -1171,18 +1244,10 @@ function carregarDadosSalvos() {
 
         }
 
-        mostrarStatus(
-            "✅ Dados salvos carregados automaticamente."
-        );
-
     }
     catch (erro) {
 
         console.error(erro);
-
-        mostrarStatus(
-            "⚠️ Não foi possível carregar os dados salvos."
-        );
 
     }
 
@@ -1195,8 +1260,17 @@ function carregarDadosSalvos() {
 
 function salvarEscalaAtualNaMemoria() {
 
+    const input =
+        document.getElementById(
+            "inputMes"
+        );
+
+    if (!input) {
+        return;
+    }
+
     const mes =
-        document.getElementById("inputMes").value;
+        input.value;
 
     escalasPorMes[mes] = {
         ...dadosEscalaCompletos
@@ -1211,13 +1285,27 @@ function salvarEscalaAtualNaMemoria() {
 
 function salvarNoLocalStorage() {
 
+    /*
+       Para BC não guardar uma cópia
+       completa da escala no aparelho.
+    */
+
+    if (!usuarioEhAdmin()) {
+
+        return true;
+
+    }
+
+
     try {
 
         salvarEscalaAtualNaMemoria();
 
         localStorage.setItem(
             CHAVE_LOCAL_STORAGE,
-            JSON.stringify(escalasPorMes)
+            JSON.stringify(
+                escalasPorMes
+            )
         );
 
         return true;
@@ -1238,7 +1326,9 @@ function salvarNoLocalStorage() {
    FILTRAR DADOS PARA O USUÁRIO
 ========================================================= */
 
-function filtrarDadosParaUsuario(dados) {
+function filtrarDadosParaUsuario(
+    dados
+) {
 
     if (usuarioEhAdmin()) {
 
@@ -1253,24 +1343,30 @@ function filtrarDadosParaUsuario(dados) {
 
     const filtrados = {};
 
-    Object.keys(dados || {}).forEach(chave => {
+    Object.keys(
+        dados || {}
+    ).forEach(
+        chave => {
 
-        const nome =
-            String(
-                dados[chave] || ""
-            ).trim().toUpperCase();
+            const nome =
+                String(
+                    dados[chave] || ""
+                )
+                .trim()
+                .toUpperCase();
 
-        if (
-            nome &&
-            nome === nomeUsuario
-        ) {
+            if (
+                nome &&
+                nome === nomeUsuario
+            ) {
 
-            filtrados[chave] =
-                dados[chave];
+                filtrados[chave] =
+                    dados[chave];
+
+            }
 
         }
-
-    });
+    );
 
     return filtrados;
 
@@ -1283,28 +1379,40 @@ function filtrarDadosParaUsuario(dados) {
 
 function trocarMesManual() {
 
-    salvarEscalaAtualNaMemoria();
+    if (usuarioEhAdmin()) {
+
+        salvarEscalaAtualNaMemoria();
+
+    }
+
 
     const mes =
-        document.getElementById("inputMes").value;
+        document.getElementById(
+            "inputMes"
+        ).value;
+
 
     dadosEscalaCompletos = {
         ...(escalasPorMes[mes] || {})
     };
+
 
     dadosEscalaMemoria =
         filtrarDadosParaUsuario(
             dadosEscalaCompletos
         );
 
+
     montarCalendarioDireto(mes);
 
     recalcularTurnos();
+
 
     document.getElementById(
         "infoMes"
     ).textContent =
         `📅 Escala atual: ${obterNomeMes(mes)} de ${ANO_ESCALA} — ${quantidadeDiasDoMes(mes)} dias`;
+
 
     mostrarStatus(
         "📅 Escala aberta: " +
@@ -1320,22 +1428,30 @@ function trocarMesManual() {
    CABEÇALHO
 ========================================================= */
 
-function montarCabecalhoCalendario(mes) {
+function montarCabecalhoCalendario(
+    mes
+) {
 
     const rowDatas =
-        document.getElementById("rowDatas");
+        document.getElementById(
+            "rowDatas"
+        );
 
     const rowSemanas =
-        document.getElementById("rowSemanas");
+        document.getElementById(
+            "rowSemanas"
+        );
 
     const dias =
         quantidadeDiasDoMes(mes);
+
 
     rowDatas.innerHTML =
         '<th class="coluna-fila">Postos / Filas ➔</th>';
 
     rowSemanas.innerHTML =
         '<th class="coluna-fila">Dias da Semana ➔</th>';
+
 
     for (
         let dia = 1;
@@ -1349,10 +1465,15 @@ function montarCabecalhoCalendario(mes) {
                 dia
             );
 
-        const thData =
-            document.createElement("th");
 
-        thData.className = "dia";
+        const thData =
+            document.createElement(
+                "th"
+            );
+
+        thData.className =
+            "dia";
+
 
         if (
             semana === 0 ||
@@ -1365,19 +1486,31 @@ function montarCabecalhoCalendario(mes) {
 
         }
 
+
         thData.textContent =
-            String(dia).padStart(2, "0");
+            String(dia).padStart(
+                2,
+                "0"
+            );
+
 
         thData.title =
             `${dia}/${mes}/${ANO_ESCALA}`;
 
-        rowDatas.appendChild(thData);
+
+        rowDatas.appendChild(
+            thData
+        );
 
 
         const thSemana =
-            document.createElement("th");
+            document.createElement(
+                "th"
+            );
 
-        thSemana.className = "dia";
+        thSemana.className =
+            "dia";
+
 
         if (
             semana === 0 ||
@@ -1390,11 +1523,18 @@ function montarCabecalhoCalendario(mes) {
 
         }
 
+
         thSemana.textContent =
-            nomesDiasAbreviados[semana];
+            nomesDiasAbreviados[
+                semana
+            ];
+
 
         thSemana.title =
-            nomesDiasSemana[semana];
+            nomesDiasSemana[
+                semana
+            ];
+
 
         rowSemanas.appendChild(
             thSemana
@@ -1409,7 +1549,9 @@ function montarCabecalhoCalendario(mes) {
    MONTAR TABELA
 ========================================================= */
 
-function montarCalendarioDireto(mes) {
+function montarCalendarioDireto(
+    mes
+) {
 
     const corpo =
         document.getElementById(
@@ -1418,24 +1560,34 @@ function montarCalendarioDireto(mes) {
 
     corpo.innerHTML = "";
 
-    montarCabecalhoCalendario(mes);
+
+    montarCabecalhoCalendario(
+        mes
+    );
+
 
     const dias =
-        quantidadeDiasDoMes(mes);
+        quantidadeDiasDoMes(
+            mes
+        );
 
 
     filas.forEach(
         (fila, indexFila) => {
 
             const tr =
-                document.createElement("tr");
+                document.createElement(
+                    "tr"
+                );
 
             tr.className =
                 fila.classe;
 
 
             const tdNome =
-                document.createElement("td");
+                document.createElement(
+                    "td"
+                );
 
             tdNome.className =
                 "coluna-fila";
@@ -1443,7 +1595,9 @@ function montarCalendarioDireto(mes) {
             tdNome.textContent =
                 fila.nome;
 
-            tr.appendChild(tdNome);
+            tr.appendChild(
+                tdNome
+            );
 
 
             for (
@@ -1453,9 +1607,12 @@ function montarCalendarioDireto(mes) {
             ) {
 
                 const td =
-                    document.createElement("td");
+                    document.createElement(
+                        "td"
+                    );
 
-                td.className = "dia";
+                td.className =
+                    "dia";
 
 
                 const chave =
@@ -1463,109 +1620,181 @@ function montarCalendarioDireto(mes) {
 
 
                 const select =
-                    document.createElement("select");
+                    document.createElement(
+                        "select"
+                    );
 
                 select.className =
                     "select-plantao";
 
 
-                /*
-                    Usuário não administrador:
-                    mostra somente o próprio nome.
-
-                    Administrador:
-                    mostra todos.
-                */
-
                 const ehAdmin =
                     usuarioEhAdmin();
+
 
                 const nomeUsuario =
                     obterNomeUsuario();
 
 
-                const nomesPermitidos =
-                    ehAdmin
-                        ? listaBCs
-                        : listaBCs.filter(
-                            nome =>
-                                nome.toUpperCase() ===
-                                nomeUsuario
+                /*
+                    ADMINISTRADOR
+                    vê todos os nomes.
+                */
+
+                if (ehAdmin) {
+
+                    const vazio =
+                        document.createElement(
+                            "option"
                         );
 
+                    vazio.value = "";
 
-                const vazio =
-                    document.createElement(
-                        "option"
+                    vazio.textContent =
+                        "—";
+
+                    select.appendChild(
+                        vazio
                     );
 
-                vazio.value = "";
 
-                vazio.textContent = "—";
+                    listaBCs.forEach(
+                        nome => {
 
-                select.appendChild(vazio);
+                            const option =
+                                document.createElement(
+                                    "option"
+                                );
 
+                            option.value =
+                                nome;
 
-                nomesPermitidos.forEach(
-                    nome => {
+                            option.textContent =
+                                nome;
 
-                        const option =
-                            document.createElement(
-                                "option"
+                            select.appendChild(
+                                option
                             );
 
-                        option.value =
-                            nome;
-
-                        option.textContent =
-                            nome;
-
-                        select.appendChild(
-                            option
-                        );
-
-                    }
-                );
+                        }
+                    );
 
 
-                /*
-                    Administrador vê todos os dados.
+                    const valor =
+                        dadosEscalaMemoria[
+                            chave
+                        ] || "";
 
-                    BC vê somente os próprios
-                    lançamentos.
-                */
-
-                const valorVisivel =
-                    dadosEscalaMemoria[chave] || "";
-
-
-                if (valorVisivel) {
 
                     select.value =
-                        valorVisivel;
+                        valor;
 
                 }
 
 
                 /*
-                    Se for BC e o plantão
-                    pertence a outra pessoa,
-                    ele fica bloqueado visualmente.
+                    BC
+                    vê somente o próprio nome
+                    nos seus lançamentos.
+
+                    Nos demais campos,
+                    o conteúdo fica oculto.
                 */
 
-                if (
-                    !ehAdmin &&
-                    !valorVisivel
-                ) {
+                else {
 
-                    select.value = "";
+                    const vazio =
+                        document.createElement(
+                            "option"
+                        );
+
+                    vazio.value = "";
+
+                    vazio.textContent =
+                        "—";
+
+                    select.appendChild(
+                        vazio
+                    );
+
+
+                    const optionProprio =
+                        document.createElement(
+                            "option"
+                        );
+
+                    optionProprio.value =
+                        nomeUsuario;
+
+                    optionProprio.textContent =
+                        nomeUsuario;
+
+                    select.appendChild(
+                        optionProprio
+                    );
+
+
+                    const valorCompleto =
+                        dadosEscalaCompletos[
+                            chave
+                        ] || "";
+
+
+                    const valorNormalizado =
+                        String(
+                            valorCompleto
+                        )
+                        .trim()
+                        .toUpperCase();
+
+
+                    if (
+                        valorNormalizado ===
+                        nomeUsuario
+                    ) {
+
+                        select.value =
+                            nomeUsuario;
+
+                    }
+                    else {
+
+                        select.value = "";
+
+                    }
+
+
+                    /*
+                        Se existe outro BC
+                        naquele plantão,
+                        não revela o nome
+                        e não permite alteração.
+                    */
+
+                    if (
+                        valorCompleto &&
+                        valorNormalizado !==
+                        nomeUsuario
+                    ) {
+
+                        select.disabled =
+                            true;
+
+                        select.classList.add(
+                            "select-bloqueado"
+                        );
+
+                        select.title =
+                            "Plantão indisponível";
+
+                    }
 
                 }
 
 
-                /*
-                    Alteração do plantão
-                */
+                /* =========================
+                   ALTERAÇÃO
+                ========================= */
 
                 select.addEventListener(
                     "change",
@@ -1574,35 +1803,49 @@ function montarCalendarioDireto(mes) {
                         const ehAdminAtual =
                             usuarioEhAdmin();
 
+
                         const nomeAtual =
                             obterNomeUsuario();
 
+
                         const valorAnterior =
-                            dadosEscalaCompletos[chave] || "";
+                            dadosEscalaCompletos[
+                                chave
+                            ] || "";
 
 
-                        /*
-                            ADMINISTRADOR
-                        */
+                        /* =====================
+                           ADMINISTRADOR
+                        ===================== */
 
-                        if (ehAdminAtual) {
+                        if (
+                            ehAdminAtual
+                        ) {
 
-                            if (this.value) {
+                            if (
+                                this.value
+                            ) {
 
-                                dadosEscalaCompletos[chave] =
+                                dadosEscalaCompletos[
+                                    chave
+                                ] =
                                     this.value;
 
                             }
                             else {
 
-                                delete dadosEscalaCompletos[chave];
+                                delete dadosEscalaCompletos[
+                                    chave
+                                ];
 
                             }
+
 
                             dadosEscalaMemoria =
                                 filtrarDadosParaUsuario(
                                     dadosEscalaCompletos
                                 );
+
 
                             salvarNoLocalStorage();
 
@@ -1613,22 +1856,22 @@ function montarCalendarioDireto(mes) {
                         }
 
 
-                        /*
-                            BC
-                        */
-
-                        /*
-                            Se já existe outro nome,
-                            o BC não pode alterar.
-                        */
+                        /* =====================
+                           BC
+                        ===================== */
 
                         if (
                             valorAnterior &&
-                            valorAnterior.toUpperCase() !==
+                            String(
+                                valorAnterior
+                            )
+                            .trim()
+                            .toUpperCase() !==
                             nomeAtual
                         ) {
 
-                            this.value = "";
+                            this.value =
+                                "";
 
                             mostrarStatus(
                                 "🔒 Este plantão pertence a outro BC."
@@ -1639,17 +1882,15 @@ function montarCalendarioDireto(mes) {
                         }
 
 
-                        /*
-                            Só pode lançar o próprio nome.
-                        */
-
                         if (
                             this.value &&
-                            this.value.toUpperCase() !==
+                            this.value
+                                .toUpperCase() !==
                             nomeAtual
                         ) {
 
-                            this.value = "";
+                            this.value =
+                                "";
 
                             mostrarStatus(
                                 "🔒 Você só pode lançar seu próprio nome."
@@ -1660,36 +1901,37 @@ function montarCalendarioDireto(mes) {
                         }
 
 
-                        /*
-                            Lançamento próprio
-                        */
+                        if (
+                            this.value
+                        ) {
 
-                        if (this.value) {
-
-                            dadosEscalaCompletos[chave] =
+                            dadosEscalaCompletos[
+                                chave
+                            ] =
                                 this.value;
 
                         }
                         else {
 
-                            /*
-                                BC somente pode apagar
-                                seu próprio lançamento.
-                            */
-
                             if (
                                 !valorAnterior ||
-                                valorAnterior.toUpperCase() ===
+                                String(
+                                    valorAnterior
+                                )
+                                .trim()
+                                .toUpperCase() ===
                                 nomeAtual
                             ) {
 
-                                delete dadosEscalaCompletos[chave];
+                                delete dadosEscalaCompletos[
+                                    chave
+                                ];
 
                             }
                             else {
 
                                 this.value =
-                                    valorAnterior;
+                                    "";
 
                                 return;
 
@@ -1703,30 +1945,32 @@ function montarCalendarioDireto(mes) {
                                 dadosEscalaCompletos
                             );
 
-                        salvarNoLocalStorage();
 
                         recalcularTurnos();
+
+
+                        mostrarStatus(
+                            "✏️ Alteração realizada. Clique em Salvar para enviar à nuvem."
+                        );
 
                     }
                 );
 
 
-                /*
-                    Para BC:
-                    campo vazio fica disponível.
+                td.appendChild(
+                    select
+                );
 
-                    Para administrador:
-                    tudo disponível.
-                */
-
-                td.appendChild(select);
-
-                tr.appendChild(td);
+                tr.appendChild(
+                    td
+                );
 
             }
 
 
-            corpo.appendChild(tr);
+            corpo.appendChild(
+                tr
+            );
 
         }
     );
@@ -1751,12 +1995,15 @@ function recalcularTurnos() {
 
 
     /*
-        BC NÃO VÊ O RESUMO.
+        BC não vê o resumo.
     */
 
-    if (!usuarioEhAdmin()) {
+    if (
+        !usuarioEhAdmin()
+    ) {
 
-        grid.innerHTML = "";
+        grid.innerHTML =
+            "";
 
         return;
 
@@ -1767,7 +2014,8 @@ function recalcularTurnos() {
         (
             document.getElementById(
                 "filtroNome"
-            ).value || ""
+            ).value ||
+            ""
         )
         .trim()
         .toUpperCase();
@@ -1779,7 +2027,8 @@ function recalcularTurnos() {
     listaBCs.forEach(
         nome => {
 
-            contagem[nome] = 0;
+            contagem[nome] =
+                0;
 
         }
     );
@@ -1787,11 +2036,14 @@ function recalcularTurnos() {
 
     Object.values(
         dadosEscalaCompletos
-    ).forEach(
+    )
+    .forEach(
         nome => {
 
             if (
-                contagem.hasOwnProperty(nome)
+                contagem.hasOwnProperty(
+                    nome
+                )
             ) {
 
                 contagem[nome]++;
@@ -1807,12 +2059,14 @@ function recalcularTurnos() {
             nome =>
                 nome
                     .toUpperCase()
-                    .includes(filtro)
+                    .includes(
+                        filtro
+                    )
         );
 
 
     nomes.sort(
-        (a, b) => {
+        (a,b) => {
 
             if (
                 contagem[b] !==
@@ -1835,7 +2089,8 @@ function recalcularTurnos() {
     );
 
 
-    grid.innerHTML = "";
+    grid.innerHTML =
+        "";
 
 
     nomes.forEach(
@@ -1874,11 +2129,18 @@ function recalcularTurnos() {
                 contagem[nome];
 
 
-            card.appendChild(nomeDiv);
+            card.appendChild(
+                nomeDiv
+            );
 
-            card.appendChild(count);
+            card.appendChild(
+                count
+            );
 
-            grid.appendChild(card);
+
+            grid.appendChild(
+                card
+            );
 
         }
     );
@@ -1908,24 +2170,31 @@ function aplicarPermissoesUsuario() {
         );
 
 
+    const botaoSalvar =
+        document.getElementById(
+            "btnSalvar"
+        );
+
+
     /*
-        Administrador
+        ADMINISTRADOR
     */
 
     if (ehAdmin) {
 
         if (filtro) {
-
             filtro.style.display =
                 "";
-
         }
 
         if (resumo) {
-
             resumo.style.display =
                 "";
+        }
 
+        if (botaoSalvar) {
+            botaoSalvar.style.display =
+                "";
         }
 
     }
@@ -1938,17 +2207,24 @@ function aplicarPermissoesUsuario() {
     else {
 
         if (filtro) {
-
             filtro.style.display =
                 "none";
-
         }
 
         if (resumo) {
-
             resumo.style.display =
                 "none";
+        }
 
+        /*
+           O botão Salvar continua disponível
+           para que o BC possa salvar somente
+           o próprio lançamento.
+        */
+
+        if (botaoSalvar) {
+            botaoSalvar.style.display =
+                "";
         }
 
     }
@@ -1971,7 +2247,9 @@ function aplicarPermissoesUsuario() {
         );
 
 
-    montarCalendarioDireto(mes);
+    montarCalendarioDireto(
+        mes
+    );
 
     recalcularTurnos();
 
@@ -1984,14 +2262,14 @@ function aplicarPermissoesUsuario() {
 
 async function salvarEEstocarArquivo() {
 
-    const localOk =
-        salvarNoLocalStorage();
-
-
-    if (!localOk) {
+    if (
+        !supabaseClient ||
+        !usuarioAtual ||
+        !perfilAtual
+    ) {
 
         alert(
-            "❌ Erro ao salvar localmente."
+            "🔐 É necessário estar conectado ao sistema para salvar a escala."
         );
 
         return;
@@ -1999,11 +2277,28 @@ async function salvarEEstocarArquivo() {
     }
 
 
+    /*
+        ADMINISTRADOR
+    */
+
     if (
-        supabaseClient &&
-        usuarioAtual &&
-        perfilAtual
+        usuarioEhAdmin()
     ) {
+
+        const localOk =
+            salvarNoLocalStorage();
+
+
+        if (!localOk) {
+
+            alert(
+                "❌ Erro ao salvar localmente."
+            );
+
+            return;
+
+        }
+
 
         const ok =
             await salvarEscalaNaNuvem();
@@ -2023,19 +2318,26 @@ async function salvarEEstocarArquivo() {
 
 
     /*
-        Sem usuário online:
-        NÃO permitir modo offline para BC.
+        BC
     */
 
-    alert(
-        "🔐 É necessário estar conectado ao sistema para salvar a escala."
-    );
+    const ok =
+        await salvarEscalaBCNaNuvem();
+
+
+    if (ok) {
+
+        alert(
+            "☁️ Seu plantão foi salvo com sucesso na nuvem."
+        );
+
+    }
 
 }
 
 
 /* =========================================================
-   SALVAR NA NUVEM
+   SALVAR ADMINISTRADOR
 ========================================================= */
 
 async function salvarEscalaNaNuvem() {
@@ -2051,77 +2353,62 @@ async function salvarEscalaNaNuvem() {
     }
 
 
+    if (
+        !usuarioEhAdmin()
+    ) {
+
+        return false;
+
+    }
+
+
     salvarEscalaAtualNaMemoria();
 
 
-    /*
-        Neste momento:
-        administrador pode salvar tudo.
-
-        BC pode salvar somente o próprio nome.
-    */
-
-    let dadosParaSalvar;
-
-
-    if (usuarioEhAdmin()) {
-
-        dadosParaSalvar = {
-            ...escalasPorMes
-        };
-
-    }
-
-    else {
-
-        /*
-            Mantém os dados completos
-            que já foram carregados.
-
-            O BC só altera seus próprios
-            registros.
-        */
-
-        dadosParaSalvar = {
-            ...escalasPorMes
-        };
-
-    }
+    const dadosParaSalvar = {
+        ...escalasPorMes
+    };
 
 
     const registros =
-        Object.keys(dadosParaSalvar)
-            .filter(
-                mes =>
-                    /^\d{2}$/.test(mes)
-            )
-            .map(
-                mes => ({
+        Object.keys(
+            dadosParaSalvar
+        )
+        .filter(
+            mes =>
+                /^\d{2}$/.test(mes)
+        )
+        .map(
+            mes => ({
 
-                    ano:
-                        ANO_ESCALA,
+                ano:
+                    ANO_ESCALA,
 
-                    mes:
-                        mes,
+                mes:
+                    mes,
 
-                    dados:
-                        dadosParaSalvar[mes] || {},
+                dados:
+                    dadosParaSalvar[
+                        mes
+                    ] || {},
 
-                    updated_by:
-                        usuarioAtual.id,
+                updated_by:
+                    usuarioAtual.id,
 
-                    updated_at:
-                        new Date().toISOString()
+                updated_at:
+                    new Date().toISOString()
 
-                })
-            );
+            })
+        );
 
 
     const {
         error
     } =
         await supabaseClient
-            .from("escalas_mensais")
+            .from(
+                "escalas_mensais"
+            )
             .upsert(
                 registros,
                 {
@@ -2133,12 +2420,16 @@ async function salvarEscalaNaNuvem() {
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
+
 
         mostrarStatus(
             "❌ Erro ao sincronizar: " +
             error.message
         );
+
 
         return false;
 
@@ -2147,6 +2438,264 @@ async function salvarEscalaNaNuvem() {
 
     mostrarStatus(
         "☁️ Escala salva na nuvem."
+    );
+
+
+    return true;
+
+}
+
+
+/* =========================================================
+   SALVAR BC
+========================================================= */
+
+async function salvarEscalaBCNaNuvem() {
+
+    if (
+        !supabaseClient ||
+        !usuarioAtual ||
+        !perfilAtual
+    ) {
+
+        return false;
+
+    }
+
+
+    const nomeUsuario =
+        obterNomeUsuario();
+
+
+    if (!nomeUsuario) {
+
+        mostrarStatus(
+            "❌ Seu perfil não possui um nome cadastrado."
+        );
+
+        return false;
+
+    }
+
+
+    const mes =
+        document.getElementById(
+            "inputMes"
+        ).value;
+
+
+    /*
+        Busca novamente somente o mês atual
+        antes de salvar.
+
+        Isso ajuda a preservar as alterações
+        feitas pelo administrador ou outros BCs.
+    */
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "escalas_mensais"
+            )
+            .select(
+                "dados"
+            )
+            .eq(
+                "ano",
+                ANO_ESCALA
+            )
+            .eq(
+                "mes",
+                mes
+            )
+            .maybeSingle();
+
+
+    if (error) {
+
+        console.error(
+            error
+        );
+
+
+        mostrarStatus(
+            "❌ Erro ao consultar a escala: " +
+            error.message
+        );
+
+
+        return false;
+
+    }
+
+
+    /*
+        Dados atualmente existentes
+        no servidor.
+    */
+
+    const dadosServidor = {
+        ...(
+            data &&
+            data.dados
+                ? data.dados
+                : {}
+        )
+    };
+
+
+    /*
+        Remove somente os plantões
+        pertencentes ao próprio BC.
+    */
+
+    Object.keys(
+        dadosServidor
+    )
+    .forEach(
+        chave => {
+
+            const nome =
+                String(
+                    dadosServidor[chave] ||
+                    ""
+                )
+                .trim()
+                .toUpperCase();
+
+
+            if (
+                nome ===
+                nomeUsuario
+            ) {
+
+                delete dadosServidor[
+                    chave
+                ];
+
+            }
+
+        }
+    );
+
+
+    /*
+        Adiciona novamente somente
+        os lançamentos atuais desse BC.
+    */
+
+    Object.keys(
+        dadosEscalaCompletos
+    )
+    .forEach(
+        chave => {
+
+            const nome =
+                String(
+                    dadosEscalaCompletos[
+                        chave
+                    ] || ""
+                )
+                .trim()
+                .toUpperCase();
+
+
+            if (
+                nome ===
+                nomeUsuario
+            ) {
+
+                dadosServidor[chave] =
+                    nomeUsuario;
+
+            }
+
+        }
+    );
+
+
+    const {
+        error: erroSalvar
+    } =
+        await supabaseClient
+            .from(
+                "escalas_mensais"
+            )
+            .upsert(
+                {
+
+                    ano:
+                        ANO_ESCALA,
+
+                    mes:
+                        mes,
+
+                    dados:
+                        dadosServidor,
+
+                    updated_by:
+                        usuarioAtual.id,
+
+                    updated_at:
+                        new Date().toISOString()
+
+                },
+                {
+                    onConflict:
+                        "ano,mes"
+                }
+            );
+
+
+    if (erroSalvar) {
+
+        console.error(
+            erroSalvar
+        );
+
+
+        mostrarStatus(
+            "❌ Erro ao salvar: " +
+            erroSalvar.message
+        );
+
+
+        return false;
+
+    }
+
+
+    /*
+        Atualiza a memória local
+        com o que foi salvo.
+    */
+
+    escalasPorMes[mes] = {
+        ...dadosServidor
+    };
+
+
+    dadosEscalaCompletos = {
+        ...dadosServidor
+    };
+
+
+    dadosEscalaMemoria =
+        filtrarDadosParaUsuario(
+            dadosEscalaCompletos
+        );
+
+
+    montarCalendarioDireto(
+        mes
+    );
+
+
+    mostrarStatus(
+        "☁️ Seu plantão foi salvo na nuvem."
     );
 
 
@@ -2178,8 +2727,12 @@ async function carregarEscalaNuvem() {
             error
         } =
             await supabaseClient
-                .from("escalas_mensais")
-                .select("mes,dados")
+                .from(
+                    "escalas_mensais"
+                )
+                .select(
+                    "mes,dados"
+                )
                 .eq(
                     "ano",
                     ANO_ESCALA
@@ -2194,17 +2747,15 @@ async function carregarEscalaNuvem() {
 
 
         /*
-            Guarda os dados completos
-            separadamente.
+            Guarda os dados recebidos.
         */
 
         (data || []).forEach(
             linha => {
 
-                dadosEscalaCompletos[linha.mes] =
-                    linha.dados || {};
-
-                escalasPorMes[linha.mes] =
+                escalasPorMes[
+                    linha.mes
+                ] =
                     linha.dados || {};
 
             }
@@ -2214,7 +2765,8 @@ async function carregarEscalaNuvem() {
         const mes =
             document.getElementById(
                 "inputMes"
-            ).value || "09";
+            ).value ||
+            "09";
 
 
         dadosEscalaCompletos = {
@@ -2228,16 +2780,38 @@ async function carregarEscalaNuvem() {
             );
 
 
-        montarCalendarioDireto(mes);
+        montarCalendarioDireto(
+            mes
+        );
 
         recalcularTurnos();
 
 
         /*
-            Mantém cópia local.
+            Somente o administrador
+            mantém a cópia completa
+            no armazenamento local.
         */
 
-        salvarNoLocalStorage();
+        if (
+            usuarioEhAdmin()
+        ) {
+
+            salvarNoLocalStorage();
+
+        }
+        else {
+
+            /*
+                BC não mantém cópia completa
+                da escala no aparelho.
+            */
+
+            localStorage.removeItem(
+                CHAVE_LOCAL_STORAGE
+            );
+
+        }
 
 
         mostrarStatus(
@@ -2248,7 +2822,10 @@ async function carregarEscalaNuvem() {
     }
     catch (e) {
 
-        console.error(e);
+        console.error(
+            e
+        );
+
 
         mostrarStatus(
             "⚠️ Nuvem indisponível: " +
@@ -2256,6 +2833,255 @@ async function carregarEscalaNuvem() {
         );
 
     }
+
+}
+
+
+/* =========================================================
+   MOSTRAR USUÁRIO
+========================================================= */
+
+function mostrarUsuarioOnline() {
+
+    const elemento =
+        document.getElementById(
+            "usuarioOnline"
+        );
+
+
+    const nomeElemento =
+        document.getElementById(
+            "usuarioNomeOnline"
+        );
+
+
+    if (!elemento) {
+        return;
+    }
+
+
+    let texto =
+        "";
+
+
+    if (perfilAtual) {
+
+        texto =
+            (
+                perfilAtual.nome ||
+                perfilAtual.email ||
+                usuarioAtual?.email ||
+                ""
+            );
+
+
+        if (
+            perfilAtual.role
+        ) {
+
+            texto +=
+                " · " +
+                perfilAtual.role;
+
+        }
+
+    }
+
+
+    if (nomeElemento) {
+
+        nomeElemento.textContent =
+            texto;
+
+    }
+
+
+    elemento.style.display =
+        "flex";
+
+}
+
+
+/* =========================================================
+   SAIR DO SISTEMA
+========================================================= */
+
+async function sairDoSistema() {
+
+    try {
+
+        /*
+            Primeiro encerra a sessão
+            no Supabase.
+        */
+
+        if (
+            supabaseClient
+        ) {
+
+            const {
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .signOut();
+
+
+            if (error) {
+
+                console.error(
+                    error
+                );
+
+            }
+
+        }
+
+    }
+    catch (erro) {
+
+        console.error(
+            erro
+        );
+
+    }
+
+
+    /*
+        Limpa os dados da sessão
+        na memória.
+    */
+
+    usuarioAtual =
+        null;
+
+    perfilAtual =
+        null;
+
+
+    dadosEscalaMemoria =
+        {};
+
+    dadosEscalaCompletos =
+        {};
+
+
+    /*
+        Limpa somente dados locais
+        da sessão do BC.
+    */
+
+    localStorage.removeItem(
+        "modoOfflineEscalaBC"
+    );
+
+
+    /*
+        Esconde usuário.
+    */
+
+    const usuario =
+        document.getElementById(
+            "usuarioOnline"
+        );
+
+
+    if (usuario) {
+
+        usuario.style.display =
+            "none";
+
+    }
+
+
+    /*
+        Limpa a tabela para que
+        nenhum dado antigo fique
+        visível atrás do login.
+    */
+
+    const corpo =
+        document.getElementById(
+            "corpoTabela"
+        );
+
+
+    if (corpo) {
+
+        corpo.innerHTML =
+            "";
+
+    }
+
+
+    /*
+        Volta para o login.
+    */
+
+    const overlay =
+        document.getElementById(
+            "loginOverlay"
+        );
+
+
+    if (overlay) {
+
+        overlay.style.display =
+            "flex";
+
+    }
+
+
+    /*
+        Limpa senha.
+    */
+
+    const senha =
+        document.getElementById(
+            "loginSenha"
+        );
+
+
+    if (senha) {
+
+        senha.value =
+            "";
+
+    }
+
+
+    setLoginStatus(
+        "Você saiu do sistema.",
+        true
+    );
+
+
+    mostrarStatus(
+        "🔐 Aguardando novo login."
+    );
+
+
+    /*
+        Coloca o cursor no e-mail.
+    */
+
+    setTimeout(
+        () => {
+
+            const email =
+                document.getElementById(
+                    "loginEmail"
+                );
+
+            if (email) {
+
+                email.focus();
+
+            }
+
+        },
+        200
+    );
 
 }
 
@@ -2312,12 +3138,13 @@ async function entrarOnline() {
         data,
         error
     } =
-        await supabaseClient.auth.signInWithPassword(
-            {
-                email,
-                password: senha
-            }
-        );
+        await supabaseClient.auth
+            .signInWithPassword(
+                {
+                    email,
+                    password: senha
+                }
+            );
 
 
     if (error) {
@@ -2349,12 +3176,25 @@ async function prepararUsuarioOnline() {
 
     try {
 
+        if (
+            !usuarioAtual
+        ) {
+
+            throw new Error(
+                "Usuário não identificado."
+            );
+
+        }
+
+
         const {
             data: perfil,
             error
         } =
             await supabaseClient
-                .from("profiles")
+                .from(
+                    "profiles"
+                )
                 .select("*")
                 .eq(
                     "id",
@@ -2375,13 +3215,13 @@ async function prepararUsuarioOnline() {
 
 
         /*
-            Aceita apenas administrador
-            ou BC cadastrado.
+            Só aceita administrador
+            ou BC com nome cadastrado.
         */
 
         if (
-            !perfilAtual.nome &&
-            !usuarioEhAdmin()
+            !usuarioEhAdmin() &&
+            !obterNomeUsuario()
         ) {
 
             throw new Error(
@@ -2391,33 +3231,8 @@ async function prepararUsuarioOnline() {
         }
 
 
-        document.getElementById(
-            "loginOverlay"
-        ).style.display = "none";
-
-
-        const u =
-            document.getElementById(
-                "usuarioOnline"
-            );
-
-
-        u.style.display =
-            "block";
-
-
-        u.textContent =
-            (
-                perfil.nome ||
-                perfil.email
-            ) +
-            " · " +
-            perfil.role;
-
-
         /*
-            Remove qualquer marcação
-            antiga de modo offline.
+            Remove modo offline antigo.
         */
 
         localStorage.removeItem(
@@ -2425,21 +3240,92 @@ async function prepararUsuarioOnline() {
         );
 
 
+        /*
+            Mostra usuário.
+        */
+
+        mostrarUsuarioOnline();
+
+
+        /*
+            Fecha login.
+        */
+
+        document.getElementById(
+            "loginOverlay"
+        ).style.display =
+            "none";
+
+
+        /*
+            Carrega escala.
+        */
+
         await carregarEscalaNuvem();
 
+
+        /*
+            Aplica permissões.
+        */
 
         aplicarPermissoesUsuario();
 
 
+        /*
+            Limpa senha.
+        */
+
+        const senha =
+            document.getElementById(
+                "loginSenha"
+            );
+
+        if (senha) {
+
+            senha.value =
+                "";
+
+        }
+
+
+        mostrarStatus(
+            usuarioEhAdmin()
+                ? "☁️ Administrador conectado. Acesso completo à escala."
+                : "☁️ Usuário conectado. Você pode lançar somente seu próprio nome."
+        );
+
     }
     catch (e) {
 
-        console.error(e);
+        console.error(
+            e
+        );
+
+
+        usuarioAtual =
+            null;
+
+        perfilAtual =
+            null;
+
 
         setLoginStatus(
             "Não foi possível carregar seu perfil: " +
             e.message
         );
+
+
+        const overlay =
+            document.getElementById(
+                "loginOverlay"
+            );
+
+        if (overlay) {
+
+            overlay.style.display =
+                "flex";
+
+        }
 
     }
 
@@ -2458,14 +3344,11 @@ async function inicializarOnline() {
             "Supabase ainda não configurado."
         );
 
-        /*
-            Sem Supabase:
-            não liberar acesso à escala.
-        */
 
         document.getElementById(
             "loginOverlay"
-        ).style.display = "flex";
+        ).style.display =
+            "flex";
 
 
         setLoginStatus(
@@ -2484,13 +3367,24 @@ async function inicializarOnline() {
             window.SUPABASE_PUBLISHABLE_KEY,
             {
                 auth: {
-                    persistSession: true,
-                    autoRefreshToken: true,
-                    detectSessionInUrl: true
+
+                    persistSession:
+                        true,
+
+                    autoRefreshToken:
+                        true,
+
+                    detectSessionInUrl:
+                        true
+
                 }
             }
         );
 
+
+    /*
+        Botão entrar.
+    */
 
     document.getElementById(
         "btnEntrar"
@@ -2498,10 +3392,49 @@ async function inicializarOnline() {
         entrarOnline;
 
 
+    /*
+        Botão sair.
+    */
+
+    document.getElementById(
+        "btnSair"
+    ).onclick =
+        sairDoSistema;
+
+
+    /*
+        Enter no campo senha.
+    */
+
+    document.getElementById(
+        "loginSenha"
+    ).addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key ===
+                "Enter"
+            ) {
+
+                entrarOnline();
+
+            }
+
+        }
+    );
+
+
+    /*
+        Verifica sessão já existente.
+    */
+
     const {
         data
     } =
-        await supabaseClient.auth.getSession();
+        await supabaseClient
+            .auth
+            .getSession();
 
 
     if (
@@ -2516,7 +3449,6 @@ async function inicializarOnline() {
         await prepararUsuarioOnline();
 
     }
-
     else {
 
         document.getElementById(
@@ -2526,6 +3458,31 @@ async function inicializarOnline() {
 
     }
 
+
+    /*
+        Monitora saída/login
+        da sessão.
+    */
+
+    supabaseClient.auth.onAuthStateChange(
+        (event, session) => {
+
+            if (
+                event ===
+                "SIGNED_OUT"
+            ) {
+
+                usuarioAtual =
+                    null;
+
+                perfilAtual =
+                    null;
+
+            }
+
+        }
+    );
+
 }
 
 
@@ -2534,6 +3491,11 @@ async function inicializarOnline() {
 ========================================================= */
 
 function inicializarAplicacao() {
+
+    /*
+        Inicialmente carrega somente
+        para preparar a interface.
+    */
 
     carregarDadosSalvos();
 
@@ -2545,7 +3507,8 @@ function inicializarAplicacao() {
 
 
     const mes =
-        select.value || "09";
+        select.value ||
+        "09";
 
 
     dadosEscalaCompletos = {
@@ -2558,7 +3521,20 @@ function inicializarAplicacao() {
     };
 
 
-    montarCalendarioDireto(mes);
+    /*
+        A tela fica protegida pelo login.
+    */
+
+    document.getElementById(
+        "loginOverlay"
+    ).style.display =
+        "flex";
+
+
+    montarCalendarioDireto(
+        mes
+    );
+
 
     recalcularTurnos();
 
@@ -2581,7 +3557,8 @@ function inicializarAplicacao() {
 ========================================================= */
 
 if (
-    document.readyState === "loading"
+    document.readyState ===
+    "loading"
 ) {
 
     document.addEventListener(
@@ -2598,7 +3575,7 @@ else {
 
 
 /* =========================================================
-   LOGIN ONLINE
+   INICIALIZAR SISTEMA ONLINE
 ========================================================= */
 
 document.addEventListener(
