@@ -31,7 +31,7 @@ button{padding:10px 13px;border:0;border-radius:6px;cursor:pointer;font-weight:b
 .btn-backup{background:#0d6efd;color:#fff}.btn-restaurar{background:#fd7e14;color:#fff}
 .btn-imprimir{background:#343a40;color:#fff}.btn-limpar{background:#b02a37;color:#fff}.btn-copiar{background:#6f42c1;color:#fff}
 #usuarioOnline{position:fixed;right:10px;top:10px;z-index:9999;background:#0b5d1e;color:#fff;padding:7px 11px;border-radius:14px;font-size:12px;display:none;gap:8px;align-items:center}
-#btnSair{background:#fff;color:#0b5d1e;padding:4px 8px}
+#btnSair{background:#fff;color:#0b5d1e;padding:7px 10px;border:1px solid #0b5d1e;border-radius:7px;font-weight:700;min-height:32px;width:auto}
 .info{background:#e8f5e9;padding:11px 14px;border-left:5px solid #0b5d1e;font-weight:bold}
 .status{margin-top:10px;padding:10px;border-radius:6px;background:#eef3f7;color:#555;font-size:13px}
 .tabela-wrap{background:#fff;padding:10px;overflow:auto;-webkit-overflow-scrolling:touch;box-shadow:0 2px 6px rgba(0,0,0,.1)}
@@ -63,11 +63,11 @@ thead .coluna-label{background:#0b5d1e;color:#fff}
 .bc-only{}
 .hidden{display:none!important}
 @media(max-width:800px){
- body{padding:4px} header{padding:13px 8px} header h1{font-size:18px} header p{font-size:12px}
+ body{padding:52px 4px 4px} header{padding:13px 8px} header h1{font-size:18px} header p{font-size:12px}
  .painel{padding:10px;flex-direction:column;align-items:stretch}.input,button{width:100%;min-height:44px}
  .tabela-wrap{padding:5px}.coluna-label{min-width:145px;width:145px}.col-dia{min-width:118px;width:118px}
  .select-escala{min-height:42px;font-size:13px}.periodo-select{font-size:12px}
- #usuarioOnline{position:static;margin-bottom:5px;justify-content:space-between}
+ #usuarioOnline{position:fixed !important;right:6px !important;top:6px !important;z-index:99999 !important;margin:0 !important;justify-content:space-between !important;display:flex !important;max-width:calc(100vw - 12px);box-sizing:border-box;gap:6px}
 }
 @media print{
  body{background:#fff;padding:0}header{border-radius:0}.painel,.status,.rodape,.resumo,#usuarioOnline,.bc-only-note{display:none!important}
