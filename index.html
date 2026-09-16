@@ -151,6 +151,9 @@ const ANO_ESCALA=2026;
 const CHAVE_LOCAL="escalaBCs_formato12_2026_v1";
 const SLOT_COUNT=12;
 const listaBCs=["ADILSON","ALVES","ANDRADE","BARBARA","BATISTA","BORGES","BRAUER","CAMILA","CASTELACI","CLEDISON","DENIS","EDER","FEITOSA","GABRIEL","GERSON","GEYSSON","GLEISSON","IARA","JAIRO","JOSÉ","JUAN","KEVIN","KRAUSE","LARISSA","LILIAN","LIMA","LIRAS","MAICO","MAMINHAQUI","MATIAS","MATUCHESKI","NERIS","PALOMA","PATRICK","PAULO","PEKOCZ","PINHEIRO","PIVA","PRISCILA","REI","REIS","RUDNIK","RYAN","SAMPAIO","SANTOS","SCHENA","SCHÖNE","SILVINA","SIMÃO","STREISKI","TEIXEIRA","TIBURSKI","WITKOWSKI","ZENI"];
+const EMAIL_PARA_BC={
+"adilsonbcjr@yahoo.com.br":"ADILSON","kaiccauw18@gmail.com":"ALVES","junio26.itapoa@gmail.com":"ANDRADE","paah@hotmail.com":"BARBARA","jhonyiammhpm@gmail.com":"BATISTA","lariborgeslari24@gmail.com":"BORGES","brauer@gmail.com":"BRAUER","camilakuboski5@gmail.com":"CAMILA","ahcastelaci@gmail.com":"CASTELACI","cledisondjesus@gmail.com":"CLEDISON","seinao_moreira@hotmail.com":"DENIS","gvceder@gmail.com":"EDER","edilenefeitosa.sofia@gmail.com":"FEITOSA","gabriel91483170@gmail.com":"GABRIEL","gersonpiazzetta@gmail.com":"GERSON","geyssonw@gmail.com":"GEYSSON","gleisson2015leopoldino@gmail.com":"GLEISSON","iarahoepfner1972@gmail.com":"IARA","jairo_pesca@hotmail.com":"JAIRO","jdrossa@hotmail.com":"JOSÉ","maoskijuan@gmail.com":"JUAN","kevingulla273@gmail.com":"KEVIN","kljkrause@gmail.com":"KRAUSE","bodaneselarissa@gmail.com":"LARISSA","liliandasgracasmaoski@gmail.com":"LILIAN","anaclaudialima1981@gmail.com":"LIMA","jair160604@gmail.com":"LIRAS","maico.aurelio@yahoo.com.br":"MAICO","andersonmaminhaqui77@gmail.com":"MAMINHAQUI","silvia.mathias@hotmail.com":"MATIAS","rmatucheski@gmail.com":"MATUCHESKI","sidneineris616@gmail.com":"NERIS","palomadambiski7@gmail.com":"PALOMA","freitasgabry578@gmail.com":"PATRICK","paulodemarqui190@gmail.com":"PAULO","perkocz92@gmail.com":"PEKOCZ","alex.almdpinheiro@gmail.com":"PINHEIRO","abathaingrid08@gmail.com":"PIVA","jessica.organizer@hotmail.com":"PRISCILA","leonardorei280292@gmail.com":"REI","reishalan5@gmail.com":"REIS","danielerudnik@outlook.com":"RUDNIK","atleta_ryancordeiro@hotmail.com":"RYAN","eduardapeixes@icloud.com":"SAMPAIO","luluziinhha-santos@hotmail.com":"SANTOS","lucasschena@gmail.com":"SCHENA","schone.fds@gmail.com":"SCHÖNE","siledasol@gmail.com":"SILVINA","25cristinasimao@gmail.com":"SIMÃO","geizefilhosamados06@gmail.com":"STREISKI","janderson.teixeira@hotmail.com":"TEIXEIRA","lu-ara22@hotmail.com":"TIBURSKI","vagnertikoski@gmail.com":"WITKOWSKI","kamila.apzeni@gmail.com":"ZENI"
+};
 const periodos=["","DIURNO","NOTURNO","INTEGRAL"];
 const nomesMes=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const diasSemana=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
@@ -375,8 +378,16 @@ async function obterPerfil(){
  if(error)throw error;
  perfilAtual=data;
  if(ehAdmin()){bcAtual=null;return;}
- const {data:bcs,error:be}=await supabaseClient.from("bcs").select("id,nome,ativo,auth_user_id").eq("auth_user_id",usuarioAtual.id).maybeSingle();
+ let {data:bcs,error:be}=await supabaseClient.from("bcs").select("id,nome,email,ativo,auth_user_id").eq("auth_user_id",usuarioAtual.id).maybeSingle();
  if(be)throw be;
+ if(!bcs && usuarioAtual.email){
+  const nomeMap=EMAIL_PARA_BC[String(usuarioAtual.email).trim().toLowerCase()];
+  if(nomeMap){
+   const r=await supabaseClient.from("bcs").select("id,nome,email,ativo,auth_user_id").eq("nome",nomeMap).eq("ativo",true).maybeSingle();
+   if(r.error)throw r.error;
+   bcs=r.data;
+  }
+ }
  if(!bcs||!bcs.ativo)throw new Error("Usuário BC não está vinculado a um cadastro ativo.");
  bcAtual=bcs;
 }
