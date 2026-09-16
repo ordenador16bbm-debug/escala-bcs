@@ -4,3665 +4,438 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Escala BCs</title>
-
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0b5d1e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-touch-fullscreen" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Escala BCs">
 <link rel="apple-touch-icon" href="icon-192.png">
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
 <style>
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-
-body{
- margin:0;
- padding:12px;
- font-family:Arial,Helvetica,sans-serif;
- background:#f3f6f9;
- color:#222
-}
-
+body{margin:0;padding:12px;font-family:Arial,Helvetica,sans-serif;background:#f3f6f9;color:#222}
 .container{max-width:1900px;margin:auto}
-
-header{
- background:#0b5d1e;
- color:#fff;
- padding:18px;
- border-radius:10px 10px 0 0;
- text-align:center
-}
-
-header h1{margin:0;font-size:24px}
-header p{margin:7px 0 0;font-size:14px}
-
-.painel{
- background:#fff;
- padding:14px;
- display:flex;
- gap:9px;
- flex-wrap:wrap;
- align-items:end;
- border-bottom:1px solid #ddd
-}
-
-.campo{
- display:flex;
- flex-direction:column;
- gap:4px
-}
-
-.campo label{
- font-weight:bold;
- font-size:13px
-}
-
-select,input,button{font:inherit}
-
-.input{
- padding:10px;
- border:1px solid #aaa;
- border-radius:6px;
- background:#fff;
- min-width:170px
-}
-
-button{
- padding:10px 13px;
- border:0;
- border-radius:6px;
- cursor:pointer;
- font-weight:bold
-}
-
-.btn-salvar{background:#198754;color:#fff}
-.btn-excel{background:#217346;color:#fff}
-.btn-pdf{background:#dc3545;color:#fff}
-.btn-backup{background:#0d6efd;color:#fff}
-.btn-restaurar{background:#fd7e14;color:#fff}
-.btn-imprimir{background:#343a40;color:#fff}
-.btn-limpar{background:#b02a37;color:#fff}
-.btn-copiar{background:#6f42c1;color:#fff}
-
-#usuarioOnline{
- position:fixed;
- right:10px;
- top:10px;
- z-index:9999;
- background:#0b5d1e;
- color:#fff;
- padding:7px 11px;
- border-radius:14px;
- font-size:12px;
- display:none;
- gap:8px;
- align-items:center
-}
-
-#btnSair{
- background:#fff;
- color:#0b5d1e;
- padding:4px 8px
-}
-
-.info{
- background:#e8f5e9;
- padding:11px 14px;
- border-left:5px solid #0b5d1e;
- font-weight:bold
-}
-
-.status{
- margin-top:10px;
- padding:10px;
- border-radius:6px;
- background:#eef3f7;
- color:#555;
- font-size:13px
-}
-
-.tabela-wrap{
- background:#fff;
- padding:10px;
- overflow:auto;
- -webkit-overflow-scrolling:touch;
- box-shadow:0 2px 6px rgba(0,0,0,.1)
-}
-
-table{
- border-collapse:collapse;
- width:max-content;
- min-width:100%;
- font-size:12px
-}
-
-th,td{
- border:1px solid #777;
- text-align:center;
- padding:3px
-}
-
-thead th{
- background:#d9ead3;
- font-weight:bold
-}
-
-.coluna-label{
- position:sticky;
- left:0;
- z-index:5;
- background:#fff;
- min-width:175px;
- width:175px;
- font-weight:bold
-}
-
-thead .coluna-label{
- background:#0b5d1e;
- color:#fff
-}
-
-.col-dia{
- min-width:130px;
- width:130px
-}
-
-.data{
- font-size:13px;
- font-weight:bold
-}
-
-.semana{
- font-size:12px
-}
-
-.nome-row td{height:38px}
-.periodo-row td{height:34px}
-
-.nome-label,
-.periodo-label{
- font-weight:bold;
- background:#f7f7f7;
- position:sticky;
- left:0;
- z-index:4
-}
-
-.nome-label{font-size:13px}
-.periodo-label{font-size:12px}
-
-.select-escala{
- width:100%;
- min-width:118px;
- min-height:34px;
- border:1px solid #aaa;
- border-radius:4px;
- background:#fff;
- padding:4px;
- font-size:12px
-}
-
+header{background:#0b5d1e;color:#fff;padding:18px;border-radius:10px 10px 0 0;text-align:center}
+header h1{margin:0;font-size:24px} header p{margin:7px 0 0;font-size:14px}
+.painel{background:#fff;padding:14px;display:flex;gap:9px;flex-wrap:wrap;align-items:end;border-bottom:1px solid #ddd}
+.campo{display:flex;flex-direction:column;gap:4px}.campo label{font-weight:bold;font-size:13px}
+select,input,button{font:inherit}.input{padding:10px;border:1px solid #aaa;border-radius:6px;background:#fff;min-width:170px}
+button{padding:10px 13px;border:0;border-radius:6px;cursor:pointer;font-weight:bold}
+.btn-salvar{background:#198754;color:#fff}.btn-excel{background:#217346;color:#fff}.btn-pdf{background:#dc3545;color:#fff}
+.btn-backup{background:#0d6efd;color:#fff}.btn-restaurar{background:#fd7e14;color:#fff}
+.btn-imprimir{background:#343a40;color:#fff}.btn-limpar{background:#b02a37;color:#fff}.btn-copiar{background:#6f42c1;color:#fff}
+#usuarioOnline{position:fixed;right:10px;top:10px;z-index:9999;background:#0b5d1e;color:#fff;padding:7px 11px;border-radius:14px;font-size:12px;display:none;gap:8px;align-items:center}
+#btnSair{background:#fff;color:#0b5d1e;padding:4px 8px}
+.info{background:#e8f5e9;padding:11px 14px;border-left:5px solid #0b5d1e;font-weight:bold}
+.status{margin-top:10px;padding:10px;border-radius:6px;background:#eef3f7;color:#555;font-size:13px}
+.tabela-wrap{background:#fff;padding:10px;overflow:auto;-webkit-overflow-scrolling:touch;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+table{border-collapse:collapse;width:max-content;min-width:100%;font-size:12px}
+th,td{border:1px solid #777;text-align:center;padding:3px}
+thead th{background:#d9ead3;font-weight:bold}
+.coluna-label{position:sticky;left:0;z-index:5;background:#fff;min-width:175px;width:175px;font-weight:bold}
+thead .coluna-label{background:#0b5d1e;color:#fff}
+.col-dia{min-width:130px;width:130px}
+.data{font-size:13px;font-weight:bold}.semana{font-size:12px}
+.nome-row td{height:38px}.periodo-row td{height:34px}
+.nome-label,.periodo-label{font-weight:bold;background:#f7f7f7;position:sticky;left:0;z-index:4}
+.nome-label{font-size:13px}.periodo-label{font-size:12px}
+.select-escala{width:100%;min-width:118px;min-height:34px;border:1px solid #aaa;border-radius:4px;background:#fff;padding:4px;font-size:12px}
 .periodo-select{font-size:11px}
-
-.select-bloqueado{
- background:#eeeeee!important;
- color:#333!important;
- cursor:not-allowed;
- border-color:#aaa!important
-}
-
-.slot-ocupado-outro{
- background:#f1f1f1!important
-}
-
-.slot-proprio{
- background:#e8f5e9!important
-}
-
-.slot-vazio{
- background:#fff!important
-}
-
-.fim-semana{
- background:#fff0f0
-}
-
-.slot-par{
- background:#fbfbfb
-}
-
-.bc-only-note{
- background:#fff8e1;
- border-left:5px solid #f0ad00;
- padding:11px 14px;
- font-weight:bold
-}
-
-.resumo{
- margin-top:15px;
- background:#fff;
- padding:16px;
- border-radius:8px;
- box-shadow:0 2px 6px rgba(0,0,0,.1)
-}
-
-.resumo h2{
- margin:0 0 12px;
- color:#0b5d1e;
- font-size:19px
-}
-
-.grid{
- display:grid;
- grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
- gap:8px
-}
-
-.card{
- border:1px solid #ccc;
- border-radius:6px;
- padding:10px;
- background:#f8f9fa;
- text-align:center
-}
-
-.card strong{display:block}
-.card b{font-size:21px;color:#0b5d1e}
-
-.rodape{
- text-align:center;
- color:#666;
- font-size:12px;
- padding:12px
-}
-
-.overlay{
- display:none;
- position:fixed;
- inset:0;
- background:rgba(0,0,0,.72);
- z-index:99999;
- align-items:center;
- justify-content:center;
- padding:20px
-}
-
-.login-box{
- background:#fff;
- border-radius:16px;
- padding:24px;
- max-width:420px;
- width:100%;
- box-shadow:0 10px 40px rgba(0,0,0,.35)
-}
-
-.login-box h2{
- margin-top:0;
- color:#0b5d1e
-}
-
-.login-box input{
- width:100%;
- padding:12px;
- margin:6px 0;
- border:1px solid #bbb;
- border-radius:8px
-}
-
-.login-box button{
- width:100%;
- margin-top:8px
-}
-
-.login-primary{
- background:#0b5d1e;
- color:#fff
-}
-
-.login-secondary{
- background:#fff;
- color:#0b5d1e;
- border:1px solid #0b5d1e
-}
-
-#loginStatus{
- font-size:13px;
- margin-bottom:0
-}
-
+.fim-semana{background:#fff0f0}
+.slot-par{background:#fbfbfb}
+.bc-only-note{background:#fff8e1;border-left:5px solid #f0ad00;padding:11px 14px;font-weight:bold}
+.resumo{margin-top:15px;background:#fff;padding:16px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.resumo h2{margin:0 0 12px;color:#0b5d1e;font-size:19px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px}
+.card{border:1px solid #ccc;border-radius:6px;padding:10px;background:#f8f9fa;text-align:center}.card strong{display:block}.card b{font-size:21px;color:#0b5d1e}
+.rodape{text-align:center;color:#666;font-size:12px;padding:12px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:99999;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:16px;padding:24px;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+.login-box h2{margin-top:0;color:#0b5d1e}.login-box input{width:100%;padding:12px;margin:6px 0;border:1px solid #bbb;border-radius:8px}
+.login-box button{width:100%;margin-top:8px}.login-primary{background:#0b5d1e;color:#fff}.login-secondary{background:#fff;color:#0b5d1e;border:1px solid #0b5d1e}
+#loginStatus{font-size:13px;margin-bottom:0}
 .admin-only{}
 .bc-only{}
 .hidden{display:none!important}
-
 @media(max-width:800px){
-
- body{padding:4px}
-
- header{padding:13px 8px}
-
- header h1{font-size:18px}
-
- header p{font-size:12px}
-
- .painel{
-  padding:10px;
-  flex-direction:column;
-  align-items:stretch
- }
-
- .input,button{
-  width:100%;
-  min-height:44px
- }
-
- .tabela-wrap{padding:5px}
-
- .coluna-label{
-  min-width:145px;
-  width:145px
- }
-
- .col-dia{
-  min-width:118px;
-  width:118px
- }
-
- .select-escala{
-  min-height:42px;
-  font-size:13px
- }
-
- .periodo-select{
-  font-size:12px
- }
-
- #usuarioOnline{
-  position:static;
-  margin-bottom:5px;
-  justify-content:space-between
- }
+ body{padding:4px} header{padding:13px 8px} header h1{font-size:18px} header p{font-size:12px}
+ .painel{padding:10px;flex-direction:column;align-items:stretch}.input,button{width:100%;min-height:44px}
+ .tabela-wrap{padding:5px}.coluna-label{min-width:145px;width:145px}.col-dia{min-width:118px;width:118px}
+ .select-escala{min-height:42px;font-size:13px}.periodo-select{font-size:12px}
+ #usuarioOnline{position:static;margin-bottom:5px;justify-content:space-between}
 }
-
 @media print{
-
- body{
-  background:#fff;
-  padding:0
- }
-
- header{border-radius:0}
-
- .painel,
- .status,
- .rodape,
- .resumo,
- #usuarioOnline,
- .bc-only-note{
-  display:none!important
- }
-
- .tabela-wrap{
-  overflow:visible;
-  box-shadow:none;
-  padding:0
- }
-
- table{font-size:8px}
-
- .col-dia{
-  min-width:80px;
-  width:80px
- }
-
- .coluna-label{
-  min-width:125px;
-  width:125px
- }
-
- .select-escala{
-  appearance:none;
-  border:0;
-  font-size:8px;
-  min-height:0
- }
-
- .periodo-select{font-size:8px}
+ body{background:#fff;padding:0}header{border-radius:0}.painel,.status,.rodape,.resumo,#usuarioOnline,.bc-only-note{display:none!important}
+ .tabela-wrap{overflow:visible;box-shadow:none;padding:0}table{font-size:8px}.col-dia{min-width:80px;width:80px}.coluna-label{min-width:125px;width:125px}
+ .select-escala{appearance:none;border:0;font-size:8px;min-height:0}.periodo-select{font-size:8px}
 }
 </style>
 </head>
-
 <body>
-
 <div id="loginOverlay" class="overlay">
  <div class="login-box">
-
   <h2>🔐 Escala BCs</h2>
-
-  <p id="loginInfo">
-   Entre com seu e-mail e senha.
-  </p>
-
-  <input
-   id="loginEmail"
-   type="email"
-   placeholder="E-mail"
-   autocomplete="username"
-  >
-
-  <input
-   id="loginSenha"
-   type="password"
-   placeholder="Senha"
-   autocomplete="current-password"
-  >
-
-  <button id="btnEntrar" class="login-primary">
-   Entrar
-  </button>
-
-  <button id="btnPrimeiroAcesso" class="login-secondary">
-   Esqueci / criar nova senha
-  </button>
-
+  <p id="loginInfo">Entre com seu e-mail e senha.</p>
+  <input id="loginEmail" type="email" placeholder="E-mail" autocomplete="username">
+  <input id="loginSenha" type="password" placeholder="Senha" autocomplete="current-password">
+  <button id="btnEntrar" class="login-primary">Entrar</button>
+  <button id="btnPrimeiroAcesso" class="login-secondary">Esqueci / criar nova senha</button>
   <p id="loginStatus"></p>
-
  </div>
 </div>
-
 
 <div id="usuarioOnline">
-
  <span id="usuarioNomeOnline"></span>
-
- <button id="btnSair">
-  Sair
- </button>
-
+ <button id="btnSair">Sair</button>
 </div>
-
 
 <div class="container">
-
 <header>
-
- <h1>
-  📊 Escala de Plantões - Bombeiros Comunitários
- </h1>
-
- <p>
-  Sistema de Gerenciamento de Escala - BCs
- </p>
-
+ <h1>📊 Escala de Plantões - Bombeiros Comunitários</h1>
+ <p>Sistema de Gerenciamento de Escala - BCs</p>
 </header>
 
-
 <div id="avisoBC" class="bc-only-note hidden">
-
- 👤 Você está conectado como
- <span id="nomeBCAviso"></span>.
-
- Você pode lançar somente o seu próprio nome.
-
- <br>
-
- 🔒 Nomes e períodos já preenchidos por outros BCs ficam bloqueados.
-
+ 👤 Você está conectado como <span id="nomeBCAviso"></span>. Você pode lançar somente o seu próprio nome.
 </div>
-
 
 <div class="painel">
-
  <div class="campo">
-
-  <label for="inputMes">
-   📅 Mês da Escala
-  </label>
-
+  <label for="inputMes">📅 Mês da Escala</label>
   <select id="inputMes" class="input">
-
-   <option value="01">Janeiro</option>
-   <option value="02">Fevereiro</option>
-   <option value="03">Março</option>
-   <option value="04">Abril</option>
-   <option value="05">Maio</option>
-   <option value="06">Junho</option>
-   <option value="07">Julho</option>
-   <option value="08">Agosto</option>
-   <option value="09" selected>Setembro</option>
-   <option value="10">Outubro</option>
-   <option value="11">Novembro</option>
-   <option value="12">Dezembro</option>
-
+   <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option>
+   <option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option>
+   <option value="07">Julho</option><option value="08">Agosto</option><option value="09" selected>Setembro</option>
+   <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
   </select>
-
  </div>
-
-
  <div id="campoFiltro" class="campo admin-only">
-
-  <label for="filtroNome">
-   🔎 Filtrar BC
-  </label>
-
-  <input
-   id="filtroNome"
-   class="input"
-   placeholder="Digite o nome..."
-  >
-
+  <label for="filtroNome">🔎 Filtrar BC</label>
+  <input id="filtroNome" class="input" placeholder="Digite o nome..." />
  </div>
-
-
- <button id="btnSalvar" class="btn-salvar">
-  💾 Salvar
- </button>
-
- <button id="btnCopiar" class="btn-copiar admin-only">
-  📋 Copiar escala
- </button>
-
- <button id="btnExcel" class="btn-excel admin-only">
-  📊 Excel
- </button>
-
- <button id="btnPDF" class="btn-pdf admin-only">
-  📄 PDF
- </button>
-
- <button id="btnBackup" class="btn-backup admin-only">
-  💾 Backup
- </button>
-
- <button id="btnRestaurar" class="btn-restaurar admin-only">
-  ♻️ Restaurar
- </button>
-
- <input
-  type="file"
-  id="arquivoBackup"
-  accept=".json"
-  class="hidden"
- >
-
- <button id="btnImprimir" class="btn-imprimir admin-only">
-  🖨️ Imprimir
- </button>
-
- <button id="btnLimpar" class="btn-limpar admin-only">
-  🧹 Limpar
- </button>
-
+ <button id="btnSalvar" class="btn-salvar">💾 Salvar</button>
+ <button id="btnCopiar" class="btn-copiar admin-only">📋 Copiar escala</button>
+ <button id="btnExcel" class="btn-excel admin-only">📊 Excel</button>
+ <button id="btnPDF" class="btn-pdf admin-only">📄 PDF</button>
+ <button id="btnBackup" class="btn-backup admin-only">💾 Backup</button>
+ <button id="btnRestaurar" class="btn-restaurar admin-only">♻️ Restaurar</button>
+ <input type="file" id="arquivoBackup" accept=".json" class="hidden">
+ <button id="btnImprimir" class="btn-imprimir admin-only">🖨️ Imprimir</button>
+ <button id="btnLimpar" class="btn-limpar admin-only">🧹 Limpar</button>
 </div>
-
 
 <div id="infoMes" class="info"></div>
-
-
 <div class="tabela-wrap">
-
 <table id="tabelaEscala">
-
-<thead>
-
-<tr id="rowDatas">
- <th class="coluna-label">
-  Nome de guerra / Período
- </th>
-</tr>
-
-<tr id="rowSemanas">
- <th class="coluna-label">
-  Dia da semana
- </th>
-</tr>
-
-</thead>
-
+<thead><tr id="rowDatas"><th class="coluna-label">Nome de guerra / Período</th></tr>
+<tr id="rowSemanas"><th class="coluna-label">Dia da semana</th></tr></thead>
 <tbody id="corpoTabela"></tbody>
-
 </table>
-
 </div>
-
 
 <div id="resumoContainer" class="resumo admin-only">
-
- <h2>
-  📈 Placar de Plantões Acumulados por Integrante (BC)
- </h2>
-
+ <h2>📈 Placar de Plantões Acumulados por Integrante (BC)</h2>
  <div id="gridResumo" class="grid"></div>
-
 </div>
-
-
-<div id="statusSistema" class="status">
- Aguardando login.
+<div id="statusSistema" class="status">Aguardando login.</div>
+<div class="rodape">Sistema de Gerenciamento de Escala - Bombeiros Comunitários / BCs<br>Ano da escala: 2026</div>
 </div>
-
-
-<div class="rodape">
-
- Sistema de Gerenciamento de Escala - Bombeiros Comunitários / BCs
- <br>
- Ano da escala: 2026
-
-</div>
-
-</div>
-
 
 <script>
+const ANO_ESCALA=2026;
+const CHAVE_LOCAL="escalaBCs_formato12_2026_v1";
+const SLOT_COUNT=12;
+const listaBCs=["ADILSON","ALVES","ANDRADE","BARBARA","BATISTA","BORGES","BRAUER","CAMILA","CASTELACI","CLEDISON","DENIS","EDER","FEITOSA","GABRIEL","GERSON","GEYSSON","GLEISSON","IARA","JAIRO","JOSÉ","JUAN","KEVIN","KRAUSE","LARISSA","LILIAN","LIMA","LIRAS","MAICO","MAMINHAQUI","MATIAS","MATUCHESKI","NERIS","PALOMA","PATRICK","PAULO","PEKOCZ","PINHEIRO","PIVA","PRISCILA","REI","REIS","RUDNIK","RYAN","SAMPAIO","SANTOS","SCHENA","SCHÖNE","SILVINA","SIMÃO","STREISKI","TEIXEIRA","TIBURSKI","WITKOWSKI","ZENI"];
+const EMAIL_PARA_BC={
+"adilsonbcjr@yahoo.com.br":"ADILSON","kaiccauw18@gmail.com":"ALVES","junio26.itapoa@gmail.com":"ANDRADE","paah@hotmail.com":"BARBARA","jhonyiammhpm@gmail.com":"BATISTA","lariborgeslari24@gmail.com":"BORGES","brauer@gmail.com":"BRAUER","camilakuboski5@gmail.com":"CAMILA","ahcastelaci@gmail.com":"CASTELACI","cledisondjesus@gmail.com":"CLEDISON","seinao_moreira@hotmail.com":"DENIS","gvceder@gmail.com":"EDER","edilenefeitosa.sofia@gmail.com":"FEITOSA","gabriel91483170@gmail.com":"GABRIEL","gersonpiazzetta@gmail.com":"GERSON","geyssonw@gmail.com":"GEYSSON","gleisson2015leopoldino@gmail.com":"GLEISSON","iarahoepfner1972@gmail.com":"IARA","jairo_pesca@hotmail.com":"JAIRO","jdrossa@hotmail.com":"JOSÉ","maoskijuan@gmail.com":"JUAN","kevingulla273@gmail.com":"KEVIN","kljkrause@gmail.com":"KRAUSE","bodaneselarissa@gmail.com":"LARISSA","liliandasgracasmaoski@gmail.com":"LILIAN","anaclaudialima1981@gmail.com":"LIMA","jair160604@gmail.com":"LIRAS","maico.aurelio@yahoo.com.br":"MAICO","andersonmaminhaqui77@gmail.com":"MAMINHAQUI","silvia.mathias@hotmail.com":"MATIAS","rmatucheski@gmail.com":"MATUCHESKI","sidneineris616@gmail.com":"NERIS","palomadambiski7@gmail.com":"PALOMA","freitasgabry578@gmail.com":"PATRICK","paulodemarqui190@gmail.com":"PAULO","perkocz92@gmail.com":"PEKOCZ","alex.almdpinheiro@gmail.com":"PINHEIRO","abathaingrid08@gmail.com":"PIVA","jessica.organizer@hotmail.com":"PRISCILA","leonardorei280292@gmail.com":"REI","reishalan5@gmail.com":"REIS","danielerudnik@outlook.com":"RUDNIK","atleta_ryancordeiro@hotmail.com":"RYAN","eduardapeixes@icloud.com":"SAMPAIO","luluziinhha-santos@hotmail.com":"SANTOS","lucasschena@gmail.com":"SCHENA","schone.fds@gmail.com":"SCHÖNE","siledasol@gmail.com":"SILVINA","25cristinasimao@gmail.com":"SIMÃO","geizefilhosamados06@gmail.com":"STREISKI","janderson.teixeira@hotmail.com":"TEIXEIRA","lu-ara22@hotmail.com":"TIBURSKI","vagnertikoski@gmail.com":"WITKOWSKI","kamila.apzeni@gmail.com":"ZENI"
+};
+const periodos=["","DIURNO","NOTURNO","INTEGRAL"];
+const nomesMes=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const diasSemana=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
+let supabaseClient=null,usuarioAtual=null,perfilAtual=null,bcAtual=null;
+let dadosPorMes=Object.fromEntries(Array.from({length:12},(_,i)=>[String(i+1).padStart(2,"0"),{}]));
+let dadosMes={};
 
-const ANO_ESCALA = 2026;
-
-const CHAVE_LOCAL =
- "escalaBCs_formato12_2026_v1";
-
-const SLOT_COUNT = 12;
-
-
-const listaBCs = [
- "ADILSON","ALVES","ANDRADE","BARBARA","BARBOSA",
- "BATISTA","BORGES","BRAUER","CAMILA","CASTELACI",
- "CLEDISON","DENIS","EDER","EVERALDO","FEITOSA",
- "GABRIEL","GERSON","GEYSSON","GLEISSON","IARA",
- "JAIRO","JAQUELINE","JESSICA","JOSÉ","JUAN",
- "KEVIN","KRAUSE","LARISSA","LAURECI","LILIAN",
- "LIMA","LIRAS","LUCHTENBERG","MAICO","MAMINHAQUI",
- "MATIAS","MATUCHESKI","NERIS","PALOMA","PATRICK",
- "PAULO","PEKOCZ","PINHEIRO","PIVA","PRISCILA",
- "REIS","RUDNIK","RYAN","SAMPAIO","SANTOS",
- "SCHENA","SILVINA","SIMÃO","STREISKI","TEIXEIRA",
- "TIBURSKI","WITKOWSKI","ZENI"
-];
-
-
-const periodos = [
- "",
- "DIURNO",
- "NOTURNO",
- "INTEGRAL"
-];
-
-
-const nomesMes = [
- "Janeiro","Fevereiro","Março","Abril",
- "Maio","Junho","Julho","Agosto",
- "Setembro","Outubro","Novembro","Dezembro"
-];
-
-
-const diasSemana = [
- "Domingo",
- "Segunda-feira",
- "Terça-feira",
- "Quarta-feira",
- "Quinta-feira",
- "Sexta-feira",
- "Sábado"
-];
-
-
-let supabaseClient = null;
-
-let usuarioAtual = null;
-
-let perfilAtual = null;
-
-let bcAtual = null;
-
-
-/*
-  dadosPorMes contém a representação visual completa.
-
-  Para BC:
-  - contém lançamentos de todos os BCs.
-
-  Para ADMIN:
-  - contém a escala completa.
-*/
-let dadosPorMes =
- Object.fromEntries(
-  Array.from(
-   {length:12},
-   (_,i)=>[
-    String(i+1).padStart(2,"0"),
-    {}
-   ]
-  )
- );
-
-
-let dadosMes = {};
-
-
-/*
-  Registro dos lançamentos vindos do banco.
-
-  Estrutura:
-  dadosLancamentos[mes][slot][dia] = {
-    id,
-    bc_id,
-    auth_user_id,
-    nome,
-    periodo
-  }
-*/
-let dadosLancamentos =
- Object.fromEntries(
-  Array.from(
-   {length:12},
-   (_,i)=>[
-    String(i+1).padStart(2,"0"),
-    {}
-   ]
-  )
- );
-
-
-function ehAdmin(){
-
- const r =
-  String(
-   perfilAtual?.role || ""
-  )
-  .trim()
-  .toLowerCase();
-
- return (
-  r === "admin" ||
-  r === "administrador"
- );
-
-}
-
-
-function nomeUsuario(){
-
- if(ehAdmin())
-  return String(
-   perfilAtual?.nome ||
-   "Administrador"
-  )
-  .trim()
-  .toUpperCase();
-
- return String(
-  bcAtual?.nome || ""
- )
- .trim()
- .toUpperCase();
-
-}
-
-
-function status(t){
-
- document.getElementById(
-  "statusSistema"
- ).textContent = t;
-
-}
-
-
-function diasNoMes(m){
-
- return new Date(
-  ANO_ESCALA,
-  Number(m),
-  0
- ).getDate();
-
-}
-
-
-function chaveNome(slot,dia){
-
- return `${slot}_${dia}_nome`;
-
-}
-
-
-function chavePeriodo(slot,dia){
-
- return `${slot}_${dia}_periodo`;
-
-}
-
-
-function chaveSlot(slot,dia){
-
- return `${slot}_${dia}`;
-
-}
-
+function ehAdmin(){const r=String(perfilAtual?.role||"").trim().toLowerCase();return r==="admin"||r==="administrador";}
+function nomeUsuario(){if(ehAdmin())return String(perfilAtual?.nome||"Administrador").trim().toUpperCase();return String(bcAtual?.nome||"").trim().toUpperCase();}
+function status(t){document.getElementById("statusSistema").textContent=t;}
+function diasNoMes(m){return new Date(ANO_ESCALA,Number(m),0).getDate();}
+function chaveNome(slot,dia){return `${slot}_${dia}_nome`;}
+function chavePeriodo(slot,dia){return `${slot}_${dia}_periodo`;}
 
 function salvarLocalAdmin(){
-
- if(!ehAdmin()) return;
-
- localStorage.setItem(
-  CHAVE_LOCAL,
-  JSON.stringify(dadosPorMes)
- );
-
+ if(!ehAdmin())return;
+ localStorage.setItem(CHAVE_LOCAL,JSON.stringify(dadosPorMes));
 }
-
-
 function carregarLocalAdmin(){
-
- if(!ehAdmin()) return;
-
- try{
-
-  const x =
-   JSON.parse(
-    localStorage.getItem(
-     CHAVE_LOCAL
-    ) || "null"
-   );
-
-  if(
-   x &&
-   typeof x === "object"
-  ){
-
-   Object.assign(
-    dadosPorMes,
-    x
-   );
-
-  }
-
- }catch(e){
-
-  console.warn(
-   "Erro ao carregar escala local:",
-   e
-  );
-
- }
-
+ if(!ehAdmin())return;
+ try{const x=JSON.parse(localStorage.getItem(CHAVE_LOCAL)||"null");if(x&&typeof x==="object")Object.assign(dadosPorMes,x);}catch(e){}
 }
-
-
-/* ============================================================
-   OPÇÕES
-   ============================================================ */
 
 function opcoesNome(select,valor){
-
- select.innerHTML = "";
-
- const vazio =
-  document.createElement("option");
-
- vazio.value = "";
- vazio.textContent = "—";
-
- select.appendChild(vazio);
-
-
+ select.innerHTML="";
+ const vazio=document.createElement("option");vazio.value="";vazio.textContent="—";select.appendChild(vazio);
  if(ehAdmin()){
-
-  listaBCs.forEach(n=>{
-
-   const o =
-    document.createElement("option");
-
-   o.value = n;
-   o.textContent = n;
-
-   select.appendChild(o);
-
-  });
-
+  listaBCs.forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;select.appendChild(o);});
  }else{
-
-  const n = nomeUsuario();
-
-  if(n){
-
-   const o =
-    document.createElement("option");
-
-   o.value = n;
-   o.textContent = n;
-
-   select.appendChild(o);
-
-  }
-
+  const n=nomeUsuario();if(n){const o=document.createElement("option");o.value=n;o.textContent=n;select.appendChild(o);}
  }
-
- select.value = valor || "";
-
+ select.value=valor||"";
 }
-
-
 function opcoesPeriodo(select,valor){
-
- select.innerHTML = "";
-
- periodos.forEach(p=>{
-
-  const o =
-   document.createElement("option");
-
-  o.value = p;
-  o.textContent = p || "—";
-
-  select.appendChild(o);
-
- });
-
- select.value = valor || "";
-
+ select.innerHTML="";
+ periodos.forEach(p=>{const o=document.createElement("option");o.value=p;o.textContent=p||"—";select.appendChild(o);});
+ select.value=valor||"";
 }
-
-
-/* ============================================================
-   CARREGAMENTO DA ESCALA
-   ============================================================ */
 
 function montarTabela(){
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
- const dias =
-  diasNoMes(mes);
-
- const rd =
-  document.getElementById(
-   "rowDatas"
-  );
-
- const rs =
-  document.getElementById(
-   "rowSemanas"
-  );
-
- const corpo =
-  document.getElementById(
-   "corpoTabela"
-  );
-
-
- rd.innerHTML =
-  '<th class="coluna-label">Nome de guerra / Período</th>';
-
- rs.innerHTML =
-  '<th class="coluna-label">Dia da semana</th>';
-
-
- for(
-  let d=1;
-  d<=dias;
-  d++
- ){
-
-  const dt =
-   new Date(
-    ANO_ESCALA,
-    Number(mes)-1,
-    d
-   );
-
-  const dow =
-   dt.getDay();
-
-
-  const th =
-   document.createElement("th");
-
-  th.className =
-   "col-dia" +
-   (
-    dow===0 ||
-    dow===6
-    ? " fim-semana"
-    : ""
-   );
-
-
-  th.innerHTML =
-   `<div class="data">
-     ${String(d).padStart(2,"0")}/${mes}/${ANO_ESCALA}
-   </div>`;
-
-
+ const mes=document.getElementById("inputMes").value;
+ const dias=diasNoMes(mes);
+ const rd=document.getElementById("rowDatas"),rs=document.getElementById("rowSemanas"),corpo=document.getElementById("corpoTabela");
+ rd.innerHTML='<th class="coluna-label">Nome de guerra / Período</th>';
+ rs.innerHTML='<th class="coluna-label">Dia da semana</th>';
+ for(let d=1;d<=dias;d++){
+  const dt=new Date(ANO_ESCALA,Number(mes)-1,d), dow=dt.getDay();
+  const th=document.createElement("th");th.className="col-dia"+(dow===0||dow===6?" fim-semana":"");
+  th.innerHTML=`<div class="data">${String(d).padStart(2,"0")}/${mes}/${ANO_ESCALA}</div>`;
   rd.appendChild(th);
-
-
-  const sh =
-   document.createElement("th");
-
-  sh.className =
-   "col-dia" +
-   (
-    dow===0 ||
-    dow===6
-    ? " fim-semana"
-    : ""
-   );
-
-
-  sh.innerHTML =
-   `<div class="semana">
-     ${diasSemana[dow]}
-   </div>`;
-
-
-  rs.appendChild(sh);
-
+  const sh=document.createElement("th");sh.className="col-dia"+(dow===0||dow===6?" fim-semana":"");sh.innerHTML=`<div class="semana">${diasSemana[dow]}</div>`;rs.appendChild(sh);
  }
-
-
- corpo.innerHTML = "";
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  const nr =
-   document.createElement("tr");
-
-  nr.className =
-   "nome-row";
-
-
-  const nl =
-   document.createElement("td");
-
-  nl.className =
-   "nome-label";
-
-  nl.textContent =
-   "Nome de guerra";
-
-  nr.appendChild(nl);
-
-
-  const pr =
-   document.createElement("tr");
-
-  pr.className =
-   "periodo-row";
-
-
-  const pl =
-   document.createElement("td");
-
-  pl.className =
-   "periodo-label";
-
-  pl.textContent =
-   "Período";
-
-  pr.appendChild(pl);
-
-
-  for(
-   let d=1;
-   d<=dias;
-   d++
-  ){
-
-   const kN =
-    chaveNome(s,d);
-
-   const kP =
-    chavePeriodo(s,d);
-
-   const dow =
-    new Date(
-     ANO_ESCALA,
-     Number(mes)-1,
-     d
-    ).getDay();
-
-
-   const tdN =
-    document.createElement("td");
-
-   tdN.className =
-    "col-dia" +
-    (
-     dow===0 ||
-     dow===6
-     ? " fim-semana"
-     : ""
-    );
-
-
-   const tdP =
-    document.createElement("td");
-
-   tdP.className =
-    "col-dia" +
-    (
-     dow===0 ||
-     dow===6
-     ? " fim-semana"
-     : ""
-    );
-
-
-   const sn =
-    document.createElement("select");
-
-   sn.className =
-    "select-escala";
-
-
-   const sp =
-    document.createElement("select");
-
-   sp.className =
-    "select-escala periodo-select";
-
-
-   const registro =
-    dadosLancamentos[mes]?.[
-     chaveSlot(s,d)
-    ] || null;
-
-
-   const nomeAtual =
-    registro?.nome ||
-    dadosMes[kN] ||
-    "";
-
-
-   const periodoAtual =
-    registro?.periodo ||
-    dadosMes[kP] ||
-    "";
-
-
-   opcoesNome(
-    sn,
-    nomeAtual
-   );
-
-   opcoesPeriodo(
-    sp,
-    periodoAtual
-   );
-
-
-   sn.dataset.key = kN;
-   sp.dataset.key = kP;
-
-
-   /*
-    ADMIN:
-    pode editar tudo.
-   */
-   if(ehAdmin()){
-
-    sn.disabled = false;
-    sp.disabled = false;
-
+ corpo.innerHTML="";
+ for(let s=0;s<SLOT_COUNT;s++){
+  const nr=document.createElement("tr");nr.className="nome-row";
+  const nl=document.createElement("td");nl.className="nome-label";nl.textContent="Nome de guerra";nr.appendChild(nl);
+  const pr=document.createElement("tr");pr.className="periodo-row";
+  const pl=document.createElement("td");pl.className="periodo-label";pl.textContent="Período";pr.appendChild(pl);
+  for(let d=1;d<=dias;d++){
+   const kN=chaveNome(s,d),kP=chavePeriodo(s,d);
+   const dow=new Date(ANO_ESCALA,Number(mes)-1,d).getDay();
+   const tdN=document.createElement("td");tdN.className="col-dia"+(dow===0||dow===6?" fim-semana":"");
+   const tdP=document.createElement("td");tdP.className="col-dia"+(dow===0||dow===6?" fim-semana":"");
+   const nomeAtual=String(dadosMes[kN]||"").toUpperCase();
+   const periodoAtual=dadosMes[kP]||"";
+   const sn=document.createElement("select");sn.className="select-escala";opcoesNome(sn,nomeAtual);
+   const sp=document.createElement("select");sp.className="select-escala periodo-select";opcoesPeriodo(sp,periodoAtual);
+   sn.dataset.key=kN;sp.dataset.key=kP;
+   if(!ehAdmin()){
+    if(nomeAtual && nomeAtual!==nomeUsuario()){
+     sn.disabled=true;sp.disabled=true;
+     sn.title="Preenchido por outro BC";sp.title="Preenchido por outro BC";
+    }else{
+     sn.disabled=!!nomeAtual;sp.disabled=!nomeAtual || nomeAtual!==nomeUsuario();
+     if(!nomeAtual){
+      sn.addEventListener("change",()=>{if(sn.value!==nomeUsuario()){sn.value="";return;}alterarCampo(kN,sn.value,true);sp.disabled=false;});
+     }else if(nomeAtual===nomeUsuario()){
+      sp.addEventListener("change",()=>alterarCampo(kP,sp.value,false));
+     }
+    }
+   }else{
+    sn.addEventListener("change",()=>alterarCampo(kN,sn.value,true));
+    sp.addEventListener("change",()=>alterarCampo(kP,sp.value,false));
    }
-   else{
-
-    /*
-     BC:
-     se a célula já pertence a outro BC,
-     bloqueia nome e período.
-    */
-
-    const ocupadoPorOutro =
-     registro &&
-     String(
-      registro.auth_user_id || ""
-     ) !== String(
-      usuarioAtual?.id || ""
-     );
-
-
-    if(ocupadoPorOutro){
-
-     sn.disabled = true;
-     sp.disabled = true;
-
-     sn.classList.add(
-      "select-bloqueado"
-     );
-
-     sp.classList.add(
-      "select-bloqueado"
-     );
-
-     tdN.classList.add(
-      "slot-ocupado-outro"
-     );
-
-     tdP.classList.add(
-      "slot-ocupado-outro"
-     );
-
-    }
-    else if(
-     registro &&
-     String(
-      registro.auth_user_id || ""
-     ) === String(
-      usuarioAtual?.id || ""
-     )
-    ){
-
-     /*
-      É o próprio lançamento.
-     Pode alterar.
-     */
-
-     sn.disabled = false;
-     sp.disabled = false;
-
-     tdN.classList.add(
-      "slot-proprio"
-     );
-
-     tdP.classList.add(
-      "slot-proprio"
-     );
-
-    }
-    else{
-
-     /*
-      Célula vazia.
-      Pode preencher.
-     */
-
-     sn.disabled = false;
-     sp.disabled = false;
-
-     tdN.classList.add(
-      "slot-vazio"
-     );
-
-     tdP.classList.add(
-      "slot-vazio"
-     );
-
-    }
-
-   }
-
-
-   sn.addEventListener(
-    "change",
-    ()=>{
-     alterarCampo(
-      kN,
-      sn.value,
-      true
-     );
-    }
-   );
-
-
-   sp.addEventListener(
-    "change",
-    ()=>{
-     alterarCampo(
-      kP,
-      sp.value,
-      false
-     );
-    }
-   );
-
-
-   tdN.appendChild(sn);
-   tdP.appendChild(sp);
-
-   nr.appendChild(tdN);
-   pr.appendChild(tdP);
-
+   tdN.appendChild(sn);tdP.appendChild(sp);nr.appendChild(tdN);pr.appendChild(tdP);
   }
-
-
-  corpo.appendChild(nr);
-  corpo.appendChild(pr);
-
+  corpo.appendChild(nr);corpo.appendChild(pr);
  }
-
-
  atualizarResumo();
-
 }
-
-
-/* ============================================================
-   ALTERAÇÃO DOS CAMPOS
-   ============================================================ */
-
-function alterarCampo(
- k,
- v,
- ehNome
-){
-
- if(
-  !ehAdmin() &&
-  ehNome &&
-  v &&
-  v !== nomeUsuario()
- ){
-
-  status(
-   "🔒 Você só pode lançar seu próprio nome."
-  );
-
-  montarTabela();
-
-  return;
-
+function alterarCampo(k,v,ehNome){
+ if(!ehAdmin()){
+  if(ehNome&&v&&v!==nomeUsuario()){status("🔒 Você só pode lançar seu próprio nome.");montarTabela();return;}
+  if(ehNome){const atual=String(dadosMes[k]||"").toUpperCase();if(atual&&atual!==nomeUsuario()){status("🔒 Esta célula já foi preenchida por outro BC.");montarTabela();return;}}
  }
-
-
- dadosMes[k] = v;
-
-
- /*
-  Se BC apagou o nome, também removemos
-  o período visualmente.
- */
- if(
-  !ehAdmin() &&
-  ehNome &&
-  v === ""
- ){
-
-  const partes =
-   k.split("_");
-
-  const slot =
-   Number(partes[0]);
-
-  const dia =
-   Number(partes[1]);
-
-  dadosMes[
-   chavePeriodo(
-    slot,
-    dia
-   )
-  ] = "";
-
- }
-
-
- dadosPorMes[
-  document.getElementById(
-   "inputMes"
-  ).value
- ] = dadosMes;
-
-
- atualizarResumo();
-
-
- status(
-  "✏️ Alteração realizada. Clique em Salvar."
- );
-
+ dadosMes[k]=v;dadosPorMes[document.getElementById("inputMes").value]=dadosMes;atualizarResumo();status("✏️ Alteração realizada. Clique em Salvar.");
 }
-
-
-/* ============================================================
-   CARREGAR MÊS
-   ============================================================ */
-
 function carregarMes(){
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- dadosMes = {
-  ...(dadosPorMes[mes] || {})
- };
-
-
- document.getElementById(
-  "infoMes"
- ).textContent =
-  `📅 Escala: ${
-   nomesMes[
-    Number(mes)-1
-   ]
-  } de ${ANO_ESCALA} — ${
-   diasNoMes(mes)
-  } dias`;
-
-
+ const mes=document.getElementById("inputMes").value;
+ dadosMes={...(dadosPorMes[mes]||{})};
+ document.getElementById("infoMes").textContent=`📅 Escala: ${nomesMes[Number(mes)-1]} de ${ANO_ESCALA} — ${diasNoMes(mes)} dias`;
  montarTabela();
-
 }
-
-
-/* ============================================================
-   RESUMO ADMIN
-   ============================================================ */
-
 function atualizarResumo(){
-
- if(!ehAdmin()) return;
-
-
- const c = {};
-
-
- Object.values(
-  dadosMes
- ).forEach(v=>{
-
-  const s =
-   String(v || "")
-   .trim()
-   .toUpperCase();
-
-
-  if(
-   listaBCs.includes(s)
-  ){
-
-   c[s] =
-    (c[s] || 0) + 1;
-
-  }
-
- });
-
-
- const nomes =
-  Object.keys(c).sort(
-   (a,b)=>
-    (c[b]-c[a]) ||
-    a.localeCompare(
-     b,
-     "pt-BR"
-    )
-  );
-
-
- const g =
-  document.getElementById(
-   "gridResumo"
-  );
-
- g.innerHTML = "";
-
-
- nomes.forEach(n=>{
-
-  const x =
-   document.createElement(
-    "div"
-   );
-
-  x.className =
-   "card";
-
-  x.innerHTML =
-   `<strong>${n}</strong>
-    <b>${c[n]}</b>`;
-
-  g.appendChild(x);
-
- });
-
+ if(!ehAdmin())return;
+ const c={};Object.values(dadosMes).forEach(v=>{const s=String(v||"").trim().toUpperCase();if(listaBCs.includes(s))c[s]=(c[s]||0)+1;});
+ const nomes=Object.keys(c).sort((a,b)=>(c[b]-c[a])||a.localeCompare(b,"pt-BR"));
+ const g=document.getElementById("gridResumo");g.innerHTML="";
+ nomes.forEach(n=>{const x=document.createElement("div");x.className="card";x.innerHTML=`<strong>${n}</strong><b>${c[n]}</b>`;g.appendChild(x);});
 }
-
-
-/* ============================================================
-   INTERFACE
-   ============================================================ */
-
 function aplicarUI(){
-
- const admin =
-  ehAdmin();
-
-
- document
-  .querySelectorAll(
-   ".admin-only"
-  )
-  .forEach(el=>
-   el.classList.toggle(
-    "hidden",
-    !admin
-   )
-  );
-
-
- const aviso =
-  document.getElementById(
-   "avisoBC"
-  );
-
-
- aviso.classList.toggle(
-  "hidden",
-  admin
- );
-
-
- if(!admin){
-
-  document.getElementById(
-   "nomeBCAviso"
-  ).textContent =
-   nomeUsuario();
-
- }
-
-
+ const admin=ehAdmin();
+ document.querySelectorAll(".admin-only").forEach(el=>el.classList.toggle("hidden",!admin));
+ const aviso=document.getElementById("avisoBC");aviso.classList.toggle("hidden",admin);
+ if(!admin)document.getElementById("nomeBCAviso").textContent=nomeUsuario();
  carregarMes();
-
 }
-
-
-/* ============================================================
-   ADMIN - NUVEM
-   ============================================================ */
 
 async function carregarNuvemAdmin(){
-
- const {
-  data,
-  error
- } =
-  await supabaseClient
-   .from("escalas_mensais")
-   .select(
-    "mes,dados"
-   )
-   .eq(
-    "ano",
-    ANO_ESCALA
-   );
-
-
- if(error)
-  throw error;
-
-
- (data || []).forEach(r=>{
-
-  dadosPorMes[
-   String(r.mes)
-   .padStart(2,"0")
-  ] =
-   r.dados || {};
-
- });
-
-
- /*
-  Complementa com os lançamentos
-  individuais dos BCs.
- */
-
- const {
-  data:bcRows,
-  error:bcError
- } =
-  await supabaseClient
+ const {data,error}=await supabaseClient.from("escalas_mensais").select("mes,dados").eq("ano",ANO_ESCALA);
+ if(error)throw error;
+ (data||[]).forEach(r=>{dadosPorMes[String(r.mes).padStart(2,"0")]=r.dados||{};});
+ // Complementa a visão do administrador com os lançamentos individuais dos BCs.
+ const {data:bcRows,error:bcError}=await supabaseClient
    .from("bc_lancamentos")
-   .select(
-    "id,mes,fila_index,dia_index,bc_id,auth_user_id,periodo,bcs(nome)"
-   )
-   .eq(
-    "ano",
-    ANO_ESCALA
-   );
-
-
+   .select("mes,fila_index,dia_index,bc_id,periodo,bcs(nome)")
+   .eq("ano",ANO_ESCALA);
  if(!bcError){
-
-  /*
-   Limpa mapa de lançamentos.
-  */
-
-  dadosLancamentos =
-   Object.fromEntries(
-    Array.from(
-     {length:12},
-     (_,i)=>[
-      String(i+1).padStart(2,"0"),
-      {}
-     ]
-    )
-   );
-
-
-  (bcRows || []).forEach(r=>{
-
-   const mes =
-    String(r.mes)
-    .padStart(2,"0");
-
-   const d =
-    Number(r.dia_index)+1;
-
-   const s =
-    Number(r.fila_index);
-
-   const nome =
-    String(
-     r.bcs?.nome || ""
-    ).toUpperCase();
-
-
-   dadosLancamentos[mes][
-    chaveSlot(s,d)
-   ] = {
-
-    id:r.id,
-
-    bc_id:r.bc_id,
-
-    auth_user_id:
-     r.auth_user_id,
-
-    nome:nome,
-
-    periodo:
-     r.periodo || ""
-
-   };
-
-
-   if(nome){
-
-    if(
-     !dadosPorMes[mes]
-    )
-     dadosPorMes[mes] = {};
-
-
-    dadosPorMes[mes][
-     chaveNome(s,d)
-    ] = nome;
-
-
-    dadosPorMes[mes][
-     chavePeriodo(s,d)
-    ] =
-     r.periodo || "";
-
-   }
-
-  });
-
+   (bcRows||[]).forEach(r=>{
+     const mes=String(r.mes).padStart(2,"0"),d=Number(r.dia_index)+1,s=Number(r.fila_index);
+     const nome=String(r.bcs?.nome||"").toUpperCase();
+     if(nome){
+       if(!dadosPorMes[mes])dadosPorMes[mes]={};
+       dadosPorMes[mes][chaveNome(s,d)]=nome;
+       if(r.periodo)dadosPorMes[mes][chavePeriodo(s,d)]=r.periodo;
+     }
+   });
  }
-
 }
-
-
-/* ============================================================
-   BC - CARREGAR TODOS OS LANÇAMENTOS
-   ============================================================ */
-
 async function carregarLancamentosBC(){
-
- const {
-  data,
-  error
- } =
-  await supabaseClient
-   .from("bc_lancamentos")
-   .select(
-    "id,ano,mes,fila_index,dia_index,bc_id,auth_user_id,periodo,bcs(nome)"
-   )
-   .eq(
-    "ano",
-    ANO_ESCALA
-   );
-
-
- if(error)
-  throw error;
-
-
- /*
-  Zera os dados.
- */
-
- dadosPorMes =
-  Object.fromEntries(
-   Array.from(
-    {length:12},
-    (_,i)=>[
-     String(i+1).padStart(2,"0"),
-     {}
-    ]
-   )
-  );
-
-
- dadosLancamentos =
-  Object.fromEntries(
-   Array.from(
-    {length:12},
-    (_,i)=>[
-     String(i+1).padStart(2,"0"),
-     {}
-    ]
-   )
-  );
-
-
- /*
-  Carrega TODOS os BCs.
- */
-
- (data || []).forEach(r=>{
-
-  const mes =
-   String(r.mes)
-   .padStart(2,"0");
-
-  const d =
-   Number(r.dia_index)+1;
-
-  const s =
-   Number(r.fila_index);
-
-  const nome =
-   String(
-    r.bcs?.nome || ""
-   ).toUpperCase();
-
-
-  if(!nome)
-   return;
-
-
-  dadosLancamentos[mes][
-   chaveSlot(s,d)
-  ] = {
-
-   id:r.id,
-
-   bc_id:r.bc_id,
-
-   auth_user_id:
-    r.auth_user_id,
-
-   nome:nome,
-
-   periodo:
-    r.periodo || ""
-
-  };
-
-
-  dadosPorMes[mes][
-   chaveNome(s,d)
-  ] = nome;
-
-
-  dadosPorMes[mes][
-   chavePeriodo(s,d)
-  ] =
-   r.periodo || "";
-
- });
-
+ const {data,error}=await supabaseClient.from("bc_lancamentos").select("ano,mes,fila_index,dia_index,bc_id,auth_user_id,periodo,bcs(nome)").eq("ano",ANO_ESCALA);
+ if(error)throw error;
+ dadosPorMes=Object.fromEntries(Array.from({length:12},(_,i)=>[String(i+1).padStart(2,"0"),{}]));
+ (data||[]).forEach(r=>{const mes=String(r.mes).padStart(2,"0"),d=Number(r.dia_index)+1,s=Number(r.fila_index),nome=String(r.bcs?.nome||"").trim().toUpperCase();if(!nome)return;if(!dadosPorMes[mes])dadosPorMes[mes]={};dadosPorMes[mes][chaveNome(s,d)]=nome;dadosPorMes[mes][chavePeriodo(s,d)]=r.periodo||"";});
 }
-
-
-/* ============================================================
-   SALVAR BC
-   ============================================================ */
-
 async function salvarBC(){
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- const dias =
-  diasNoMes(mes);
-
-
- const meuNome =
-  nomeUsuario();
-
-
- if(
-  !bcAtual ||
-  !bcAtual.id
- ){
-
-  status(
-   "❌ Cadastro do BC não encontrado."
-  );
-
-  return false;
-
- }
-
-
- /*
-  Recarrega o estado atual do banco
-  antes de salvar.
-
-  Isso protege contra dois usuários
-  alterando a mesma célula ao mesmo tempo.
- */
-
- const {
-  data:rowsBanco,
-  error:loadError
- } =
-  await supabaseClient
-   .from("bc_lancamentos")
-   .select(
-    "id,mes,fila_index,dia_index,bc_id,auth_user_id,periodo,bcs(nome)"
-   )
-   .eq(
-    "ano",
-    ANO_ESCALA
-   )
-   .eq(
-    "mes",
-    mes
-   );
-
-
- if(loadError){
-
-  status(
-   "❌ Erro ao atualizar a escala: " +
-   loadError.message
-  );
-
-  return false;
-
- }
-
-
- const bancoPorSlot = {};
-
-
- (rowsBanco || []).forEach(r=>{
-
-  const s =
-   Number(r.fila_index);
-
-  const d =
-   Number(r.dia_index)+1;
-
-
-  bancoPorSlot[
-   chaveSlot(s,d)
-  ] = r;
-
- });
-
-
- /*
-  Verifica primeiro se alguma célula
-  que o BC está tentando preencher
-  já foi ocupada por outro BC.
- */
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  for(
-   let d=1;
-   d<=dias;
-   d++
-  ){
-
-   const kN =
-    chaveNome(s,d);
-
-   const nomeDesejado =
-    String(
-     dadosMes[kN] || ""
-    )
-    .trim()
-    .toUpperCase();
-
-
-   if(
-    nomeDesejado !== meuNome
-   )
-    continue;
-
-
-   const atual =
-    bancoPorSlot[
-     chaveSlot(s,d)
-    ];
-
-
-   if(
-    atual &&
-    String(
-     atual.auth_user_id
-    ) !== String(
-     usuarioAtual.id
-    )
-   ){
-
-    status(
-     `🔒 A célula ${d}/${mes} já foi preenchida por ${String(
-      atual.bcs?.nome || "outro BC"
-     ).toUpperCase()}.`
-    );
-
-
-    /*
-     Recarrega tudo do banco para
-     mostrar o estado verdadeiro.
-    */
-
-    await carregarLancamentosBC();
-
-    carregarMes();
-
-    return false;
-
-   }
-
-  }
-
- }
-
-
- /*
-  Monta os registros atualmente
-  pertencentes ao próprio BC.
- */
-
- const meusRegistros =
-  (rowsBanco || []).filter(
-   r =>
-    String(
-     r.auth_user_id
-    ) === String(
-     usuarioAtual.id
-    )
-  );
-
-
- const meusPorSlot = {};
-
-
- meusRegistros.forEach(r=>{
-
-  const s =
-   Number(r.fila_index);
-
-  const d =
-   Number(r.dia_index)+1;
-
-
-  meusPorSlot[
-   chaveSlot(s,d)
-  ] = r;
-
- });
-
-
- /*
-  1. INSERT de novas células.
- */
-
- const novos = [];
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  for(
-   let d=1;
-   d<=dias;
-   d++
-  ){
-
-   const slot =
-    chaveSlot(s,d);
-
-   const nomeDesejado =
-    String(
-     dadosMes[
-      chaveNome(s,d)
-     ] || ""
-    )
-    .trim()
-    .toUpperCase();
-
-
-   const periodoDesejado =
-    String(
-     dadosMes[
-      chavePeriodo(s,d)
-     ] || ""
-    )
-    .trim();
-
-
-   if(
-    nomeDesejado === meuNome &&
-    !meusPorSlot[slot]
-   ){
-
-    novos.push({
-
-     ano:ANO_ESCALA,
-
-     mes:mes,
-
-     fila_index:s,
-
-     dia_index:d-1,
-
-     bc_id:bcAtual.id,
-
-     auth_user_id:
-      usuarioAtual.id,
-
-     periodo:
-      periodoDesejado || null
-
-    });
-
-   }
-
-  }
-
- }
-
-
- if(novos.length){
-
-  const {
-   error
-  } =
-   await supabaseClient
-    .from("bc_lancamentos")
-    .insert(novos);
-
-
-  if(error){
-
-   /*
-    Caso outro BC tenha ocupado a
-    célula exatamente no mesmo instante.
-   */
-
-   if(
-    String(
-     error.message || ""
-    )
-    .toLowerCase()
-    .includes("duplicate")
-   ){
-
-    status(
-     "🔒 Uma das células foi preenchida por outro BC. A escala foi atualizada."
-    );
-
-    await carregarLancamentosBC();
-    carregarMes();
-
-    return false;
-
-   }
-
-
-   status(
-    "❌ Não foi possível salvar: " +
-    error.message
-   );
-
-   return false;
-
-  }
-
- }
-
-
- /*
-  2. UPDATE somente dos próprios registros.
- */
-
- for(
-  const r of meusRegistros
- ){
-
-  const s =
-   Number(r.fila_index);
-
-  const d =
-   Number(r.dia_index)+1;
-
-  const slot =
-   chaveSlot(s,d);
-
-
-  const nomeDesejado =
-   String(
-    dadosMes[
-     chaveNome(s,d)
-    ] || ""
-   )
-   .trim()
-   .toUpperCase();
-
-
-  const periodoDesejado =
-   String(
-    dadosMes[
-     chavePeriodo(s,d)
-    ] || ""
-   )
-   .trim();
-
-
-  /*
-   Se o usuário apagou o próprio nome,
-   apagamos o registro abaixo.
-  */
-
-  if(
-   nomeDesejado !== meuNome
-  ){
-
-   const {
-    error
-   } =
-    await supabaseClient
-     .from("bc_lancamentos")
-     .delete()
-     .eq(
-      "id",
-      r.id
-     )
-     .eq(
-      "auth_user_id",
-      usuarioAtual.id
-     );
-
-
-   if(error){
-
-    status(
-     "❌ Erro ao remover lançamento: " +
-     error.message
-    );
-
-    return false;
-
-   }
-
-   continue;
-
-  }
-
-
-  /*
-   Se o período mudou,
-   atualiza somente o próprio registro.
-  */
-
-  if(
-   String(
-    r.periodo || ""
-   ) !== periodoDesejado
-  ){
-
-   const {
-    error
-   } =
-    await supabaseClient
-     .from("bc_lancamentos")
-     .update({
-      periodo:
-       periodoDesejado || null
-     })
-     .eq(
-      "id",
-      r.id
-     )
-     .eq(
-      "auth_user_id",
-      usuarioAtual.id
-     );
-
-
-   if(error){
-
-    status(
-     "❌ Erro ao atualizar período: " +
-     error.message
-    );
-
-    return false;
-
-   }
-
-  }
-
- }
-
-
- /*
-  Atualiza novamente a tela com o
-  conteúdo real do banco.
- */
-
- await carregarLancamentosBC();
-
- carregarMes();
-
-
- status(
-  "☁️ Seus plantões foram salvos na nuvem. Os lançamentos dos outros BCs foram preservados."
- );
-
-
- return true;
-
+ const mes=document.getElementById("inputMes").value,dias=diasNoMes(mes),registros=[];
+ for(let s=0;s<SLOT_COUNT;s++)for(let d=1;d<=dias;d++){const nome=String(dadosMes[chaveNome(s,d)]||"").toUpperCase();if(nome===nomeUsuario())registros.push({ano:ANO_ESCALA,mes:mes,fila_index:s,dia_index:d-1,bc_id:bcAtual.id,auth_user_id:usuarioAtual.id,periodo:dadosMes[chavePeriodo(s,d)]||null});}
+ if(registros.length){const {error}=await supabaseClient.from("bc_lancamentos").upsert(registros,{onConflict:"ano,mes,fila_index,dia_index"});if(error){status("❌ Não foi possível salvar: "+error.message);return false;}}
+ status("☁️ Seus plantões foram salvos na nuvem sem apagar os dos outros BCs.");return true;
 }
-
-
-/* ============================================================
-   SALVAR ADMIN
-   ============================================================ */
-
 async function salvarAdmin(){
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- dadosPorMes[mes] =
-  dadosMes;
-
-
+ dadosPorMes[document.getElementById("inputMes").value]=dadosMes;
  salvarLocalAdmin();
-
-
- const registros =
-  Object.keys(
-   dadosPorMes
-  ).map(m=>({
-
-   ano:ANO_ESCALA,
-
-   mes:m,
-
-   dados:
-    dadosPorMes[m] || {},
-
-   updated_by:
-    usuarioAtual.id,
-
-   updated_at:
-    new Date().toISOString()
-
-  }));
-
-
- const {
-  error
- } =
-  await supabaseClient
-   .from("escalas_mensais")
-   .upsert(
-    registros,
-    {
-     onConflict:"ano,mes"
-    }
-   );
-
-
- if(error){
-
-  status(
-   "❌ Erro ao salvar: " +
-   error.message
-  );
-
-  return false;
-
- }
-
-
- status(
-  "☁️ Escala salva localmente e na nuvem."
- );
-
-
- return true;
-
+ const registros=Object.keys(dadosPorMes).map(m=>({ano:ANO_ESCALA,mes:m,dados:dadosPorMes[m]||{},updated_by:usuarioAtual.id,updated_at:new Date().toISOString()}));
+ const {error}=await supabaseClient.from("escalas_mensais").upsert(registros,{onConflict:"ano,mes"});
+ if(error){status("❌ Erro ao salvar: "+error.message);return false;}
+ status("☁️ Escala salva localmente e na nuvem.");return true;
 }
-
-
-/* ============================================================
-   SALVAR
-   ============================================================ */
-
 async function salvar(){
-
- if(!usuarioAtual){
-
-  alert(
-   "Faça login."
-  );
-
-  return;
-
- }
-
-
- if(ehAdmin())
-  await salvarAdmin();
- else
-  await salvarBC();
-
+ if(!usuarioAtual){alert("Faça login.");return}
+ if(ehAdmin()) await salvarAdmin(); else await salvarBC();
 }
-
-
-/* ============================================================
-   COPIAR ESCALA POR NOME DE GUERRA
-   ============================================================ */
-
 function copiarEscala(){
-
- if(!ehAdmin())
-  return;
-
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- const dias =
-  diasNoMes(mes);
-
-
- /*
-  Descobre os nomes existentes
-  no mês.
- */
-
- const nomes = new Set();
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  for(
-   let d=1;
-   d<=dias;
-   d++
-  ){
-
-   const n =
-    String(
-     dadosMes[
-      chaveNome(s,d)
-     ] || ""
-    )
-    .trim()
-    .toUpperCase();
-
-
-   if(n)
-    nomes.add(n);
-
-  }
-
+ if(!ehAdmin())return;
+ const mes=document.getElementById("inputMes").value,dias=diasNoMes(mes),nomes=[];
+ for(let s=0;s<SLOT_COUNT;s++)for(let d=1;d<=dias;d++){
+  const n=String(dadosMes[chaveNome(s,d)]||"").trim().toUpperCase();
+  if(n&&!nomes.includes(n))nomes.push(n);
  }
-
-
- const lista =
-  Array.from(nomes)
-  .sort(
-   (a,b)=>
-    a.localeCompare(
-     b,
-     "pt-BR"
-    )
-  );
-
-
- if(!lista.length){
-
-  alert(
-   "Não há nomes preenchidos neste mês."
-  );
-
-  return;
-
- }
-
-
- const escolha =
-  prompt(
-   "Digite o Nome de Guerra para copiar.\n\n" +
-   lista.join("\n") +
-   "\n\nDigite TODOS para copiar a escala completa.",
-   lista[0]
-  );
-
-
- if(
-  escolha === null
- )
-  return;
-
-
- const nomeEscolhido =
-  escolha
-   .trim()
-   .toUpperCase();
-
-
- const copiarTodos =
-  nomeEscolhido === "TODOS";
-
-
- if(
-  !copiarTodos &&
-  !lista.includes(nomeEscolhido)
- ){
-
-  alert(
-   "Nome não encontrado na escala."
-  );
-
-  return;
-
- }
-
-
- const linhas = [];
-
-
- linhas.push([
-  "NOME DE GUERRA",
-  "PERÍODO",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    `${String(i+1).padStart(2,"0")}/${mes}/${ANO_ESCALA}`
-  )
- ]);
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  const nomesDoSlot =
-   Array.from(
-    {length:dias},
-    (_,i)=>
-     String(
-      dadosMes[
-       chaveNome(s,i+1)
-      ] || ""
-     )
-     .trim()
-     .toUpperCase()
-   );
-
-
-  const nomesParaCopiar =
-   copiarTodos
-   ||
-   nomesDoSlot.some(
-    n=>n===nomeEscolhido
-   );
-
-
-  if(!nomesParaCopiar)
-   continue;
-
-
-  /*
-   Para cópia por nome,
-   copiamos somente os dias
-   pertencentes ao nome escolhido.
-  */
-
-  if(!copiarTodos){
-
-   const nomesLinha =
-    nomesDoSlot.map(
-     n=>n===nomeEscolhido
-      ? n
-      : ""
-    );
-
-
-   const periodosLinha =
-    Array.from(
-     {length:dias},
-     (_,i)=>
-      nomesLinha[i]
-       ? (
-        dadosMes[
-         chavePeriodo(
-          s,
-          i+1
-         )
-        ] || ""
-       )
-       : ""
-    );
-
-
-   linhas.push([
-    nomeEscolhido,
-    "",
-    ...nomesLinha.map(
-     (_,i)=>
-      periodosLinha[i]
-       ? periodosLinha[i]
-       : ""
-    )
-   ]);
-
-
-  }
-  else{
-
-   const primeiroNome =
-    nomesDoSlot.find(
-     n=>n
-    ) || "";
-
-
-   if(!primeiroNome)
-    continue;
-
-
-   const periodosLinha =
-    Array.from(
-     {length:dias},
-     (_,i)=>
-      dadosMes[
-       chavePeriodo(
-        s,
-        i+1
-       )
-      ] || ""
-    );
-
-
-   linhas.push([
-    primeiroNome,
-    "",
-    ...periodosLinha
-   ]);
-
-  }
-
- }
-
-
- const texto =
-  linhas
-   .map(r=>
-    r.join("\t")
-   )
-   .join("\n");
-
-
- navigator.clipboard
-  .writeText(texto)
-  .then(()=>{
-
-   status(
-    copiarTodos
-     ? "📋 Escala completa copiada."
-     : `📋 Escala de ${nomeEscolhido} copiada.`
-   );
-
-  })
-  .catch(()=>{
-
-   alert(
-    "Não foi possível copiar automaticamente."
-   );
-
-  });
-
-}
-
-
-/* ============================================================
-   EXCEL
-   ============================================================ */
-
-function exportarExcel(){
-
- if(!ehAdmin())
-  return;
-
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- const dias =
-  diasNoMes(mes);
-
-
- const rows = [];
-
-
- rows.push([
-  "",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    `${String(i+1).padStart(2,"0")}/${mes}/${ANO_ESCALA}`
-  )
- ]);
-
-
- rows.push([
-  "Dia da Semana",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    diasSemana[
-     new Date(
-      ANO_ESCALA,
-      Number(mes)-1,
-      i+1
-     ).getDay()
-    ]
-  )
- ]);
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  rows.push([
-   "Nome de guerra",
-   ...Array.from(
-    {length:dias},
-    (_,i)=>
-     dadosMes[
-      chaveNome(
-       s,
-       i+1
-      )
-     ] || ""
-   )
-  ]);
-
-
-  rows.push([
-   "Período",
-   ...Array.from(
-    {length:dias},
-    (_,i)=>
-     dadosMes[
-      chavePeriodo(
-       s,
-       i+1
-      )
-     ] || ""
-   )
-  ]);
-
- }
-
-
- const ws =
-  XLSX.utils.aoa_to_sheet(
-   rows
-  );
-
-
- const wb =
-  XLSX.utils.book_new();
-
-
- XLSX.utils.book_append_sheet(
-  wb,
-  ws,
-  "Escala"
- );
-
-
- XLSX.writeFile(
-  wb,
-  `Escala_${
-   nomesMes[
-    Number(mes)-1
-   ]
-  }_${ANO_ESCALA}.xlsx`
- );
-
-}
-
-
-/* ============================================================
-   PDF
-   ============================================================ */
-
-function exportarPDF(){
-
- if(!ehAdmin())
-  return;
-
-
- const {jsPDF} =
-  window.jspdf;
-
-
- const doc =
-  new jsPDF({
-   orientation:"landscape",
-   unit:"pt",
-   format:"a4"
-  });
-
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- const dias =
-  diasNoMes(mes);
-
-
- const head = [[
-  "",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    `${String(i+1).padStart(2,"0")}/${mes}`
-  )
- ]];
-
-
- const body = [[
-  "Dia da Semana",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    diasSemana[
-     new Date(
-      ANO_ESCALA,
-      Number(mes)-1,
-      i+1
-     ).getDay()
-    ]
-  )
- ]];
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  body.push([
-   "Nome de guerra",
-   ...Array.from(
-    {length:dias},
-    (_,i)=>
-     dadosMes[
-      chaveNome(
-       s,
-       i+1
-      )
-     ] || ""
-   )
-  ]);
-
-
-  body.push([
-   "Período",
-   ...Array.from(
-    {length:dias},
-    (_,i)=>
-     dadosMes[
-      chavePeriodo(
-       s,
-       i+1
-      )
-     ] || ""
-   )
-  ]);
-
- }
-
-
- doc.text(
-  `Escala - ${
-   nomesMes[
-    Number(mes)-1
-   ]
-  } ${ANO_ESCALA}`,
-  30,
-  25
- );
-
-
- doc.autoTable({
-  head,
-  body,
-  startY:35,
-  styles:{
-   fontSize:5,
-   cellPadding:2
+ nomes.sort((a,b)=>a.localeCompare(b,"pt-BR"));
+ if(!nomes.length){alert("Não há nomes preenchidos para copiar.");return;}
+ const escolha=prompt(`Digite o NOME DE GUERRA que deseja copiar.\n\nNomes disponíveis:\n${nomes.join("\n")}\n\nDeixe vazio para copiar TODOS os nomes.`,nomes[0]);
+ if(escolha===null)return;
+ const filtro=escolha.trim().toUpperCase();
+ const selecionados=filtro?nomes.filter(n=>n===filtro):nomes;
+ if(filtro&&!selecionados.length){alert("Nome não encontrado na escala.");return;}
+ const linhas=[["NOME DE GUERRA","PERÍODO",...Array.from({length:dias},(_,i)=>String(i+1).padStart(2,"0"))]];
+ selecionados.forEach(nome=>{
+  for(let s=0;s<SLOT_COUNT;s++){
+   const tem=Array.from({length:dias},(_,i)=>i+1).some(d=>String(dadosMes[chaveNome(s,d)]||"").toUpperCase()===nome);
+   if(!tem)continue;
+   const diasValores=Array.from({length:dias},(_,i)=>{const d=i+1;return String(dadosMes[chaveNome(s,d)]||"").toUpperCase()===nome?(dadosMes[chavePeriodo(s,d)]||""):"";});
+   const periodo=diasValores.find(Boolean)||"";
+   linhas.push([nome,periodo,...diasValores]);
   }
  });
-
-
- doc.save(
-  `Escala_${mes}_${ANO_ESCALA}.pdf`
- );
-
+ const texto=linhas.map(r=>r.join("\t")).join("\n");
+ const concluir=()=>status(`📋 Escala copiada por nome: ${filtro||"TODOS"}. Agora cole na outra escala.`);
+ navigator.clipboard.writeText(texto).then(concluir).catch(()=>{
+  const ta=document.createElement("textarea");ta.value=texto;document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");concluir();}finally{ta.remove();}
+ });
 }
-
-
-/* ============================================================
-   BACKUP
-   ============================================================ */
-
-function backup(){
-
- if(!ehAdmin())
-  return;
-
-
- const blob =
-  new Blob(
-   [
-    JSON.stringify(
-     dadosPorMes,
-     null,
-     2
-    )
-   ],
-   {
-    type:"application/json"
-   }
-  );
-
-
- const a =
-  document.createElement(
-   "a"
-  );
-
-
- a.href =
-  URL.createObjectURL(
-   blob
-  );
-
-
- a.download =
-  `backup_escala_${ANO_ESCALA}.json`;
-
-
- a.click();
-
-
- URL.revokeObjectURL(
-  a.href
- );
-
+async function enviarPrimeiroAcesso(){
+  if(!usuarioAtual||!perfilAtual||!ehAdmin()){alert("🔐 Somente o administrador pode enviar os primeiros acessos.");return;}
+  const btn=document.getElementById("btnEnviarPrimeiroAcesso");if(btn){btn.disabled=true;btn.textContent="📧 Enviando...";}
+  try{const {data,error}=await supabaseClient.functions.invoke("enviar-primeiro-acesso-v2",{body:{acao:"enviar_todos"}});if(error)throw error;const r=data||{};alert(`📧 Processo concluído!\n\nTotal processado: ${r.total||0}`);status("📧 Processo de primeiro acesso concluído.");}catch(e){console.error(e);alert("❌ Não foi possível enviar os primeiros acessos: "+(e.message||e));}finally{if(btn){btn.disabled=false;btn.textContent="📧 Enviar primeiro acesso aos BCs";}}
 }
-
-
-/* ============================================================
-   RESTAURAR
-   ============================================================ */
-
-function restaurar(ev){
-
- if(!ehAdmin())
-  return;
-
-
- const f =
-  ev.target.files[0];
-
-
- if(!f)
-  return;
-
-
- const r =
-  new FileReader();
-
-
- r.onload = ()=>{
-
-  try{
-
-   const x =
-    JSON.parse(
-     r.result
-    );
-
-
-   dadosPorMes =
-    x;
-
-
-   carregarMes();
-
-   salvarLocalAdmin();
-
-   status(
-    "♻️ Backup restaurado localmente. Clique em Salvar."
-   );
-
-
-  }catch(e){
-
-   alert(
-    "Backup inválido."
-   );
-
-  }
-
- };
-
-
- r.readAsText(f);
-
+function exportarExcel(){
+ if(!ehAdmin())return;
+ const mes=document.getElementById("inputMes").value,dias=diasNoMes(mes),rows=[];
+ rows.push(["",...Array.from({length:dias},(_,i)=>`${String(i+1).padStart(2,"0")}/${mes}/${ANO_ESCALA}`)]);
+ rows.push(["Dia da Semana",...Array.from({length:dias},(_,i)=>diasSemana[new Date(ANO_ESCALA,Number(mes)-1,i+1).getDay()])]);
+ for(let s=0;s<SLOT_COUNT;s++){rows.push(["Nome de guerra",...Array.from({length:dias},(_,i)=>dadosMes[chaveNome(s,i+1)]||"")]);rows.push(["Período",...Array.from({length:dias},(_,i)=>dadosMes[chavePeriodo(s,i+1)]||"")]);}
+ const ws=XLSX.utils.aoa_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Escala");XLSX.writeFile(wb,`Escala_${nomesMes[Number(mes)-1]}_${ANO_ESCALA}.xlsx`);
 }
-
-
-/* ============================================================
-   LIMPAR
-   ============================================================ */
-
-async function limpar(){
-
- if(!ehAdmin())
-  return;
-
-
- if(
-  !confirm(
-   "Tem certeza que deseja limpar toda a escala local?"
-  )
- )
-  return;
-
-
- dadosPorMes =
-  Object.fromEntries(
-   Array.from(
-    {length:12},
-    (_,i)=>[
-     String(i+1).padStart(2,"0"),
-     {}
-    ]
-   )
-  );
-
-
- dadosMes = {};
-
-
- salvarLocalAdmin();
-
- carregarMes();
-
-
- status(
-  "🧹 Escala limpa localmente. Clique em Salvar para confirmar na nuvem."
- );
-
+function exportarPDF(){
+ if(!ehAdmin())return;
+ const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:"landscape",unit:"pt",format:"a4"});const mes=document.getElementById("inputMes").value,dias=diasNoMes(mes);
+ const head=[["",...Array.from({length:dias},(_,i)=>`${String(i+1).padStart(2,"0")}/${mes}`)]];
+ const body=[["Dia da Semana",...Array.from({length:dias},(_,i)=>diasSemana[new Date(ANO_ESCALA,Number(mes)-1,i+1).getDay()])]];
+ for(let s=0;s<SLOT_COUNT;s++){body.push(["Nome de guerra",...Array.from({length:dias},(_,i)=>dadosMes[chaveNome(s,i+1)]||"")]);body.push(["Período",...Array.from({length:dias},(_,i)=>dadosMes[chavePeriodo(s,i+1)]||"")]);}
+ doc.text(`Escala - ${nomesMes[Number(mes)-1]} ${ANO_ESCALA}`,30,25);doc.autoTable({head,body,startY:35,styles:{fontSize:5,cellPadding:2}});doc.save(`Escala_${mes}_${ANO_ESCALA}.pdf`);
 }
-
-
-/* ============================================================
-   PERFIL
-   ============================================================ */
+function backup(){if(!ehAdmin())return;const blob=new Blob([JSON.stringify(dadosPorMes,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`backup_escala_${ANO_ESCALA}.json`;a.click();URL.revokeObjectURL(a.href);}
+function restaurar(ev){if(!ehAdmin())return;const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);dadosPorMes=x;carregarMes();salvarLocalAdmin();status("♻️ Backup restaurado localmente. Clique em Salvar.");}catch(e){alert("Backup inválido.");}};r.readAsText(f);}
+async function limpar(){if(!ehAdmin())return;if(!confirm("Tem certeza que deseja limpar toda a escala local?"))return;dadosPorMes=Object.fromEntries(Array.from({length:12},(_,i)=>[String(i+1).padStart(2,"0"),{}]));dadosMes={};salvarLocalAdmin();carregarMes();status("🧹 Escala limpa localmente. Clique em Salvar para confirmar na nuvem.");}
 
 async function obterPerfil(){
-
- const {
-  data,
-  error
- } =
-  await supabaseClient
-   .from("profiles")
-   .select("*")
-   .eq(
-    "id",
-    usuarioAtual.id
-   )
-   .maybeSingle();
-
-
- if(error)
-  throw error;
-
-
- perfilAtual =
-  data;
-
-
- if(ehAdmin()){
-
-  bcAtual = null;
-
-  return;
-
+ const {data,error}=await supabaseClient.from("profiles").select("*").eq("id",usuarioAtual.id).maybeSingle();
+ if(error)throw error;
+ perfilAtual=data;
+ if(ehAdmin()){bcAtual=null;return;}
+ let {data:bcs,error:be}=await supabaseClient.from("bcs").select("id,nome,email,ativo,auth_user_id").eq("auth_user_id",usuarioAtual.id).maybeSingle();
+ if(be)throw be;
+ if(!bcs && usuarioAtual.email){
+  const nomeMap=EMAIL_PARA_BC[String(usuarioAtual.email).trim().toLowerCase()];
+  if(nomeMap){
+   const r=await supabaseClient.from("bcs").select("id,nome,email,ativo,auth_user_id").eq("nome",nomeMap).eq("ativo",true).maybeSingle();
+   if(r.error)throw r.error;
+   bcs=r.data;
+  }
  }
-
-
- const {
-  data:bcs,
-  error:be
- } =
-  await supabaseClient
-   .from("bcs")
-   .select(
-    "id,nome,ativo,auth_user_id"
-   )
-   .eq(
-    "auth_user_id",
-    usuarioAtual.id
-   )
-   .maybeSingle();
-
-
- if(be)
-  throw be;
-
-
- if(
-  !bcs ||
-  !bcs.ativo
- ){
-
-  throw new Error(
-   "Usuário BC não está vinculado a um cadastro ativo."
-  );
-
- }
-
-
- bcAtual =
-  bcs;
-
+ if(!bcs||!bcs.ativo)throw new Error("Usuário BC não está vinculado a um cadastro ativo.");
+ bcAtual=bcs;
 }
-
-
-/* ============================================================
-   USUÁRIO ONLINE
-   ============================================================ */
-
-function mostrarUsuario(){
-
- const el =
-  document.getElementById(
-   "usuarioOnline"
-  );
-
-
- document.getElementById(
-  "usuarioNomeOnline"
- ).textContent =
-  ehAdmin()
-   ? `${
-      perfilAtual?.nome ||
-      usuarioAtual.email
-     } · Administrador`
-   : nomeUsuario();
-
-
- el.style.display =
-  "flex";
-
-}
-
-
-/* ============================================================
-   LOGIN
-   ============================================================ */
-
+function mostrarUsuario(){const el=document.getElementById("usuarioOnline");document.getElementById("usuarioNomeOnline").textContent=ehAdmin()?`${perfilAtual?.nome||usuarioAtual.email} · Administrador`:nomeUsuario();el.style.display="flex";}
 async function entrar(){
-
- const email =
-  document.getElementById(
-   "loginEmail"
-  ).value.trim();
-
-
- const senha =
-  document.getElementById(
-   "loginSenha"
-  ).value;
-
-
- if(
-  !email ||
-  !senha
- ){
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "Informe e-mail e senha.";
-
-  return;
-
- }
-
-
- document.getElementById(
-  "loginStatus"
- ).textContent =
-  "Entrando...";
-
-
- const {
-  data,
-  error
- } =
-  await supabaseClient.auth
-   .signInWithPassword({
-    email,
-    password:senha
-   });
-
-
- if(error){
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "❌ " +
-   error.message;
-
-  return;
-
- }
-
-
- usuarioAtual =
-  data.user;
-
-
- await preparar();
-
+ const email=document.getElementById("loginEmail").value.trim(),senha=document.getElementById("loginSenha").value;
+ if(!email||!senha){document.getElementById("loginStatus").textContent="Informe e-mail e senha.";return;}
+ document.getElementById("loginStatus").textContent="Entrando...";
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:senha});
+ if(error){document.getElementById("loginStatus").textContent="❌ "+error.message;return;}
+ usuarioAtual=data.user;await preparar();
 }
-
-
-/* ============================================================
-   PREPARAR
-   ============================================================ */
-
 async function preparar(){
-
- try{
-
-  await obterPerfil();
-
-  mostrarUsuario();
-
-
-  document.getElementById(
-   "loginOverlay"
-  ).style.display =
-   "none";
-
-
-  if(ehAdmin()){
-
-   carregarLocalAdmin();
-
-   await carregarNuvemAdmin();
-
-  }
-  else{
-
-   /*
-    IMPORTANTE:
-    agora o BC carrega TODOS os lançamentos.
-   */
-
-   await carregarLancamentosBC();
-
-  }
-
-
-  aplicarUI();
-
-
-  status(
-   ehAdmin()
-    ? "☁️ Administrador conectado. Acesso completo."
-    : `☁️ ${nomeUsuario()} conectado. Você pode lançar somente seu próprio nome.`
-  );
-
-
- }catch(e){
-
-  console.error(e);
-
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "❌ " +
-   e.message;
-
-
-  await supabaseClient
-   .auth
-   .signOut();
-
- }
-
+ try{await obterPerfil();mostrarUsuario();document.getElementById("loginOverlay").style.display="none";
+  if(ehAdmin()){carregarLocalAdmin();await carregarNuvemAdmin();}else await carregarLancamentosBC();
+  aplicarUI();status(ehAdmin()?"☁️ Administrador conectado. Acesso completo.":`☁️ ${nomeUsuario()} conectado. Você pode lançar somente seu próprio nome.`);
+ }catch(e){console.error(e);document.getElementById("loginStatus").textContent="❌ "+e.message;await supabaseClient.auth.signOut();}
 }
-
-
-/* ============================================================
-   SAIR
-   ============================================================ */
-
-async function sair(){
-
- await supabaseClient
-  .auth
-  .signOut();
-
-
- usuarioAtual = null;
- perfilAtual = null;
- bcAtual = null;
-
-
- document.getElementById(
-  "usuarioOnline"
- ).style.display =
-  "none";
-
-
- document.getElementById(
-  "loginOverlay"
- ).style.display =
-  "flex";
-
-
- status(
-  "Aguardando login."
- );
-
-}
-
-
-/* ============================================================
-   RECUPERAÇÃO DE SENHA
-   ============================================================ */
-
+async function sair(){await supabaseClient.auth.signOut();usuarioAtual=null;perfilAtual=null;bcAtual=null;document.getElementById("usuarioOnline").style.display="none";document.getElementById("loginOverlay").style.display="flex";status("Aguardando login.");}
 async function recuperar(){
-
- const email =
-  document.getElementById(
-   "loginEmail"
-  ).value.trim();
-
-
- if(!email){
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "Digite o e-mail.";
-
-  return;
-
- }
-
-
- const {
-  error
- } =
-  await supabaseClient.auth
-   .resetPasswordForEmail(
-    email,
-    {
-     redirectTo:
-      location.origin +
-      location.pathname
-    }
-   );
-
-
- document.getElementById(
-  "loginStatus"
- ).textContent =
-  error
-   ? "❌ " + error.message
-   : "✅ E-mail de recuperação enviado.";
-
+ const email=document.getElementById("loginEmail").value.trim();if(!email){document.getElementById("loginStatus").textContent="Digite o e-mail.";return}
+ const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+ document.getElementById("loginStatus").textContent=error?"❌ "+error.message:"✅ E-mail de recuperação enviado.";
 }
 
-
-/* ============================================================
-   EVENTOS
-   ============================================================ */
-
-document.getElementById(
- "inputMes"
-).addEventListener(
- "change",
- async ()=>{
-
-  const mes =
-   document.getElementById(
-    "inputMes"
-   ).value;
-
-
-  /*
-   Para BC, se trocar de mês,
-   os dados já estão em dadosPorMes.
-  */
-
-  carregarMes();
-
- }
-);
-
-
-document.getElementById(
- "filtroNome"
-).addEventListener(
- "input",
- ()=>{
-  if(!ehAdmin())
-   return;
-
-
-  const f =
-   document.getElementById(
-    "filtroNome"
-   ).value
-   .trim()
-   .toUpperCase();
-
-
-  document
-   .querySelectorAll(
-    ".nome-row select"
-   )
-   .forEach(s=>{
-
-    if(!f){
-
-     s.parentElement
-      .parentElement
-      .style.opacity =
-      "1";
-
-     return;
-
-    }
-
-
-    if(
-     s.value !== f &&
-     s.value !== ""
-    ){
-
-     s.parentElement
-      .parentElement
-      .style.opacity =
-      ".45";
-
-    }
-    else{
-
-     s.parentElement
-      .parentElement
-      .style.opacity =
-      "1";
-
-    }
-
-   });
-
- }
-);
-
-
-document.getElementById(
- "btnSalvar"
-).onclick =
- salvar;
-
-
-document.getElementById(
- "btnCopiar"
-).onclick =
- copiarEscala;
-
-
-document.getElementById(
- "btnExcel"
-).onclick =
- exportarExcel;
-
-
-document.getElementById(
- "btnPDF"
-).onclick =
- exportarPDF;
-
-
-document.getElementById(
- "btnBackup"
-).onclick =
- backup;
-
-
-document.getElementById(
- "btnRestaurar"
-).onclick =
- ()=>{
-  document.getElementById(
-   "arquivoBackup"
-  ).click();
- };
-
-
-document.getElementById(
- "arquivoBackup"
-).onchange =
- restaurar;
-
-
-document.getElementById(
- "btnImprimir"
-).onclick =
- ()=>{
-  window.print();
- };
-
-
-document.getElementById(
- "btnLimpar"
-).onclick =
- limpar;
-
-
-document.getElementById(
- "btnEntrar"
-).onclick =
- entrar;
-
-
-document.getElementById(
- "btnSair"
-).onclick =
- sair;
-
-
-document.getElementById(
- "btnPrimeiroAcesso"
-).onclick =
- recuperar;
-
-
-/* ============================================================
-   INICIALIZAÇÃO
-   ============================================================ */
+document.getElementById("inputMes").addEventListener("change",carregarMes);
+document.getElementById("filtroNome").addEventListener("input",()=>{if(!ehAdmin())return;const f=document.getElementById("filtroNome").value.trim().toUpperCase();document.querySelectorAll(".nome-row select").forEach(s=>{if(!f)return; if(s.value!==f&&s.value!=="")s.parentElement.parentElement.style.opacity=".45"; else s.parentElement.parentElement.style.opacity="1";});});
+document.getElementById("btnSalvar").onclick=salvar;
+document.getElementById("btnCopiar").onclick=copiarEscala;
+document.getElementById("btnEnviarPrimeiroAcesso").onclick=enviarPrimeiroAcesso;
+document.getElementById("btnExcel").onclick=exportarExcel;
+document.getElementById("btnPDF").onclick=exportarPDF;
+document.getElementById("btnBackup").onclick=backup;
+document.getElementById("btnRestaurar").onclick=()=>document.getElementById("arquivoBackup").click();
+document.getElementById("arquivoBackup").onchange=restaurar;
+document.getElementById("btnImprimir").onclick=()=>window.print();
+document.getElementById("btnLimpar").onclick=limpar;
+document.getElementById("btnEntrar").onclick=entrar;
+document.getElementById("btnSair").onclick=sair;
+document.getElementById("btnPrimeiroAcesso").onclick=recuperar;
 
 (async function init(){
-
- if(
-  "serviceWorker" in navigator
- ){
-
-  try{
-
-   await navigator.serviceWorker.register(
-    "service-worker.js"
-   );
-
-  }catch(e){
-
-   console.warn(e);
-
-  }
-
- }
-
-
- if(
-  !window.SUPABASE_URL ||
-  !window.SUPABASE_PUBLISHABLE_KEY
- ){
-
-  document.getElementById(
-   "loginOverlay"
-  ).style.display =
-   "flex";
-
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "Supabase não configurado.";
-
-
-  return;
-
- }
-
-
- supabaseClient =
-  window.supabase.createClient(
-   window.SUPABASE_URL,
-   window.SUPABASE_PUBLISHABLE_KEY,
-   {
-    auth:{
-     persistSession:true,
-     autoRefreshToken:true,
-     detectSessionInUrl:true
-    }
-   }
-  );
-
-
- const {
-  data
- } =
-  await supabaseClient.auth
-   .getSession();
-
-
- if(data?.session){
-
-  usuarioAtual =
-   data.session.user;
-
-  await preparar();
-
- }
- else{
-
-  document.getElementById(
-   "loginOverlay"
-  ).style.display =
-   "flex";
-
- }
-
+ if("serviceWorker" in navigator){try{await navigator.serviceWorker.register("service-worker.js");}catch(e){console.warn(e)}}
+ if(!window.SUPABASE_URL||!window.SUPABASE_PUBLISHABLE_KEY){document.getElementById("loginOverlay").style.display="flex";document.getElementById("loginStatus").textContent="Supabase não configurado.";return}
+ supabaseClient=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ const {data}=await supabaseClient.auth.getSession();
+ if(data?.session){usuarioAtual=data.session.user;await preparar();}else document.getElementById("loginOverlay").style.display="flex";
 })();
-
 </script>
-
 </body>
 </html>
