@@ -1,717 +1,1112 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Escala BCs</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b5d1e">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-touch-fullscreen" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Escala BCs">
-<link rel="apple-touch-icon" href="icon-192.png">
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+Planilha Oficial de Escala de Plantões - Bombeiros Comunitários
+</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="supabase-config.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<link rel="manifest" href="manifest.json">
+
+<meta
+    name="theme-color"
+    content="#0b5d1e"
+>
+
+<meta
+    name="mobile-web-app-capable"
+    content="yes"
+>
+
+<meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+>
+
+<meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="default"
+>
+
+<meta
+    name="apple-mobile-web-app-title"
+    content="Escala BCs"
+>
+
+<link
+    rel="apple-touch-icon"
+    href="icon-192.png"
+>
+
 
 <style>
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
 
-body{
- margin:0;
- padding:12px;
- font-family:Arial,Helvetica,sans-serif;
- background:#f3f6f9;
- color:#222
+/* =========================================================
+   ESTILO GERAL
+========================================================= */
+
+* {
+    box-sizing: border-box;
 }
 
-.container{max-width:1900px;margin:auto}
-
-header{
- background:#0b5d1e;
- color:#fff;
- padding:18px;
- border-radius:10px 10px 0 0;
- text-align:center
+html {
+    -webkit-text-size-adjust: 100%;
 }
 
-header h1{margin:0;font-size:24px}
-header p{margin:7px 0 0;font-size:14px}
-
-.painel{
- background:#fff;
- padding:14px;
- display:flex;
- gap:9px;
- flex-wrap:wrap;
- align-items:end;
- border-bottom:1px solid #ddd
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f3f6f9;
+    color: #222;
+    overscroll-behavior-y: contain;
 }
 
-.campo{
- display:flex;
- flex-direction:column;
- gap:4px
+.container {
+    max-width: 1900px;
+    margin: auto;
 }
 
-.campo label{
- font-weight:bold;
- font-size:13px
+
+/* =========================================================
+   CABEÇALHO
+========================================================= */
+
+header {
+    background: #0b5d1e;
+    color: white;
+    padding: 20px;
+    border-radius: 10px 10px 0 0;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-select,input,button{font:inherit}
-
-.input{
- padding:10px;
- border:1px solid #aaa;
- border-radius:6px;
- background:#fff;
- min-width:170px
+header h1 {
+    margin: 0;
+    font-size: 26px;
 }
 
-button{
- padding:10px 13px;
- border:0;
- border-radius:6px;
- cursor:pointer;
- font-weight:bold
+header p {
+    margin: 8px 0 0;
+    font-size: 15px;
 }
 
-.btn-salvar{background:#198754;color:#fff}
-.btn-excel{background:#217346;color:#fff}
-.btn-pdf{background:#dc3545;color:#fff}
-.btn-backup{background:#0d6efd;color:#fff}
-.btn-restaurar{background:#fd7e14;color:#fff}
-.btn-imprimir{background:#343a40;color:#fff}
-.btn-limpar{background:#b02a37;color:#fff}
-.btn-copiar{background:#6f42c1;color:#fff}
 
-#usuarioOnline{
- position:fixed;
- right:10px;
- top:10px;
- z-index:9999;
- background:#0b5d1e;
- color:#fff;
- padding:7px 11px;
- border-radius:14px;
- font-size:12px;
- display:none;
- gap:8px;
- align-items:center
+/* =========================================================
+   PAINEL
+========================================================= */
+
+.painel-controles {
+    background: white;
+    padding: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: end;
+    border-bottom: 1px solid #ddd;
 }
 
-#btnSair{
- background:#fff;
- color:#0b5d1e;
- padding:4px 8px
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
-.info{
- background:#e8f5e9;
- padding:11px 14px;
- border-left:5px solid #0b5d1e;
- font-weight:bold
+.campo label {
+    font-weight: bold;
+    font-size: 13px;
 }
 
-.status{
- margin-top:10px;
- padding:10px;
- border-radius:6px;
- background:#eef3f7;
- color:#555;
- font-size:13px
+.input-field {
+    padding: 10px;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    font-size: 14px;
+    min-width: 180px;
+    background: white;
 }
 
-.tabela-wrap{
- background:#fff;
- padding:10px;
- overflow:auto;
- -webkit-overflow-scrolling:touch;
- box-shadow:0 2px 6px rgba(0,0,0,.1)
+button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 13px;
+    touch-action: manipulation;
 }
 
-table{
- border-collapse:collapse;
- width:max-content;
- min-width:100%;
- font-size:12px
+button:hover {
+    opacity: 0.85;
 }
 
-th,td{
- border:1px solid #777;
- text-align:center;
- padding:3px
+.btn-salvar {
+    background: #198754;
+    color: white;
 }
 
-thead th{
- background:#d9ead3;
- font-weight:bold
+
+/* =========================================================
+   BOTÃO SAIR
+========================================================= */
+
+.btn-sair {
+    background: #b00020;
+    color: white;
+    margin-left: 8px;
+    padding: 5px 9px;
+    font-size: 11px;
+    border-radius: 7px;
 }
 
-.coluna-label{
- position:sticky;
- left:0;
- z-index:5;
- background:#fff;
- min-width:175px;
- width:175px;
- font-weight:bold
+.btn-sair:hover {
+    background: #8b0019;
 }
 
-thead .coluna-label{
- background:#0b5d1e;
- color:#fff
+
+/* =========================================================
+   INFORMAÇÃO DO MÊS
+========================================================= */
+
+.info-mes {
+    background: #e8f5e9;
+    padding: 12px 18px;
+    border-left: 5px solid #0b5d1e;
+    font-weight: bold;
 }
 
-.col-dia{
- min-width:130px;
- width:130px
+
+/* =========================================================
+   TABELA
+========================================================= */
+
+.tabela-container {
+    background: white;
+    padding: 15px;
+    overflow-x: auto;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+    -webkit-overflow-scrolling: touch;
 }
 
-.data{
- font-size:13px;
- font-weight:bold
+table {
+    border-collapse: collapse;
+    width: max-content;
+    min-width: 100%;
+    font-size: 11px;
 }
 
-.semana{
- font-size:12px
+th,
+td {
+    border: 1px solid #777;
+    text-align: center;
+    padding: 3px;
 }
 
-.nome-row td{height:38px}
-.periodo-row td{height:34px}
-
-.nome-label,
-.periodo-label{
- font-weight:bold;
- background:#f7f7f7;
- position:sticky;
- left:0;
- z-index:4
+thead th {
+    background: #d9ead3;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 3;
 }
 
-.nome-label{font-size:13px}
-.periodo-label{font-size:12px}
-
-.select-escala{
- width:100%;
- min-width:118px;
- min-height:34px;
- border:1px solid #aaa;
- border-radius:4px;
- background:#fff;
- padding:4px;
- font-size:12px
+.coluna-fila {
+    min-width: 175px;
+    width: 175px;
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    background: white;
+    font-weight: bold;
 }
 
-.periodo-select{font-size:11px}
-
-.select-bloqueado{
- background:#eeeeee!important;
- color:#333!important;
- cursor:not-allowed;
- border-color:#aaa!important
+thead .coluna-fila {
+    background: #0b5d1e;
+    color: white;
+    z-index: 6;
 }
 
-.slot-ocupado-outro{
- background:#f1f1f1!important
+.dia {
+    min-width: 72px;
+    width: 72px;
 }
 
-.slot-proprio{
- background:#e8f5e9!important
+.fim-semana {
+    background: #fff0f0 !important;
 }
 
-.slot-vazio{
- background:#fff!important
+.select-plantao {
+    width: 100%;
+    min-width: 68px;
+    padding: 5px 2px;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    background: white;
+    font-size: 10px;
+    cursor: pointer;
+    touch-action: manipulation;
 }
 
-.fim-semana{
- background:#fff0f0
+.select-bloqueado {
+    background: #eeeeee;
+    color: #777;
+    cursor: not-allowed;
 }
 
-.slot-par{
- background:#fbfbfb
+
+/* =========================================================
+   CORES DAS FILAS
+========================================================= */
+
+.linha-noturno {
+    background-color: #e2efda;
 }
 
-.bc-only-note{
- background:#fff8e1;
- border-left:5px solid #f0ad00;
- padding:11px 14px;
- font-weight:bold
+.linha-integral {
+    background-color: #fff2cc;
 }
 
-.resumo{
- margin-top:15px;
- background:#fff;
- padding:16px;
- border-radius:8px;
- box-shadow:0 2px 6px rgba(0,0,0,.1)
+.linha-diurno {
+    background-color: #fce4d6;
 }
 
-.resumo h2{
- margin:0 0 12px;
- color:#0b5d1e;
- font-size:19px
+.linha-noturno td:first-child {
+    background-color: #e2efda;
 }
 
-.grid{
- display:grid;
- grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
- gap:8px
+.linha-integral td:first-child {
+    background-color: #fff2cc;
 }
 
-.card{
- border:1px solid #ccc;
- border-radius:6px;
- padding:10px;
- background:#f8f9fa;
- text-align:center
+.linha-diurno td:first-child {
+    background-color: #fce4d6;
 }
 
-.card strong{display:block}
-.card b{font-size:21px;color:#0b5d1e}
 
-.rodape{
- text-align:center;
- color:#666;
- font-size:12px;
- padding:12px
+/* =========================================================
+   RESUMO
+========================================================= */
+
+.resumo-container {
+    margin-top: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.10);
 }
 
-.overlay{
- display:none;
- position:fixed;
- inset:0;
- background:rgba(0,0,0,.72);
- z-index:99999;
- align-items:center;
- justify-content:center;
- padding:20px
+.summary-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #0b5d1e;
 }
 
-.login-box{
- background:#fff;
- border-radius:16px;
- padding:24px;
- max-width:420px;
- width:100%;
- box-shadow:0 10px 40px rgba(0,0,0,.35)
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
 }
 
-.login-box h2{
- margin-top:0;
- color:#0b5d1e
+.summary-card {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 12px;
+    background: #f8f9fa;
+    text-align: center;
 }
 
-.login-box input{
- width:100%;
- padding:12px;
- margin:6px 0;
- border:1px solid #bbb;
- border-radius:8px
+.summary-name {
+    font-weight: bold;
+    font-size: 14px;
 }
 
-.login-box button{
- width:100%;
- margin-top:8px
+.summary-count {
+    margin-top: 5px;
+    font-size: 22px;
+    color: #0b5d1e;
+    font-weight: bold;
 }
 
-.login-primary{
- background:#0b5d1e;
- color:#fff
+
+/* =========================================================
+   RODAPÉ
+========================================================= */
+
+.rodape {
+    margin-top: 15px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
 }
 
-.login-secondary{
- background:#fff;
- color:#0b5d1e;
- border:1px solid #0b5d1e
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background: #eef3f7;
+    color: #555;
+    font-size: 13px;
 }
 
-#loginStatus{
- font-size:13px;
- margin-bottom:0
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+#loginOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.72);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
 
-.admin-only{}
-.bc-only{}
-.hidden{display:none!important}
-
-@media(max-width:800px){
-
- body{padding:4px}
-
- header{padding:13px 8px}
-
- header h1{font-size:18px}
-
- header p{font-size:12px}
-
- .painel{
-  padding:10px;
-  flex-direction:column;
-  align-items:stretch
- }
-
- .input,button{
-  width:100%;
-  min-height:44px
- }
-
- .tabela-wrap{padding:5px}
-
- .coluna-label{
-  min-width:145px;
-  width:145px
- }
-
- .col-dia{
-  min-width:118px;
-  width:118px
- }
-
- .select-escala{
-  min-height:42px;
-  font-size:13px
- }
-
- .periodo-select{
-  font-size:12px
- }
-
- #usuarioOnline{
-  position:static;
-  margin-bottom:5px;
-  justify-content:space-between
- }
+.login-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
 }
 
-@media print{
-
- body{
-  background:#fff;
-  padding:0
- }
-
- header{border-radius:0}
-
- .painel,
- .status,
- .rodape,
- .resumo,
- #usuarioOnline,
- .bc-only-note{
-  display:none!important
- }
-
- .tabela-wrap{
-  overflow:visible;
-  box-shadow:none;
-  padding:0
- }
-
- table{font-size:8px}
-
- .col-dia{
-  min-width:80px;
-  width:80px
- }
-
- .coluna-label{
-  min-width:125px;
-  width:125px
- }
-
- .select-escala{
-  appearance:none;
-  border:0;
-  font-size:8px;
-  min-height:0
- }
-
- .periodo-select{font-size:8px}
+.login-box h2 {
+    margin-top: 0;
+    color: #0b5d1e;
 }
+
+.login-input {
+    width: 100%;
+    padding: 12px;
+    margin: 6px 0;
+    border: 1px solid #bbb;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 15px;
+}
+
+.btn-entrar {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 8px;
+    background: #0b5d1e;
+    color: #fff;
+    font-weight: bold;
+    min-height: 44px;
+}
+
+#loginStatus {
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+
+.login-link {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    border: 0;
+    background: transparent;
+    color: #0b5d1e;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#novaSenhaBox {
+    display: none;
+}
+
+/* =========================================================
+   USUÁRIO ONLINE
+========================================================= */
+
+#usuarioOnline {
+    position: fixed;
+    right: 10px;
+    top: 10px;
+    z-index: 9999;
+    background: #0b5d1e;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    display: none;
+    align-items: center;
+    gap: 5px;
+}
+
+#usuarioNomeOnline {
+    display: inline-block;
+}
+
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width: 800px) {
+
+    body {
+        padding: 4px;
+    }
+
+    header {
+        padding: 14px 10px;
+    }
+
+    header h1 {
+        font-size: 18px;
+        line-height: 1.25;
+    }
+
+    header p {
+        font-size: 13px;
+    }
+
+    .painel-controles {
+        padding: 12px;
+        gap: 8px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .input-field,
+    button {
+        width: 100%;
+        min-height: 44px;
+        font-size: 14px;
+    }
+
+    .tabela-container {
+        padding: 6px;
+    }
+
+    .coluna-fila {
+        min-width: 145px;
+        width: 145px;
+    }
+
+    .dia {
+        min-width: 66px;
+        width: 66px;
+    }
+
+    .select-plantao {
+        min-height: 40px;
+        font-size: 11px;
+    }
+
+    .resumo-container {
+        padding: 12px;
+    }
+
+    #usuarioOnline {
+        position: static;
+        margin: 5px;
+        text-align: center;
+        border-radius: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-sair {
+        width: auto !important;
+        min-height: 32px !important;
+        padding: 5px 10px !important;
+        margin-left: 5px;
+    }
+
+}
+
 </style>
+
 </head>
+
 
 <body>
 
-<div id="loginOverlay" class="overlay">
- <div class="login-box">
 
-  <h2>🔐 Escala BCs</h2>
+<!-- =========================================================
+     LOGIN
+========================================================= -->
 
-  <p id="loginInfo">
-   Entre com seu e-mail e senha.
-  </p>
+<div id="loginOverlay">
 
-  <input
-   id="loginEmail"
-   type="email"
-   placeholder="E-mail"
-   autocomplete="username"
-  >
+    <div class="login-box">
 
-  <input
-   id="loginSenha"
-   type="password"
-   placeholder="Senha"
-   autocomplete="current-password"
-  >
+        <h2>🔐 Escala BCs</h2>
 
-  <button id="btnEntrar" class="login-primary">
-   Entrar
-  </button>
+        <p id="loginInfo">
+            Entre com seu e-mail e senha para acessar a escala.
+        </p>
 
-  <button id="btnPrimeiroAcesso" class="login-secondary">
-   Esqueci / criar nova senha
-  </button>
+        <input
+            id="loginEmail"
+            class="login-input"
+            type="email"
+            placeholder="E-mail"
+            autocomplete="username"
+        >
 
-  <p id="loginStatus"></p>
+        <input
+            id="loginSenha"
+            class="login-input"
+            type="password"
+            placeholder="Senha"
+            autocomplete="current-password"
+        >
 
- </div>
+        <button
+            id="btnEntrar"
+            class="btn-entrar"
+            type="button"
+        >
+            Entrar
+        </button>
+
+        <button
+            id="btnPrimeiroAcesso"
+            class="login-link"
+            type="button"
+        >
+            🔑 Primeiro acesso / Esqueci minha senha
+        </button>
+
+        <div id="novaSenhaBox">
+            <h3 style="color:#0b5d1e; margin-bottom:8px;">🔐 Criar nova senha</h3>
+            <p>Digite uma nova senha para sua conta.</p>
+            <input id="novaSenha" class="login-input" type="password" placeholder="Nova senha" autocomplete="new-password">
+            <input id="confirmarNovaSenha" class="login-input" type="password" placeholder="Confirme a nova senha" autocomplete="new-password">
+            <button id="btnSalvarNovaSenha" class="btn-entrar" type="button">Salvar nova senha</button>
+        </div>
+
+        <p id="loginStatus"></p>
+
+    </div>
+
 </div>
 
 
+<!-- =========================================================
+     USUÁRIO ONLINE
+========================================================= -->
+
 <div id="usuarioOnline">
 
- <span id="usuarioNomeOnline"></span>
+    <span id="usuarioNomeOnline"></span>
 
- <button id="btnSair">
-  Sair
- </button>
+    <button
+        id="btnSair"
+        class="btn-sair"
+        type="button"
+    >
+        Sair
+    </button>
 
 </div>
 
 
 <div class="container">
 
+
+<!-- =========================================================
+     CABEÇALHO
+========================================================= -->
+
 <header>
 
- <h1>
-  📊 Escala de Plantões - Bombeiros Comunitários
- </h1>
+    <h1>
+        📊 Planilha Oficial de Escala de Plantões - Bombeiros Comunitários
+    </h1>
 
- <p>
-  Sistema de Gerenciamento de Escala - BCs
- </p>
+    <p>
+        Sistema de Gerenciamento de Escala - BCs
+    </p>
 
 </header>
 
 
-<div id="avisoBC" class="bc-only-note hidden">
+<!-- =========================================================
+     CONTROLES
+========================================================= -->
 
- 👤 Você está conectado como
- <span id="nomeBCAviso"></span>.
+<div class="painel-controles">
 
- Você pode lançar somente o seu próprio nome.
 
- <br>
+    <div class="campo">
 
- 🔒 Nomes e períodos já preenchidos por outros BCs ficam bloqueados.
+        <label for="inputMes">
+            📅 Mês da Escala
+        </label>
+
+        <select
+            id="inputMes"
+            class="input-field"
+            onchange="trocarMesManual()"
+        >
+
+            <option value="01">Janeiro</option>
+            <option value="02">Fevereiro</option>
+            <option value="03">Março</option>
+            <option value="04">Abril</option>
+            <option value="05">Maio</option>
+            <option value="06">Junho</option>
+            <option value="07">Julho</option>
+            <option value="08">Agosto</option>
+            <option value="09" selected>Setembro</option>
+            <option value="10">Outubro</option>
+            <option value="11">Novembro</option>
+            <option value="12">Dezembro</option>
+
+        </select>
+
+    </div>
+
+
+    <div
+        class="campo"
+        id="campoFiltro"
+    >
+
+        <label for="filtroNome">
+            🔎 Filtrar BC
+        </label>
+
+        <input
+            type="text"
+            id="filtroNome"
+            class="input-field"
+            placeholder="Digite o nome..."
+            oninput="recalcularTurnos()"
+        >
+
+    </div>
+
+
+    <button
+        id="btnSalvar"
+        class="btn-salvar"
+        type="button"
+        onclick="salvarEEstocarArquivo()"
+    >
+        💾 Salvar
+    </button>
+
+    <button
+        id="btnEnviarPrimeiroAcesso"
+        class="btn-salvar"
+        type="button"
+        onclick="enviarPrimeiroAcesso()"
+        style="display:none;"
+    >
+        📧 Enviar primeiro acesso aos BCs
+    </button>
+
 
 </div>
 
 
-<div class="painel">
+<!-- =========================================================
+     INFORMAÇÃO DO MÊS
+========================================================= -->
 
- <div class="campo">
-
-  <label for="inputMes">
-   📅 Mês da Escala
-  </label>
-
-  <select id="inputMes" class="input">
-
-   <option value="01">Janeiro</option>
-   <option value="02">Fevereiro</option>
-   <option value="03">Março</option>
-   <option value="04">Abril</option>
-   <option value="05">Maio</option>
-   <option value="06">Junho</option>
-   <option value="07">Julho</option>
-   <option value="08">Agosto</option>
-   <option value="09" selected>Setembro</option>
-   <option value="10">Outubro</option>
-   <option value="11">Novembro</option>
-   <option value="12">Dezembro</option>
-
-  </select>
-
- </div>
-
-
- <div id="campoFiltro" class="campo admin-only">
-
-  <label for="filtroNome">
-   🔎 Filtrar BC
-  </label>
-
-  <input
-   id="filtroNome"
-   class="input"
-   placeholder="Digite o nome..."
-  >
-
- </div>
-
-
- <button id="btnSalvar" class="btn-salvar">
-  💾 Salvar
- </button>
-
- <button id="btnCopiar" class="btn-copiar admin-only">
-  📋 Copiar escala
- </button>
-
- <button id="btnExcel" class="btn-excel admin-only">
-  📊 Excel
- </button>
-
- <button id="btnPDF" class="btn-pdf admin-only">
-  📄 PDF
- </button>
-
- <button id="btnBackup" class="btn-backup admin-only">
-  💾 Backup
- </button>
-
- <button id="btnRestaurar" class="btn-restaurar admin-only">
-  ♻️ Restaurar
- </button>
-
- <input
-  type="file"
-  id="arquivoBackup"
-  accept=".json"
-  class="hidden"
- >
-
- <button id="btnImprimir" class="btn-imprimir admin-only">
-  🖨️ Imprimir
- </button>
-
- <button id="btnLimpar" class="btn-limpar admin-only">
-  🧹 Limpar
- </button>
-
+<div
+    class="info-mes"
+    id="infoMes"
+>
 </div>
 
 
-<div id="infoMes" class="info"></div>
+<!-- =========================================================
+     TABELA
+========================================================= -->
 
+<div class="tabela-container">
 
-<div class="tabela-wrap">
-
-<table id="tabelaEscala">
+<table>
 
 <thead>
 
 <tr id="rowDatas">
- <th class="coluna-label">
-  Nome de guerra / Período
- </th>
+
+<th class="coluna-fila">
+Postos / Filas ➔
+</th>
+
 </tr>
 
+
 <tr id="rowSemanas">
- <th class="coluna-label">
-  Dia da semana
- </th>
+
+<th class="coluna-fila">
+Dias da Semana ➔
+</th>
+
 </tr>
 
 </thead>
 
-<tbody id="corpoTabela"></tbody>
+
+<tbody id="corpoTabela">
+</tbody>
 
 </table>
 
 </div>
 
 
-<div id="resumoContainer" class="resumo admin-only">
+<!-- =========================================================
+     RESUMO
+========================================================= -->
 
- <h2>
-  📈 Placar de Plantões Acumulados por Integrante (BC)
- </h2>
+<div
+    class="resumo-container"
+    id="resumoContainer"
+>
 
- <div id="gridResumo" class="grid"></div>
+    <div class="summary-title">
+
+        📈 Placar de Plantões Acumulados por Integrante (BC)
+
+    </div>
+
+    <div
+        class="summary-grid"
+        id="gridResumo"
+    >
+    </div>
 
 </div>
 
 
-<div id="statusSistema" class="status">
- Aguardando login.
+<!-- =========================================================
+     STATUS
+========================================================= -->
+
+<div
+    class="status"
+    id="statusSistema"
+>
+    Sistema carregado.
 </div>
 
+
+<!-- =========================================================
+     RODAPÉ
+========================================================= -->
 
 <div class="rodape">
 
- Sistema de Gerenciamento de Escala - Bombeiros Comunitários / BCs
- <br>
- Ano da escala: 2026
+    Sistema de Gerenciamento de Escala -
+    Bombeiros Comunitários / BCs
+
+    <br>
+
+    Ano da escala: 2026
 
 </div>
+
 
 </div>
 
 
 <script>
 
+/* =========================================================
+   CONFIGURAÇÃO
+========================================================= */
+
 const ANO_ESCALA = 2026;
 
-const CHAVE_LOCAL =
- "escalaBCs_formato12_2026_v1";
+const CHAVE_LOCAL_STORAGE =
+    "escalaBombeirosComunitarios2026_v4";
 
-const SLOT_COUNT = 12;
 
+/* =========================================================
+   IDENTIFICAÇÃO DOS BCs PELO E-MAIL
+========================================================= */
+
+const EMAIL_PARA_BC = {
+
+    "ahcastelaci@gmail.com": "CASTELACI",
+
+    "paah@hotmail.com": "BARBARA"
+
+};
+
+
+/* =========================================================
+   LISTA DE BCs
+========================================================= */
 
 const listaBCs = [
- "ADILSON","ALVES","ANDRADE","BARBARA","BARBOSA",
- "BATISTA","BORGES","BRAUER","CAMILA","CASTELACI",
- "CLEDISON","DENIS","EDER","EVERALDO","FEITOSA",
- "GABRIEL","GERSON","GEYSSON","GLEISSON","IARA",
- "JAIRO","JAQUELINE","JESSICA","JOSÉ","JUAN",
- "KEVIN","KRAUSE","LARISSA","LAURECI","LILIAN",
- "LIMA","LIRAS","LUCHTENBERG","MAICO","MAMINHAQUI",
- "MATIAS","MATUCHESKI","NERIS","PALOMA","PATRICK",
- "PAULO","PEKOCZ","PINHEIRO","PIVA","PRISCILA",
- "REIS","RUDNIK","RYAN","SAMPAIO","SANTOS",
- "SCHENA","SILVINA","SIMÃO","STREISKI","TEIXEIRA",
- "TIBURSKI","WITKOWSKI","ZENI"
+
+    "ADILSON",
+    "ALVES",
+    "ANDRADE",
+    "BARBARA",
+    "BATISTA",
+    "BORGES",
+    "BRAUER",
+    "CAMILA",
+    "CASTELACI",
+    "CLEDISON",
+    "DENIS",
+    "EDER",
+    "FEITOSA",
+    "GABRIEL",
+    "GERSON",
+    "GEYSSON",
+    "GLEISSON",
+    "IARA",
+    "JAIRO",
+    "JOSÉ",
+    "JUAN",
+    "KEVIN",
+    "KRAUSE",
+    "LARISSA",
+    "LILIAN",
+    "LIMA",
+    "LIRAS",
+    "MAICO",
+    "MAMINHAQUI",
+    "MATIAS",
+    "MATUCHESKI",
+    "NERIS",
+    "PALOMA",
+    "PATRICK",
+    "PAULO",
+    "PEKOCZ",
+    "PINHEIRO",
+    "PIVA",
+    "PRISCILA",
+    "REIS",
+    "RUDNIK",
+    "RYAN",
+    "SAMPAIO",
+    "SANTOS",
+    "SCHENA",
+    "SILVINA",
+    "SIMÃO",
+    "STREISKI",
+    "TEIXEIRA",
+    "TIBURSKI",
+    "WITKOWSKI",
+    "ZENI"
+
 ];
 
 
-const periodos = [
- "",
- "DIURNO",
- "NOTURNO",
- "INTEGRAL"
+/* =========================================================
+   FILAS
+========================================================= */
+
+const filas = [
+
+    {
+        nome: "Fila 01 (Noturno)",
+        classe: "linha-noturno"
+    },
+
+    {
+        nome: "Fila 02 (Integral)",
+        classe: "linha-integral"
+    },
+
+    {
+        nome: "Fila 03 (Integral)",
+        classe: "linha-integral"
+    },
+
+    {
+        nome: "Fila 04 (Diurno)",
+        classe: "linha-diurno"
+    },
+
+    {
+        nome: "Fila 05 (Noturno)",
+        classe: "linha-noturno"
+    },
+
+    {
+        nome: "Fila 06 (Integral)",
+        classe: "linha-integral"
+    },
+
+    {
+        nome: "Fila 07 (Diurno)",
+        classe: "linha-diurno"
+    }
+
 ];
 
 
-const nomesMes = [
- "Janeiro","Fevereiro","Março","Abril",
- "Maio","Junho","Julho","Agosto",
- "Setembro","Outubro","Novembro","Dezembro"
+/* =========================================================
+   DIAS DA SEMANA
+========================================================= */
+
+const nomesDiasSemana = [
+
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado"
+
 ];
 
 
-const diasSemana = [
- "Domingo",
- "Segunda-feira",
- "Terça-feira",
- "Quarta-feira",
- "Quinta-feira",
- "Sexta-feira",
- "Sábado"
+const nomesDiasAbreviados = [
+
+    "DOM",
+    "SEG",
+    "TER",
+    "QUA",
+    "QUI",
+    "SEX",
+    "SÁB"
+
 ];
 
+
+/* =========================================================
+   DADOS ORIGINAIS DE JUNHO
+========================================================= */
+
+const rascunhoOriginalJunho = {
+
+    "0_0":"PALOMA",
+    "0_4":"PALOMA",
+    "0_7":"PALOMA",
+    "0_11":"PALOMA",
+    "0_14":"PALOMA",
+    "0_18":"PALOMA",
+    "0_21":"PALOMA",
+    "0_25":"PALOMA",
+    "0_28":"PALOMA",
+
+    "1_1":"PATRICK",
+    "1_3":"PATRICK",
+    "1_5":"PATRICK",
+    "1_6":"PATRICK",
+    "1_8":"PATRICK",
+    "1_9":"PATRICK",
+    "1_10":"PATRICK",
+    "1_11":"PALOMA",
+    "1_12":"CAMILA",
+    "1_13":"PATRICK",
+    "1_14":"PALOMA",
+    "1_15":"PATRICK",
+    "1_16":"LIMA",
+    "1_17":"MATUCHESKI",
+    "1_18":"PALOMA",
+    "1_19":"CAMILA",
+    "1_20":"LIMA",
+    "1_21":"PALOMA",
+    "1_22":"LIMA",
+    "1_23":"LIMA",
+    "1_24":"LIMA",
+    "1_25":"PALOMA",
+    "1_26":"CAMILA",
+    "1_27":"PATRICK",
+    "1_28":"PALOMA",
+    "1_29":"LIMA",
+
+    "2_0":"ALVES",
+    "2_1":"ALVES",
+    "2_2":"ALVES",
+    "2_3":"ALVES",
+    "2_4":"PATRICK",
+    "2_5":"CASTELACI",
+    "2_6":"LIMA",
+    "2_7":"ALVES",
+    "2_8":"ALVES",
+    "2_9":"ALVES",
+    "2_10":"ALVES",
+    "2_11":"PATRICK",
+    "2_12":"PATRICK",
+    "2_13":"MATIAS",
+    "2_14":"ALVES",
+    "2_15":"ALVES",
+    "2_16":"ALVES",
+    "2_17":"ALVES",
+    "2_18":"MATIAS",
+    "2_19":"MATUCHESKI",
+    "2_20":"PAULO",
+    "2_21":"ALVES",
+    "2_22":"ALVES",
+    "2_23":"ALVES",
+    "2_24":"ALVES",
+    "2_25":"MATIAS",
+    "2_26":"BARBARA",
+    "2_27":"MATIAS",
+    "2_28":"ALVES",
+    "2_29":"ALVES"
+
+};
+
+
+/* =========================================================
+   ESCALAS
+========================================================= */
+
+let escalasPorMes = {
+
+    "01": {},
+    "02": {},
+    "03": {},
+    "04": {},
+    "05": {},
+
+    "06": {
+        ...rascunhoOriginalJunho
+    },
+
+    "07": {},
+    "08": {},
+    "09": {},
+    "10": {},
+    "11": {},
+    "12": {}
+
+};
+
+
+let dadosEscalaMemoria = {};
+
+let dadosEscalaCompletos = {};
+
+
+/* =========================================================
+   SUPABASE
+========================================================= */
 
 let supabaseClient = null;
 
@@ -719,2950 +1114,2879 @@ let usuarioAtual = null;
 
 let perfilAtual = null;
 
-let bcAtual = null;
 
+/* =========================================================
+   VERIFICAR SUPABASE
+========================================================= */
 
-/*
-  dadosPorMes contém a representação visual completa.
+function supabaseConfigurado() {
 
-  Para BC:
-  - contém lançamentos de todos os BCs.
-
-  Para ADMIN:
-  - contém a escala completa.
-*/
-let dadosPorMes =
- Object.fromEntries(
-  Array.from(
-   {length:12},
-   (_,i)=>[
-    String(i+1).padStart(2,"0"),
-    {}
-   ]
-  )
- );
-
-
-let dadosMes = {};
-
-
-/*
-  Registro dos lançamentos vindos do banco.
-
-  Estrutura:
-  dadosLancamentos[mes][slot][dia] = {
-    id,
-    bc_id,
-    auth_user_id,
-    nome,
-    periodo
-  }
-*/
-let dadosLancamentos =
- Object.fromEntries(
-  Array.from(
-   {length:12},
-   (_,i)=>[
-    String(i+1).padStart(2,"0"),
-    {}
-   ]
-  )
- );
-
-
-function ehAdmin(){
-
- const r =
-  String(
-   perfilAtual?.role || ""
-  )
-  .trim()
-  .toLowerCase();
-
- return (
-  r === "admin" ||
-  r === "administrador"
- );
+    return (
+        window.SUPABASE_URL &&
+        !window.SUPABASE_URL.includes("COLE_AQUI") &&
+        window.SUPABASE_PUBLISHABLE_KEY &&
+        !window.SUPABASE_PUBLISHABLE_KEY.includes("COLE_AQUI")
+    );
 
 }
 
 
-function nomeUsuario(){
+/* =========================================================
+   VERIFICAR ADMINISTRADOR
+========================================================= */
 
- if(ehAdmin())
-  return String(
-   perfilAtual?.nome ||
-   "Administrador"
-  )
-  .trim()
-  .toUpperCase();
+function usuarioEhAdmin() {
 
- return String(
-  bcAtual?.nome || ""
- )
- .trim()
- .toUpperCase();
+    if (!perfilAtual) {
+        return false;
+    }
 
-}
+    const role =
+        String(
+            perfilAtual.role || ""
+        )
+        .trim()
+        .toLowerCase();
 
-
-function status(t){
-
- document.getElementById(
-  "statusSistema"
- ).textContent = t;
+    return (
+        role === "admin" ||
+        role === "administrador"
+    );
 
 }
 
 
-function diasNoMes(m){
+/* =========================================================
+   OBTER NOME DO USUÁRIO
+========================================================= */
 
- return new Date(
-  ANO_ESCALA,
-  Number(m),
-  0
- ).getDate();
+function obterNomeUsuario() {
+
+    if (!perfilAtual && !usuarioAtual) {
+        return "";
+    }
+
+    // Para administrador, o nome do perfil pode ser usado normalmente.
+    // Para BC, só aceitamos um nome que realmente esteja na lista de BCs.
+    const nomePerfil = String(
+        perfilAtual?.nome || ""
+    ).trim().toUpperCase();
+
+    if (nomePerfil && listaBCs.includes(nomePerfil)) {
+        return nomePerfil;
+    }
+
+    // Se o perfil estiver com e-mail no campo "nome" ou estiver vazio,
+    // identifica o BC pelo e-mail da conta autenticada.
+    const email = String(
+        usuarioAtual?.email ||
+        perfilAtual?.email ||
+        ""
+    ).trim().toLowerCase();
+
+    return EMAIL_PARA_BC[email] || "";
+}
+
+
+
+/* =========================================================
+   MOSTRAR STATUS
+========================================================= */
+
+function mostrarStatus(texto) {
+
+    const status =
+        document.getElementById(
+            "statusSistema"
+        );
+
+    if (status) {
+
+        status.textContent =
+            texto;
+
+    }
 
 }
 
 
-function chaveNome(slot,dia){
+/* =========================================================
+   STATUS DO LOGIN
+========================================================= */
 
- return `${slot}_${dia}_nome`;
+function setLoginStatus(
+    msg,
+    ok = false
+) {
 
-}
+    const el =
+        document.getElementById(
+            "loginStatus"
+        );
 
+    if (el) {
 
-function chavePeriodo(slot,dia){
+        el.textContent =
+            msg;
 
- return `${slot}_${dia}_periodo`;
+        el.style.color =
+            ok
+                ? "#0b5d1e"
+                : "#b00020";
 
-}
-
-
-function chaveSlot(slot,dia){
-
- return `${slot}_${dia}`;
-
-}
-
-
-function salvarLocalAdmin(){
-
- if(!ehAdmin()) return;
-
- localStorage.setItem(
-  CHAVE_LOCAL,
-  JSON.stringify(dadosPorMes)
- );
+    }
 
 }
 
 
-function carregarLocalAdmin(){
+/* =========================================================
+   QUANTIDADE DE DIAS
+========================================================= */
 
- if(!ehAdmin()) return;
+function quantidadeDiasDoMes(mes) {
 
- try{
-
-  const x =
-   JSON.parse(
-    localStorage.getItem(
-     CHAVE_LOCAL
-    ) || "null"
-   );
-
-  if(
-   x &&
-   typeof x === "object"
-  ){
-
-   Object.assign(
-    dadosPorMes,
-    x
-   );
-
-  }
-
- }catch(e){
-
-  console.warn(
-   "Erro ao carregar escala local:",
-   e
-  );
-
- }
+    return new Date(
+        ANO_ESCALA,
+        Number(mes),
+        0
+    ).getDate();
 
 }
 
 
-/* ============================================================
-   OPÇÕES
-   ============================================================ */
-
-function opcoesNome(select,valor){
-
- select.innerHTML = "";
-
- const vazio =
-  document.createElement("option");
-
- vazio.value = "";
- vazio.textContent = "—";
-
- select.appendChild(vazio);
-
-
- if(ehAdmin()){
-
-  listaBCs.forEach(n=>{
-
-   const o =
-    document.createElement("option");
-
-   o.value = n;
-   o.textContent = n;
-
-   select.appendChild(o);
-
-  });
-
- }else{
-
-  const n = nomeUsuario();
-
-  if(n){
-
-   const o =
-    document.createElement("option");
-
-   o.value = n;
-   o.textContent = n;
-
-   select.appendChild(o);
-
-  }
-
- }
-
- select.value = valor || "";
-
-}
-
-
-function opcoesPeriodo(select,valor){
-
- select.innerHTML = "";
-
- periodos.forEach(p=>{
-
-  const o =
-   document.createElement("option");
-
-  o.value = p;
-  o.textContent = p || "—";
-
-  select.appendChild(o);
-
- });
-
- select.value = valor || "";
-
-}
-
-
-/* ============================================================
-   CARREGAMENTO DA ESCALA
-   ============================================================ */
-
-function montarTabela(){
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
- const dias =
-  diasNoMes(mes);
-
- const rd =
-  document.getElementById(
-   "rowDatas"
-  );
-
- const rs =
-  document.getElementById(
-   "rowSemanas"
-  );
-
- const corpo =
-  document.getElementById(
-   "corpoTabela"
-  );
-
-
- rd.innerHTML =
-  '<th class="coluna-label">Nome de guerra / Período</th>';
-
- rs.innerHTML =
-  '<th class="coluna-label">Dia da semana</th>';
-
-
- for(
-  let d=1;
-  d<=dias;
-  d++
- ){
-
-  const dt =
-   new Date(
-    ANO_ESCALA,
-    Number(mes)-1,
-    d
-   );
-
-  const dow =
-   dt.getDay();
-
-
-  const th =
-   document.createElement("th");
-
-  th.className =
-   "col-dia" +
-   (
-    dow===0 ||
-    dow===6
-    ? " fim-semana"
-    : ""
-   );
-
-
-  th.innerHTML =
-   `<div class="data">
-     ${String(d).padStart(2,"0")}/${mes}/${ANO_ESCALA}
-   </div>`;
-
-
-  rd.appendChild(th);
-
-
-  const sh =
-   document.createElement("th");
-
-  sh.className =
-   "col-dia" +
-   (
-    dow===0 ||
-    dow===6
-    ? " fim-semana"
-    : ""
-   );
-
-
-  sh.innerHTML =
-   `<div class="semana">
-     ${diasSemana[dow]}
-   </div>`;
-
-
-  rs.appendChild(sh);
-
- }
-
-
- corpo.innerHTML = "";
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  const nr =
-   document.createElement("tr");
-
-  nr.className =
-   "nome-row";
-
-
-  const nl =
-   document.createElement("td");
-
-  nl.className =
-   "nome-label";
-
-  nl.textContent =
-   "Nome de guerra";
-
-  nr.appendChild(nl);
-
-
-  const pr =
-   document.createElement("tr");
-
-  pr.className =
-   "periodo-row";
-
-
-  const pl =
-   document.createElement("td");
-
-  pl.className =
-   "periodo-label";
-
-  pl.textContent =
-   "Período";
-
-  pr.appendChild(pl);
-
-
-  for(
-   let d=1;
-   d<=dias;
-   d++
-  ){
-
-   const kN =
-    chaveNome(s,d);
-
-   const kP =
-    chavePeriodo(s,d);
-
-   const dow =
-    new Date(
-     ANO_ESCALA,
-     Number(mes)-1,
-     d
+/* =========================================================
+   DIA DA SEMANA
+========================================================= */
+
+function obterDiaSemana(
+    mes,
+    dia
+) {
+
+    return new Date(
+        ANO_ESCALA,
+        Number(mes) - 1,
+        dia
     ).getDay();
 
-
-   const tdN =
-    document.createElement("td");
-
-   tdN.className =
-    "col-dia" +
-    (
-     dow===0 ||
-     dow===6
-     ? " fim-semana"
-     : ""
-    );
+}
 
 
-   const tdP =
-    document.createElement("td");
+/* =========================================================
+   NOME DO MÊS
+========================================================= */
 
-   tdP.className =
-    "col-dia" +
-    (
-     dow===0 ||
-     dow===6
-     ? " fim-semana"
-     : ""
-    );
+function obterNomeMes(mes) {
 
+    const select =
+        document.getElementById(
+            "inputMes"
+        );
 
-   const sn =
-    document.createElement("select");
+    if (!select) {
+        return mes;
+    }
 
-   sn.className =
-    "select-escala";
+    const opcao =
+        select.querySelector(
+            `option[value="${mes}"]`
+        );
 
+    return opcao
+        ? opcao.textContent
+        : mes;
 
-   const sp =
-    document.createElement("select");
-
-   sp.className =
-    "select-escala periodo-select";
-
-
-   const registro =
-    dadosLancamentos[mes]?.[
-     chaveSlot(s,d)
-    ] || null;
+}
 
 
-   const nomeAtual =
-    registro?.nome ||
-    dadosMes[kN] ||
-    "";
+/* =========================================================
+   CARREGAR LOCAL
+========================================================= */
 
-
-   const periodoAtual =
-    registro?.periodo ||
-    dadosMes[kP] ||
-    "";
-
-
-   opcoesNome(
-    sn,
-    nomeAtual
-   );
-
-   opcoesPeriodo(
-    sp,
-    periodoAtual
-   );
-
-
-   sn.dataset.key = kN;
-   sp.dataset.key = kP;
-
-
-   /*
-    ADMIN:
-    pode editar tudo.
-   */
-   if(ehAdmin()){
-
-    sn.disabled = false;
-    sp.disabled = false;
-
-   }
-   else{
+function carregarDadosSalvos() {
 
     /*
-     BC:
-     se a célula já pertence a outro BC,
-     bloqueia nome e período.
+        Somente o administrador
+        deve usar a cópia completa local.
     */
 
-    const ocupadoPorOutro =
-     registro &&
-     String(
-      registro.auth_user_id || ""
-     ) !== String(
-      usuarioAtual?.id || ""
-     );
+    try {
 
+        const dados =
+            localStorage.getItem(
+                CHAVE_LOCAL_STORAGE
+            );
 
-    if(ocupadoPorOutro){
+        if (!dados) {
+            return;
+        }
 
-     sn.disabled = true;
-     sp.disabled = true;
+        const convertido =
+            JSON.parse(dados);
 
-     sn.classList.add(
-      "select-bloqueado"
-     );
+        if (
+            convertido &&
+            typeof convertido === "object"
+        ) {
 
-     sp.classList.add(
-      "select-bloqueado"
-     );
+            Object.keys(convertido).forEach(
+                mes => {
 
-     tdN.classList.add(
-      "slot-ocupado-outro"
-     );
+                    if (
+                        mes >= "01" &&
+                        mes <= "12"
+                    ) {
 
-     tdP.classList.add(
-      "slot-ocupado-outro"
-     );
+                        escalasPorMes[mes] =
+                            convertido[mes] || {};
 
-    }
-    else if(
-     registro &&
-     String(
-      registro.auth_user_id || ""
-     ) === String(
-      usuarioAtual?.id || ""
-     )
-    ){
+                    }
 
-     /*
-      É o próprio lançamento.
-     Pode alterar.
-     */
+                }
+            );
 
-     sn.disabled = false;
-     sp.disabled = false;
-
-     tdN.classList.add(
-      "slot-proprio"
-     );
-
-     tdP.classList.add(
-      "slot-proprio"
-     );
+        }
 
     }
-    else{
+    catch (erro) {
 
-     /*
-      Célula vazia.
-      Pode preencher.
-     */
-
-     sn.disabled = false;
-     sp.disabled = false;
-
-     tdN.classList.add(
-      "slot-vazio"
-     );
-
-     tdP.classList.add(
-      "slot-vazio"
-     );
+        console.error(
+            "Erro ao carregar dados locais:",
+            erro
+        );
 
     }
 
-   }
+}
 
 
-   sn.addEventListener(
-    "change",
-    ()=>{
-     alterarCampo(
-      kN,
-      sn.value,
-      true
-     );
+/* =========================================================
+   SALVAR ESCALA ATUAL NA MEMÓRIA
+========================================================= */
+
+function salvarEscalaAtualNaMemoria() {
+
+    const input =
+        document.getElementById(
+            "inputMes"
+        );
+
+    if (!input) {
+        return;
     }
-   );
+
+    const mes =
+        input.value;
+
+    escalasPorMes[mes] = {
+        ...dadosEscalaCompletos
+    };
+
+}
 
 
-   sp.addEventListener(
-    "change",
-    ()=>{
-     alterarCampo(
-      kP,
-      sp.value,
-      false
-     );
+/* =========================================================
+   SALVAR LOCALMENTE
+========================================================= */
+
+function salvarNoLocalStorage() {
+
+    /*
+        BC não grava a escala completa
+        no aparelho.
+    */
+
+    if (!usuarioEhAdmin()) {
+
+        return true;
+
     }
-   );
 
 
-   tdN.appendChild(sn);
-   tdP.appendChild(sp);
+    try {
 
-   nr.appendChild(tdN);
-   pr.appendChild(tdP);
+        salvarEscalaAtualNaMemoria();
 
-  }
+        localStorage.setItem(
+            CHAVE_LOCAL_STORAGE,
+            JSON.stringify(
+                escalasPorMes
+            )
+        );
 
+        return true;
 
-  corpo.appendChild(nr);
-  corpo.appendChild(pr);
+    }
+    catch (erro) {
 
- }
+        console.error(
+            "Erro ao salvar localmente:",
+            erro
+        );
 
+        return false;
 
- atualizarResumo();
-
-}
-
-
-/* ============================================================
-   ALTERAÇÃO DOS CAMPOS
-   ============================================================ */
-
-function alterarCampo(
- k,
- v,
- ehNome
-){
-
- if(
-  !ehAdmin() &&
-  ehNome &&
-  v &&
-  v !== nomeUsuario()
- ){
-
-  status(
-   "🔒 Você só pode lançar seu próprio nome."
-  );
-
-  montarTabela();
-
-  return;
-
- }
-
-
- dadosMes[k] = v;
-
-
- /*
-  Se BC apagou o nome, também removemos
-  o período visualmente.
- */
- if(
-  !ehAdmin() &&
-  ehNome &&
-  v === ""
- ){
-
-  const partes =
-   k.split("_");
-
-  const slot =
-   Number(partes[0]);
-
-  const dia =
-   Number(partes[1]);
-
-  dadosMes[
-   chavePeriodo(
-    slot,
-    dia
-   )
-  ] = "";
-
- }
-
-
- dadosPorMes[
-  document.getElementById(
-   "inputMes"
-  ).value
- ] = dadosMes;
-
-
- atualizarResumo();
-
-
- status(
-  "✏️ Alteração realizada. Clique em Salvar."
- );
+    }
 
 }
 
 
-/* ============================================================
-   CARREGAR MÊS
-   ============================================================ */
+/* =========================================================
+   FILTRAR DADOS PARA O USUÁRIO
+========================================================= */
 
-function carregarMes(){
+function filtrarDadosParaUsuario(
+    dados
+) {
 
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
+    if (usuarioEhAdmin()) {
 
+        return {
+            ...dados
+        };
 
- dadosMes = {
-  ...(dadosPorMes[mes] || {})
- };
-
-
- document.getElementById(
-  "infoMes"
- ).textContent =
-  `📅 Escala: ${
-   nomesMes[
-    Number(mes)-1
-   ]
-  } de ${ANO_ESCALA} — ${
-   diasNoMes(mes)
-  } dias`;
+    }
 
 
- montarTabela();
-
-}
-
-
-/* ============================================================
-   RESUMO ADMIN
-   ============================================================ */
-
-function atualizarResumo(){
-
- if(!ehAdmin()) return;
+    const nomeUsuario =
+        obterNomeUsuario();
 
 
- const c = {};
+    const filtrados = {};
 
 
- Object.values(
-  dadosMes
- ).forEach(v=>{
+    Object.keys(
+        dados || {}
+    ).forEach(
+        chave => {
 
-  const s =
-   String(v || "")
-   .trim()
-   .toUpperCase();
-
-
-  if(
-   listaBCs.includes(s)
-  ){
-
-   c[s] =
-    (c[s] || 0) + 1;
-
-  }
-
- });
+            const nome =
+                String(
+                    dados[chave] || ""
+                )
+                .trim()
+                .toUpperCase();
 
 
- const nomes =
-  Object.keys(c).sort(
-   (a,b)=>
-    (c[b]-c[a]) ||
-    a.localeCompare(
-     b,
-     "pt-BR"
-    )
-  );
+            if (
+                nome &&
+                nome === nomeUsuario
+            ) {
+
+                filtrados[chave] =
+                    dados[chave];
+
+            }
+
+        }
+    );
 
 
- const g =
-  document.getElementById(
-   "gridResumo"
-  );
-
- g.innerHTML = "";
-
-
- nomes.forEach(n=>{
-
-  const x =
-   document.createElement(
-    "div"
-   );
-
-  x.className =
-   "card";
-
-  x.innerHTML =
-   `<strong>${n}</strong>
-    <b>${c[n]}</b>`;
-
-  g.appendChild(x);
-
- });
+    return filtrados;
 
 }
 
 
-/* ============================================================
-   INTERFACE
-   ============================================================ */
+/* =========================================================
+   TROCAR MÊS
+========================================================= */
 
-function aplicarUI(){
+function trocarMesManual() {
 
- const admin =
-  ehAdmin();
+    if (usuarioEhAdmin()) {
 
+        salvarEscalaAtualNaMemoria();
 
- document
-  .querySelectorAll(
-   ".admin-only"
-  )
-  .forEach(el=>
-   el.classList.toggle(
-    "hidden",
-    !admin
-   )
-  );
+    }
 
 
- const aviso =
-  document.getElementById(
-   "avisoBC"
-  );
+    const mes =
+        document.getElementById(
+            "inputMes"
+        ).value;
 
 
- aviso.classList.toggle(
-  "hidden",
-  admin
- );
+    dadosEscalaCompletos = {
+        ...(escalasPorMes[mes] || {})
+    };
 
 
- if(!admin){
-
-  document.getElementById(
-   "nomeBCAviso"
-  ).textContent =
-   nomeUsuario();
-
- }
+    dadosEscalaMemoria =
+        filtrarDadosParaUsuario(
+            dadosEscalaCompletos
+        );
 
 
- carregarMes();
-
-}
-
-
-/* ============================================================
-   ADMIN - NUVEM
-   ============================================================ */
-
-async function carregarNuvemAdmin(){
-
- const {
-  data,
-  error
- } =
-  await supabaseClient
-   .from("escalas_mensais")
-   .select(
-    "mes,dados"
-   )
-   .eq(
-    "ano",
-    ANO_ESCALA
-   );
+    montarCalendarioDireto(
+        mes
+    );
 
 
- if(error)
-  throw error;
+    recalcularTurnos();
 
 
- (data || []).forEach(r=>{
-
-  dadosPorMes[
-   String(r.mes)
-   .padStart(2,"0")
-  ] =
-   r.dados || {};
-
- });
+    document.getElementById(
+        "infoMes"
+    ).textContent =
+        `📅 Escala atual: ${obterNomeMes(mes)} de ${ANO_ESCALA} — ${quantidadeDiasDoMes(mes)} dias`;
 
 
- /*
-  Complementa com os lançamentos
-  individuais dos BCs.
- */
-
- const {
-  data:bcRows,
-  error:bcError
- } =
-  await supabaseClient
-   .from("bc_lancamentos")
-   .select(
-    "id,mes,fila_index,dia_index,bc_id,auth_user_id,periodo,bcs(nome)"
-   )
-   .eq(
-    "ano",
-    ANO_ESCALA
-   );
-
-
- if(!bcError){
-
-  /*
-   Limpa mapa de lançamentos.
-  */
-
-  dadosLancamentos =
-   Object.fromEntries(
-    Array.from(
-     {length:12},
-     (_,i)=>[
-      String(i+1).padStart(2,"0"),
-      {}
-     ]
-    )
-   );
-
-
-  (bcRows || []).forEach(r=>{
-
-   const mes =
-    String(r.mes)
-    .padStart(2,"0");
-
-   const d =
-    Number(r.dia_index)+1;
-
-   const s =
-    Number(r.fila_index);
-
-   const nome =
-    String(
-     r.bcs?.nome || ""
-    ).toUpperCase();
-
-
-   dadosLancamentos[mes][
-    chaveSlot(s,d)
-   ] = {
-
-    id:r.id,
-
-    bc_id:r.bc_id,
-
-    auth_user_id:
-     r.auth_user_id,
-
-    nome:nome,
-
-    periodo:
-     r.periodo || ""
-
-   };
-
-
-   if(nome){
-
-    if(
-     !dadosPorMes[mes]
-    )
-     dadosPorMes[mes] = {};
-
-
-    dadosPorMes[mes][
-     chaveNome(s,d)
-    ] = nome;
-
-
-    dadosPorMes[mes][
-     chavePeriodo(s,d)
-    ] =
-     r.periodo || "";
-
-   }
-
-  });
-
- }
+    mostrarStatus(
+        "📅 Escala aberta: " +
+        obterNomeMes(mes) +
+        " de " +
+        ANO_ESCALA
+    );
 
 }
 
 
-/* ============================================================
-   BC - CARREGAR TODOS OS LANÇAMENTOS
-   ============================================================ */
+/* =========================================================
+   CABEÇALHO DO CALENDÁRIO
+========================================================= */
 
-async function carregarLancamentosBC(){
-
- const {
-  data,
-  error
- } =
-  await supabaseClient
-   .from("bc_lancamentos")
-   .select(
-    "id,ano,mes,fila_index,dia_index,bc_id,auth_user_id,periodo,bcs(nome)"
-   )
-   .eq(
-    "ano",
-    ANO_ESCALA
-   );
-
-
- if(error)
-  throw error;
-
-
- /*
-  Zera os dados.
- */
-
- dadosPorMes =
-  Object.fromEntries(
-   Array.from(
-    {length:12},
-    (_,i)=>[
-     String(i+1).padStart(2,"0"),
-     {}
-    ]
-   )
-  );
-
-
- dadosLancamentos =
-  Object.fromEntries(
-   Array.from(
-    {length:12},
-    (_,i)=>[
-     String(i+1).padStart(2,"0"),
-     {}
-    ]
-   )
-  );
-
-
- /*
-  Carrega TODOS os BCs.
- */
-
- (data || []).forEach(r=>{
-
-  const mes =
-   String(r.mes)
-   .padStart(2,"0");
-
-  const d =
-   Number(r.dia_index)+1;
-
-  const s =
-   Number(r.fila_index);
-
-  const nome =
-   String(
-    r.bcs?.nome || ""
-   ).toUpperCase();
-
-
-  if(!nome)
-   return;
-
-
-  dadosLancamentos[mes][
-   chaveSlot(s,d)
-  ] = {
-
-   id:r.id,
-
-   bc_id:r.bc_id,
-
-   auth_user_id:
-    r.auth_user_id,
-
-   nome:nome,
-
-   periodo:
-    r.periodo || ""
-
-  };
-
-
-  dadosPorMes[mes][
-   chaveNome(s,d)
-  ] = nome;
-
-
-  dadosPorMes[mes][
-   chavePeriodo(s,d)
-  ] =
-   r.periodo || "";
-
- });
-
-}
-
-
-/* ============================================================
-   SALVAR BC
-   ============================================================ */
-
-async function salvarBC(){
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- const dias =
-  diasNoMes(mes);
-
-
- const meuNome =
-  nomeUsuario();
-
-
- if(
-  !bcAtual ||
-  !bcAtual.id
- ){
-
-  status(
-   "❌ Cadastro do BC não encontrado."
-  );
-
-  return false;
-
- }
-
-
- /*
-  Recarrega o estado atual do banco
-  antes de salvar.
-
-  Isso protege contra dois usuários
-  alterando a mesma célula ao mesmo tempo.
- */
-
- const {
-  data:rowsBanco,
-  error:loadError
- } =
-  await supabaseClient
-   .from("bc_lancamentos")
-   .select(
-    "id,mes,fila_index,dia_index,bc_id,auth_user_id,periodo,bcs(nome)"
-   )
-   .eq(
-    "ano",
-    ANO_ESCALA
-   )
-   .eq(
-    "mes",
+function montarCabecalhoCalendario(
     mes
-   );
+) {
+
+    const rowDatas =
+        document.getElementById(
+            "rowDatas"
+        );
+
+    const rowSemanas =
+        document.getElementById(
+            "rowSemanas"
+        );
 
 
- if(loadError){
-
-  status(
-   "❌ Erro ao atualizar a escala: " +
-   loadError.message
-  );
-
-  return false;
-
- }
+    const dias =
+        quantidadeDiasDoMes(
+            mes
+        );
 
 
- const bancoPorSlot = {};
+    rowDatas.innerHTML =
+        '<th class="coluna-fila">Postos / Filas ➔</th>';
+
+    rowSemanas.innerHTML =
+        '<th class="coluna-fila">Dias da Semana ➔</th>';
 
 
- (rowsBanco || []).forEach(r=>{
+    for (
+        let dia = 1;
+        dia <= dias;
+        dia++
+    ) {
 
-  const s =
-   Number(r.fila_index);
-
-  const d =
-   Number(r.dia_index)+1;
-
-
-  bancoPorSlot[
-   chaveSlot(s,d)
-  ] = r;
-
- });
+        const semana =
+            obterDiaSemana(
+                mes,
+                dia
+            );
 
 
- /*
-  Verifica primeiro se alguma célula
-  que o BC está tentando preencher
-  já foi ocupada por outro BC.
- */
+        const thData =
+            document.createElement(
+                "th"
+            );
 
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
+        thData.className =
+            "dia";
 
-  for(
-   let d=1;
-   d<=dias;
-   d++
-  ){
 
-   const kN =
-    chaveNome(s,d);
+        if (
+            semana === 0 ||
+            semana === 6
+        ) {
 
-   const nomeDesejado =
-    String(
-     dadosMes[kN] || ""
+            thData.classList.add(
+                "fim-semana"
+            );
+
+        }
+
+
+        thData.textContent =
+            String(dia).padStart(
+                2,
+                "0"
+            );
+
+
+        thData.title =
+            `${dia}/${mes}/${ANO_ESCALA}`;
+
+
+        rowDatas.appendChild(
+            thData
+        );
+
+
+        const thSemana =
+            document.createElement(
+                "th"
+            );
+
+        thSemana.className =
+            "dia";
+
+
+        if (
+            semana === 0 ||
+            semana === 6
+        ) {
+
+            thSemana.classList.add(
+                "fim-semana"
+            );
+
+        }
+
+
+        thSemana.textContent =
+            nomesDiasAbreviados[
+                semana
+            ];
+
+
+        thSemana.title =
+            nomesDiasSemana[
+                semana
+            ];
+
+
+        rowSemanas.appendChild(
+            thSemana
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MONTAR CALENDÁRIO
+========================================================= */
+
+function montarCalendarioDireto(
+    mes
+) {
+
+    const corpo =
+        document.getElementById(
+            "corpoTabela"
+        );
+
+
+    if (!corpo) {
+        return;
+    }
+
+
+    corpo.innerHTML = "";
+
+
+    montarCabecalhoCalendario(
+        mes
+    );
+
+
+    const dias =
+        quantidadeDiasDoMes(
+            mes
+        );
+
+
+    filas.forEach(
+        (fila, indexFila) => {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+
+            tr.className =
+                fila.classe;
+
+
+            const tdNome =
+                document.createElement(
+                    "td"
+                );
+
+
+            tdNome.className =
+                "coluna-fila";
+
+
+            tdNome.textContent =
+                fila.nome;
+
+
+            tr.appendChild(
+                tdNome
+            );
+
+
+            for (
+                let dia = 1;
+                dia <= dias;
+                dia++
+            ) {
+
+                const td =
+                    document.createElement(
+                        "td"
+                    );
+
+
+                td.className =
+                    "dia";
+
+
+                const chave =
+                    `${indexFila}_${dia - 1}`;
+
+
+                const select =
+                    document.createElement(
+                        "select"
+                    );
+
+
+                select.className =
+                    "select-plantao";
+
+
+                const ehAdmin =
+                    usuarioEhAdmin();
+
+
+                const nomeUsuario =
+                    obterNomeUsuario();
+
+
+                /* =================================================
+                   ADMINISTRADOR
+                ================================================= */
+
+                if (ehAdmin) {
+
+                    const vazio =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    vazio.value = "";
+
+                    vazio.textContent =
+                        "—";
+
+
+                    select.appendChild(
+                        vazio
+                    );
+
+
+                    listaBCs.forEach(
+                        nome => {
+
+                            const option =
+                                document.createElement(
+                                    "option"
+                                );
+
+
+                            option.value =
+                                nome;
+
+
+                            option.textContent =
+                                nome;
+
+
+                            select.appendChild(
+                                option
+                            );
+
+                        }
+                    );
+
+
+                    const valor =
+                        dadosEscalaCompletos[
+                            chave
+                        ] || "";
+
+
+                    select.value =
+                        valor;
+
+                }
+
+
+                /* =================================================
+                   BC
+                ================================================= */
+
+                else {
+
+                    const vazio =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    vazio.value = "";
+
+                    vazio.textContent =
+                        "—";
+
+
+                    select.appendChild(
+                        vazio
+                    );
+
+
+                    /*
+                        Somente o próprio nome
+                        aparece para o BC.
+                    */
+
+                    const optionProprio =
+                        document.createElement(
+                            "option"
+                        );
+
+
+                    optionProprio.value =
+                        nomeUsuario;
+
+
+                    optionProprio.textContent =
+                        nomeUsuario;
+
+
+                    select.appendChild(
+                        optionProprio
+                    );
+
+
+                    const valorCompleto =
+                        dadosEscalaCompletos[
+                            chave
+                        ] || "";
+
+
+                    const valorNormalizado =
+                        String(
+                            valorCompleto
+                        )
+                        .trim()
+                        .toUpperCase();
+
+
+                    if (
+                        valorNormalizado ===
+                        nomeUsuario
+                    ) {
+
+                        select.value =
+                            nomeUsuario;
+
+                    }
+                    else {
+
+                        select.value =
+                            "";
+
+                    }
+
+
+                    /*
+                        Se o plantão já pertence
+                        a outro BC, fica bloqueado.
+                    */
+
+                    if (
+                        valorCompleto &&
+                        valorNormalizado !==
+                        nomeUsuario
+                    ) {
+
+                        select.disabled =
+                            true;
+
+
+                        select.classList.add(
+                            "select-bloqueado"
+                        );
+
+
+                        select.title =
+                            "Plantão indisponível";
+
+                    }
+
+                }
+
+
+                /* =================================================
+                   ALTERAÇÃO
+                ================================================= */
+
+                select.addEventListener(
+                    "change",
+                    function() {
+
+                        const ehAdminAtual =
+                            usuarioEhAdmin();
+
+
+                        const nomeAtual =
+                            obterNomeUsuario();
+
+
+                        const valorAnterior =
+                            dadosEscalaCompletos[
+                                chave
+                            ] || "";
+
+
+                        /* =========================================
+                           ADMINISTRADOR
+                        ========================================= */
+
+                        if (
+                            ehAdminAtual
+                        ) {
+
+                            if (
+                                this.value
+                            ) {
+
+                                dadosEscalaCompletos[
+                                    chave
+                                ] =
+                                    this.value;
+
+                            }
+                            else {
+
+                                delete dadosEscalaCompletos[
+                                    chave
+                                ];
+
+                            }
+
+
+                            dadosEscalaMemoria =
+                                filtrarDadosParaUsuario(
+                                    dadosEscalaCompletos
+                                );
+
+
+                            salvarNoLocalStorage();
+
+
+                            recalcularTurnos();
+
+
+                            return;
+
+                        }
+
+
+                        /* =========================================
+                           BC
+                        ========================================= */
+
+                        if (
+                            valorAnterior &&
+                            String(
+                                valorAnterior
+                            )
+                            .trim()
+                            .toUpperCase() !==
+                            nomeAtual
+                        ) {
+
+                            this.value =
+                                "";
+
+
+                            mostrarStatus(
+                                "🔒 Este plantão pertence a outro BC."
+                            );
+
+
+                            return;
+
+                        }
+
+
+                        if (
+                            this.value &&
+                            this.value
+                                .toUpperCase() !==
+                            nomeAtual
+                        ) {
+
+                            this.value =
+                                "";
+
+
+                            mostrarStatus(
+                                "🔒 Você só pode lançar seu próprio nome."
+                            );
+
+
+                            return;
+
+                        }
+
+
+                        if (
+                            this.value
+                        ) {
+
+                            dadosEscalaCompletos[
+                                chave
+                            ] =
+                                this.value;
+
+                        }
+                        else {
+
+                            if (
+                                !valorAnterior ||
+                                String(
+                                    valorAnterior
+                                )
+                                .trim()
+                                .toUpperCase() ===
+                                nomeAtual
+                            ) {
+
+                                delete dadosEscalaCompletos[
+                                    chave
+                                ];
+
+                            }
+                            else {
+
+                                this.value =
+                                    "";
+
+                                return;
+
+                            }
+
+                        }
+
+
+                        dadosEscalaMemoria =
+                            filtrarDadosParaUsuario(
+                                dadosEscalaCompletos
+                            );
+
+
+                        recalcularTurnos();
+
+
+                        mostrarStatus(
+                            "✏️ Alteração realizada. Clique em Salvar para enviar à nuvem."
+                        );
+
+                    }
+                );
+
+
+                td.appendChild(
+                    select
+                );
+
+
+                tr.appendChild(
+                    td
+                );
+
+            }
+
+
+            corpo.appendChild(
+                tr
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   RESUMO
+========================================================= */
+
+function recalcularTurnos() {
+
+    const grid =
+        document.getElementById(
+            "gridResumo"
+        );
+
+
+    if (!grid) {
+        return;
+    }
+
+
+    /*
+        BC não vê o resumo.
+    */
+
+    if (
+        !usuarioEhAdmin()
+    ) {
+
+        grid.innerHTML =
+            "";
+
+        return;
+
+    }
+
+
+    const filtro =
+        (
+            document.getElementById(
+                "filtroNome"
+            )?.value ||
+            ""
+        )
+        .trim()
+        .toUpperCase();
+
+
+    const contagem = {};
+
+
+    listaBCs.forEach(
+        nome => {
+
+            contagem[nome] =
+                0;
+
+        }
+    );
+
+
+    Object.values(
+        dadosEscalaCompletos
     )
-    .trim()
-    .toUpperCase();
+    .forEach(
+        nome => {
+
+            if (
+                contagem.hasOwnProperty(
+                    nome
+                )
+            ) {
+
+                contagem[nome]++;
+
+            }
+
+        }
+    );
 
 
-   if(
-    nomeDesejado !== meuNome
-   )
-    continue;
+    const nomes =
+        listaBCs.filter(
+            nome =>
+                nome
+                    .toUpperCase()
+                    .includes(
+                        filtro
+                    )
+        );
 
 
-   const atual =
-    bancoPorSlot[
-     chaveSlot(s,d)
-    ];
+    nomes.sort(
+        (a,b) => {
+
+            if (
+                contagem[b] !==
+                contagem[a]
+            ) {
+
+                return (
+                    contagem[b] -
+                    contagem[a]
+                );
+
+            }
 
 
-   if(
-    atual &&
-    String(
-     atual.auth_user_id
-    ) !== String(
-     usuarioAtual.id
+            return a.localeCompare(
+                b,
+                "pt-BR"
+            );
+
+        }
+    );
+
+
+    grid.innerHTML =
+        "";
+
+
+    nomes.forEach(
+        nome => {
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "summary-card";
+
+
+            const nomeDiv =
+                document.createElement(
+                    "div"
+                );
+
+
+            nomeDiv.className =
+                "summary-name";
+
+
+            nomeDiv.textContent =
+                nome;
+
+
+            const count =
+                document.createElement(
+                    "div"
+                );
+
+
+            count.className =
+                "summary-count";
+
+
+            count.textContent =
+                contagem[nome];
+
+
+            card.appendChild(
+                nomeDiv
+            );
+
+
+            card.appendChild(
+                count
+            );
+
+
+            grid.appendChild(
+                card
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   APLICAR PERMISSÕES
+========================================================= */
+
+function aplicarPermissoesUsuario() {
+
+    const ehAdmin =
+        usuarioEhAdmin();
+
+
+    const filtro =
+        document.getElementById(
+            "campoFiltro"
+        );
+
+
+    const resumo =
+        document.getElementById(
+            "resumoContainer"
+        );
+
+
+    const botaoSalvar =
+        document.getElementById(
+            "btnSalvar"
+        );
+
+    const botaoPrimeiroAcesso =
+        document.getElementById(
+            "btnEnviarPrimeiroAcesso"
+        );
+
+
+    if (ehAdmin) {
+
+        if (filtro) {
+
+            filtro.style.display =
+                "";
+
+        }
+
+
+        if (resumo) {
+
+            resumo.style.display =
+                "";
+
+        }
+
+
+        if (botaoSalvar) {
+
+            botaoSalvar.style.display =
+                "";
+
+        }
+
+        if (botaoPrimeiroAcesso) {
+
+            botaoPrimeiroAcesso.style.display =
+                "";
+
+        }
+
+    }
+    else {
+
+        if (filtro) {
+
+            filtro.style.display =
+                "none";
+
+        }
+
+
+        if (resumo) {
+
+            resumo.style.display =
+                "none";
+
+        }
+
+
+        if (botaoSalvar) {
+
+            botaoSalvar.style.display =
+                "";
+
+        }
+
+        if (botaoPrimeiroAcesso) {
+
+            botaoPrimeiroAcesso.style.display =
+                "none";
+
+        }
+
+    }
+
+
+    const mes =
+        document.getElementById(
+            "inputMes"
+        ).value;
+
+
+    dadosEscalaCompletos = {
+        ...(escalasPorMes[mes] || {})
+    };
+
+
+    dadosEscalaMemoria =
+        filtrarDadosParaUsuario(
+            dadosEscalaCompletos
+        );
+
+
+    montarCalendarioDireto(
+        mes
+    );
+
+
+    recalcularTurnos();
+
+}
+
+
+/* =========================================================
+   ENVIO DE PRIMEIRO ACESSO
+========================================================= */
+
+async function enviarPrimeiroAcesso() {
+
+    if (!usuarioAtual || !perfilAtual || !usuarioEhAdmin()) {
+        alert("🔐 Somente o administrador pode enviar os primeiros acessos.");
+        return;
+    }
+
+    const btn = document.getElementById("btnEnviarPrimeiroAcesso");
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "📧 Enviando...";
+    }
+
+    try {
+        const { data, error } = await supabaseClient.functions.invoke(
+            "enviar-primeiro-acesso-v2",
+            { body: { acao: "enviar_todos" } }
+        );
+
+        if (error) throw error;
+
+        const enviados = Number(data?.enviados || 0);
+        const recuperacao = Number(data?.recuperacao || 0);
+        const ignorados = Number(data?.ignorados || 0);
+        const erros = Array.isArray(data?.erros) ? data.erros : [];
+
+        let mensagem = `📧 Processo concluído!\n\nNovos acessos enviados: ${enviados}\nRecuperação de acesso: ${recuperacao}\nIgnorados: ${ignorados}`;
+        if (erros.length) mensagem += `\n\n⚠️ Ocorreram ${erros.length} erro(s).`;
+
+        alert(mensagem);
+        mostrarStatus(mensagem.replace(/\n/g, " "));
+    } catch (e) {
+        console.error(e);
+        alert("❌ Não foi possível enviar os primeiros acessos: " + (e.message || e));
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = "📧 Enviar primeiro acesso aos BCs";
+        }
+    }
+}
+
+
+/* =========================================================
+   SALVAR
+========================================================= */
+
+async function salvarEEstocarArquivo() {
+
+    if (
+        !supabaseClient ||
+        !usuarioAtual ||
+        !perfilAtual
+    ) {
+
+        alert(
+            "🔐 É necessário estar conectado ao sistema para salvar a escala."
+        );
+
+        return;
+
+    }
+
+
+    /*
+        ADMINISTRADOR
+    */
+
+    if (
+        usuarioEhAdmin()
+    ) {
+
+        const localOk =
+            salvarNoLocalStorage();
+
+
+        if (!localOk) {
+
+            alert(
+                "❌ Erro ao salvar localmente."
+            );
+
+            return;
+
+        }
+
+
+        const ok =
+            await salvarEscalaNaNuvem();
+
+
+        if (ok) {
+
+            alert(
+                "☁️ Escala salva com sucesso na nuvem."
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    /*
+        BC
+    */
+
+    const ok =
+        await salvarEscalaBCNaNuvem();
+
+
+    if (ok) {
+
+        alert(
+            "☁️ Seu plantão foi salvo com sucesso na nuvem."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   SALVAR ADMINISTRADOR NA NUVEM
+========================================================= */
+
+async function salvarEscalaNaNuvem() {
+
+    if (
+        !supabaseClient ||
+        !usuarioAtual ||
+        !perfilAtual
+    ) {
+
+        return false;
+
+    }
+
+
+    if (
+        !usuarioEhAdmin()
+    ) {
+
+        return false;
+
+    }
+
+
+    salvarEscalaAtualNaMemoria();
+
+
+    const dadosParaSalvar = {
+        ...escalasPorMes
+    };
+
+
+    const registros =
+        Object.keys(
+            dadosParaSalvar
+        )
+        .filter(
+            mes =>
+                /^\d{2}$/.test(mes)
+        )
+        .map(
+            mes => ({
+
+                ano:
+                    ANO_ESCALA,
+
+                mes:
+                    mes,
+
+                dados:
+                    dadosParaSalvar[
+                        mes
+                    ] || {},
+
+                updated_by:
+                    usuarioAtual.id,
+
+                updated_at:
+                    new Date().toISOString()
+
+            })
+        );
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from(
+                "escalas_mensais"
+            )
+            .upsert(
+                registros,
+                {
+                    onConflict:
+                        "ano,mes"
+                }
+            );
+
+
+    if (error) {
+
+        console.error(
+            error
+        );
+
+
+        mostrarStatus(
+            "❌ Erro ao sincronizar: " +
+            error.message
+        );
+
+
+        return false;
+
+    }
+
+
+    mostrarStatus(
+        "☁️ Escala salva na nuvem."
+    );
+
+
+    return true;
+
+}
+
+
+/* =========================================================
+   SALVAR BC NA NUVEM
+========================================================= */
+
+async function salvarEscalaBCNaNuvem() {
+
+    if (
+        !supabaseClient ||
+        !usuarioAtual ||
+        !perfilAtual
+    ) {
+
+        return false;
+
+    }
+
+
+    const nomeUsuario =
+        obterNomeUsuario();
+
+
+    if (!nomeUsuario) {
+
+        mostrarStatus(
+            "❌ Não foi possível identificar seu nome de BC."
+        );
+
+
+        return false;
+
+    }
+
+
+    const mes =
+        document.getElementById(
+            "inputMes"
+        ).value;
+
+
+    /*
+        Busca o mês atual no servidor.
+    */
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from(
+                "escalas_mensais"
+            )
+            .select(
+                "dados"
+            )
+            .eq(
+                "ano",
+                ANO_ESCALA
+            )
+            .eq(
+                "mes",
+                mes
+            )
+            .maybeSingle();
+
+
+    if (error) {
+
+        console.error(
+            error
+        );
+
+
+        mostrarStatus(
+            "❌ Erro ao consultar a escala: " +
+            error.message
+        );
+
+
+        return false;
+
+    }
+
+
+    /*
+        Dados atuais do servidor.
+    */
+
+    const dadosServidor = {
+        ...(
+            data &&
+            data.dados
+                ? data.dados
+                : {}
+        )
+    };
+
+
+    /*
+        Remove somente os plantões
+        pertencentes ao próprio BC.
+    */
+
+    Object.keys(
+        dadosServidor
     )
-   ){
+    .forEach(
+        chave => {
 
-    status(
-     `🔒 A célula ${d}/${mes} já foi preenchida por ${String(
-      atual.bcs?.nome || "outro BC"
-     ).toUpperCase()}.`
+            const nome =
+                String(
+                    dadosServidor[chave] ||
+                    ""
+                )
+                .trim()
+                .toUpperCase();
+
+
+            if (
+                nome ===
+                nomeUsuario
+            ) {
+
+                delete dadosServidor[
+                    chave
+                ];
+
+            }
+
+        }
     );
 
 
     /*
-     Recarrega tudo do banco para
-     mostrar o estado verdadeiro.
+        Recoloca somente os lançamentos
+        do BC atual.
     */
 
-    await carregarLancamentosBC();
-
-    carregarMes();
-
-    return false;
-
-   }
-
-  }
-
- }
-
-
- /*
-  Monta os registros atualmente
-  pertencentes ao próprio BC.
- */
-
- const meusRegistros =
-  (rowsBanco || []).filter(
-   r =>
-    String(
-     r.auth_user_id
-    ) === String(
-     usuarioAtual.id
+    Object.keys(
+        dadosEscalaCompletos
     )
-  );
+    .forEach(
+        chave => {
+
+            const nome =
+                String(
+                    dadosEscalaCompletos[
+                        chave
+                    ] || ""
+                )
+                .trim()
+                .toUpperCase();
 
 
- const meusPorSlot = {};
+            if (
+                nome ===
+                nomeUsuario
+            ) {
 
+                dadosServidor[chave] =
+                    nomeUsuario;
 
- meusRegistros.forEach(r=>{
+            }
 
-  const s =
-   Number(r.fila_index);
-
-  const d =
-   Number(r.dia_index)+1;
-
-
-  meusPorSlot[
-   chaveSlot(s,d)
-  ] = r;
-
- });
-
-
- /*
-  1. INSERT de novas células.
- */
-
- const novos = [];
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  for(
-   let d=1;
-   d<=dias;
-   d++
-  ){
-
-   const slot =
-    chaveSlot(s,d);
-
-   const nomeDesejado =
-    String(
-     dadosMes[
-      chaveNome(s,d)
-     ] || ""
-    )
-    .trim()
-    .toUpperCase();
-
-
-   const periodoDesejado =
-    String(
-     dadosMes[
-      chavePeriodo(s,d)
-     ] || ""
-    )
-    .trim();
-
-
-   if(
-    nomeDesejado === meuNome &&
-    !meusPorSlot[slot]
-   ){
-
-    novos.push({
-
-     ano:ANO_ESCALA,
-
-     mes:mes,
-
-     fila_index:s,
-
-     dia_index:d-1,
-
-     bc_id:bcAtual.id,
-
-     auth_user_id:
-      usuarioAtual.id,
-
-     periodo:
-      periodoDesejado || null
-
-    });
-
-   }
-
-  }
-
- }
-
-
- if(novos.length){
-
-  const {
-   error
-  } =
-   await supabaseClient
-    .from("bc_lancamentos")
-    .insert(novos);
-
-
-  if(error){
-
-   /*
-    Caso outro BC tenha ocupado a
-    célula exatamente no mesmo instante.
-   */
-
-   if(
-    String(
-     error.message || ""
-    )
-    .toLowerCase()
-    .includes("duplicate")
-   ){
-
-    status(
-     "🔒 Uma das células foi preenchida por outro BC. A escala foi atualizada."
+        }
     );
 
-    await carregarLancamentosBC();
-    carregarMes();
 
-    return false;
+    /*
+        Salva o resultado.
+    */
 
-   }
+    const {
+        error: erroSalvar
+    } =
+        await supabaseClient
+            .from(
+                "escalas_mensais"
+            )
+            .upsert(
+                {
 
+                    ano:
+                        ANO_ESCALA,
 
-   status(
-    "❌ Não foi possível salvar: " +
-    error.message
-   );
+                    mes:
+                        mes,
 
-   return false;
+                    dados:
+                        dadosServidor,
 
-  }
+                    updated_by:
+                        usuarioAtual.id,
 
- }
+                    updated_at:
+                        new Date().toISOString()
 
+                },
+                {
+                    onConflict:
+                        "ano,mes"
+                }
+            );
 
- /*
-  2. UPDATE somente dos próprios registros.
- */
 
- for(
-  const r of meusRegistros
- ){
+    if (erroSalvar) {
 
-  const s =
-   Number(r.fila_index);
+        console.error(
+            erroSalvar
+        );
 
-  const d =
-   Number(r.dia_index)+1;
 
-  const slot =
-   chaveSlot(s,d);
+        mostrarStatus(
+            "❌ Erro ao salvar: " +
+            erroSalvar.message
+        );
 
 
-  const nomeDesejado =
-   String(
-    dadosMes[
-     chaveNome(s,d)
-    ] || ""
-   )
-   .trim()
-   .toUpperCase();
+        return false;
 
-
-  const periodoDesejado =
-   String(
-    dadosMes[
-     chavePeriodo(s,d)
-    ] || ""
-   )
-   .trim();
-
-
-  /*
-   Se o usuário apagou o próprio nome,
-   apagamos o registro abaixo.
-  */
-
-  if(
-   nomeDesejado !== meuNome
-  ){
-
-   const {
-    error
-   } =
-    await supabaseClient
-     .from("bc_lancamentos")
-     .delete()
-     .eq(
-      "id",
-      r.id
-     )
-     .eq(
-      "auth_user_id",
-      usuarioAtual.id
-     );
-
-
-   if(error){
-
-    status(
-     "❌ Erro ao remover lançamento: " +
-     error.message
-    );
-
-    return false;
-
-   }
-
-   continue;
-
-  }
-
-
-  /*
-   Se o período mudou,
-   atualiza somente o próprio registro.
-  */
-
-  if(
-   String(
-    r.periodo || ""
-   ) !== periodoDesejado
-  ){
-
-   const {
-    error
-   } =
-    await supabaseClient
-     .from("bc_lancamentos")
-     .update({
-      periodo:
-       periodoDesejado || null
-     })
-     .eq(
-      "id",
-      r.id
-     )
-     .eq(
-      "auth_user_id",
-      usuarioAtual.id
-     );
-
-
-   if(error){
-
-    status(
-     "❌ Erro ao atualizar período: " +
-     error.message
-    );
-
-    return false;
-
-   }
-
-  }
-
- }
-
-
- /*
-  Atualiza novamente a tela com o
-  conteúdo real do banco.
- */
-
- await carregarLancamentosBC();
-
- carregarMes();
-
-
- status(
-  "☁️ Seus plantões foram salvos na nuvem. Os lançamentos dos outros BCs foram preservados."
- );
-
-
- return true;
-
-}
-
-
-/* ============================================================
-   SALVAR ADMIN
-   ============================================================ */
-
-async function salvarAdmin(){
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- dadosPorMes[mes] =
-  dadosMes;
-
-
- salvarLocalAdmin();
-
-
- const registros =
-  Object.keys(
-   dadosPorMes
-  ).map(m=>({
-
-   ano:ANO_ESCALA,
-
-   mes:m,
-
-   dados:
-    dadosPorMes[m] || {},
-
-   updated_by:
-    usuarioAtual.id,
-
-   updated_at:
-    new Date().toISOString()
-
-  }));
-
-
- const {
-  error
- } =
-  await supabaseClient
-   .from("escalas_mensais")
-   .upsert(
-    registros,
-    {
-     onConflict:"ano,mes"
     }
-   );
 
 
- if(error){
+    /*
+        Atualiza a memória.
+    */
 
-  status(
-   "❌ Erro ao salvar: " +
-   error.message
-  );
+    escalasPorMes[mes] = {
+        ...dadosServidor
+    };
 
-  return false;
 
- }
+    dadosEscalaCompletos = {
+        ...dadosServidor
+    };
 
 
- status(
-  "☁️ Escala salva localmente e na nuvem."
- );
+    dadosEscalaMemoria =
+        filtrarDadosParaUsuario(
+            dadosEscalaCompletos
+        );
 
 
- return true;
-
-}
-
-
-/* ============================================================
-   SALVAR
-   ============================================================ */
-
-async function salvar(){
-
- if(!usuarioAtual){
-
-  alert(
-   "Faça login."
-  );
-
-  return;
-
- }
-
-
- if(ehAdmin())
-  await salvarAdmin();
- else
-  await salvarBC();
-
-}
-
-
-/* ============================================================
-   COPIAR ESCALA POR NOME DE GUERRA
-   ============================================================ */
-
-function copiarEscala(){
-
- if(!ehAdmin())
-  return;
-
-
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- const dias =
-  diasNoMes(mes);
-
-
- /*
-  Descobre os nomes existentes
-  no mês.
- */
-
- const nomes = new Set();
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  for(
-   let d=1;
-   d<=dias;
-   d++
-  ){
-
-   const n =
-    String(
-     dadosMes[
-      chaveNome(s,d)
-     ] || ""
-    )
-    .trim()
-    .toUpperCase();
-
-
-   if(n)
-    nomes.add(n);
-
-  }
-
- }
-
-
- const lista =
-  Array.from(nomes)
-  .sort(
-   (a,b)=>
-    a.localeCompare(
-     b,
-     "pt-BR"
-    )
-  );
-
-
- if(!lista.length){
-
-  alert(
-   "Não há nomes preenchidos neste mês."
-  );
-
-  return;
-
- }
-
-
- const escolha =
-  prompt(
-   "Digite o Nome de Guerra para copiar.\n\n" +
-   lista.join("\n") +
-   "\n\nDigite TODOS para copiar a escala completa.",
-   lista[0]
-  );
-
-
- if(
-  escolha === null
- )
-  return;
-
-
- const nomeEscolhido =
-  escolha
-   .trim()
-   .toUpperCase();
-
-
- const copiarTodos =
-  nomeEscolhido === "TODOS";
-
-
- if(
-  !copiarTodos &&
-  !lista.includes(nomeEscolhido)
- ){
-
-  alert(
-   "Nome não encontrado na escala."
-  );
-
-  return;
-
- }
-
-
- const linhas = [];
-
-
- linhas.push([
-  "NOME DE GUERRA",
-  "PERÍODO",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    `${String(i+1).padStart(2,"0")}/${mes}/${ANO_ESCALA}`
-  )
- ]);
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  const nomesDoSlot =
-   Array.from(
-    {length:dias},
-    (_,i)=>
-     String(
-      dadosMes[
-       chaveNome(s,i+1)
-      ] || ""
-     )
-     .trim()
-     .toUpperCase()
-   );
-
-
-  const nomesParaCopiar =
-   copiarTodos
-   ||
-   nomesDoSlot.some(
-    n=>n===nomeEscolhido
-   );
-
-
-  if(!nomesParaCopiar)
-   continue;
-
-
-  /*
-   Para cópia por nome,
-   copiamos somente os dias
-   pertencentes ao nome escolhido.
-  */
-
-  if(!copiarTodos){
-
-   const nomesLinha =
-    nomesDoSlot.map(
-     n=>n===nomeEscolhido
-      ? n
-      : ""
+    montarCalendarioDireto(
+        mes
     );
 
 
-   const periodosLinha =
-    Array.from(
-     {length:dias},
-     (_,i)=>
-      nomesLinha[i]
-       ? (
-        dadosMes[
-         chavePeriodo(
-          s,
-          i+1
-         )
-        ] || ""
-       )
-       : ""
+    mostrarStatus(
+        "☁️ Seu plantão foi salvo na nuvem."
     );
 
 
-   linhas.push([
-    nomeEscolhido,
-    "",
-    ...nomesLinha.map(
-     (_,i)=>
-      periodosLinha[i]
-       ? periodosLinha[i]
-       : ""
-    )
-   ]);
-
-
-  }
-  else{
-
-   const primeiroNome =
-    nomesDoSlot.find(
-     n=>n
-    ) || "";
-
-
-   if(!primeiroNome)
-    continue;
-
-
-   const periodosLinha =
-    Array.from(
-     {length:dias},
-     (_,i)=>
-      dadosMes[
-       chavePeriodo(
-        s,
-        i+1
-       )
-      ] || ""
-    );
-
-
-   linhas.push([
-    primeiroNome,
-    "",
-    ...periodosLinha
-   ]);
-
-  }
-
- }
-
-
- const texto =
-  linhas
-   .map(r=>
-    r.join("\t")
-   )
-   .join("\n");
-
-
- navigator.clipboard
-  .writeText(texto)
-  .then(()=>{
-
-   status(
-    copiarTodos
-     ? "📋 Escala completa copiada."
-     : `📋 Escala de ${nomeEscolhido} copiada.`
-   );
-
-  })
-  .catch(()=>{
-
-   alert(
-    "Não foi possível copiar automaticamente."
-   );
-
-  });
+    return true;
 
 }
 
 
-/* ============================================================
-   EXCEL
-   ============================================================ */
+/* =========================================================
+   CARREGAR ESCALA DA NUVEM
+========================================================= */
 
-function exportarExcel(){
+async function carregarEscalaNuvem() {
 
- if(!ehAdmin())
-  return;
+    if (
+        !supabaseClient ||
+        !usuarioAtual
+    ) {
 
+        return;
 
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
-
-
- const dias =
-  diasNoMes(mes);
+    }
 
 
- const rows = [];
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from(
+                    "escalas_mensais"
+                )
+                .select(
+                    "mes,dados"
+                )
+                .eq(
+                    "ano",
+                    ANO_ESCALA
+                );
 
 
- rows.push([
-  "",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    `${String(i+1).padStart(2,"0")}/${mes}/${ANO_ESCALA}`
-  )
- ]);
+        if (error) {
+
+            throw error;
+
+        }
 
 
- rows.push([
-  "Dia da Semana",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    diasSemana[
-     new Date(
-      ANO_ESCALA,
-      Number(mes)-1,
-      i+1
-     ).getDay()
-    ]
-  )
- ]);
+        /*
+            Carrega os meses.
+        */
+
+        (data || []).forEach(
+            linha => {
+
+                escalasPorMes[
+                    linha.mes
+                ] =
+                    linha.dados || {};
+
+            }
+        );
 
 
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  rows.push([
-   "Nome de guerra",
-   ...Array.from(
-    {length:dias},
-    (_,i)=>
-     dadosMes[
-      chaveNome(
-       s,
-       i+1
-      )
-     ] || ""
-   )
-  ]);
+        const mes =
+            document.getElementById(
+                "inputMes"
+            ).value ||
+            "09";
 
 
-  rows.push([
-   "Período",
-   ...Array.from(
-    {length:dias},
-    (_,i)=>
-     dadosMes[
-      chavePeriodo(
-       s,
-       i+1
-      )
-     ] || ""
-   )
-  ]);
-
- }
+        dadosEscalaCompletos = {
+            ...(escalasPorMes[mes] || {})
+        };
 
 
- const ws =
-  XLSX.utils.aoa_to_sheet(
-   rows
-  );
+        dadosEscalaMemoria =
+            filtrarDadosParaUsuario(
+                dadosEscalaCompletos
+            );
 
 
- const wb =
-  XLSX.utils.book_new();
+        montarCalendarioDireto(
+            mes
+        );
 
 
- XLSX.utils.book_append_sheet(
-  wb,
-  ws,
-  "Escala"
- );
+        recalcularTurnos();
 
 
- XLSX.writeFile(
-  wb,
-  `Escala_${
-   nomesMes[
-    Number(mes)-1
-   ]
-  }_${ANO_ESCALA}.xlsx`
- );
+        /*
+            Apenas administrador mantém
+            a cópia completa local.
+        */
 
-}
+        if (
+            usuarioEhAdmin()
+        ) {
 
+            salvarNoLocalStorage();
 
-/* ============================================================
-   PDF
-   ============================================================ */
+        }
+        else {
 
-function exportarPDF(){
+            localStorage.removeItem(
+                CHAVE_LOCAL_STORAGE
+            );
 
- if(!ehAdmin())
-  return;
-
-
- const {jsPDF} =
-  window.jspdf;
+        }
 
 
- const doc =
-  new jsPDF({
-   orientation:"landscape",
-   unit:"pt",
-   format:"a4"
-  });
+        mostrarStatus(
+            "☁️ Escala sincronizada com a nuvem."
+        );
+
+    }
+    catch (e) {
+
+        console.error(
+            "Erro ao carregar escala:",
+            e
+        );
 
 
- const mes =
-  document.getElementById(
-   "inputMes"
-  ).value;
+        mostrarStatus(
+            "⚠️ Nuvem indisponível: " +
+            e.message
+        );
 
-
- const dias =
-  diasNoMes(mes);
-
-
- const head = [[
-  "",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    `${String(i+1).padStart(2,"0")}/${mes}`
-  )
- ]];
-
-
- const body = [[
-  "Dia da Semana",
-  ...Array.from(
-   {length:dias},
-   (_,i)=>
-    diasSemana[
-     new Date(
-      ANO_ESCALA,
-      Number(mes)-1,
-      i+1
-     ).getDay()
-    ]
-  )
- ]];
-
-
- for(
-  let s=0;
-  s<SLOT_COUNT;
-  s++
- ){
-
-  body.push([
-   "Nome de guerra",
-   ...Array.from(
-    {length:dias},
-    (_,i)=>
-     dadosMes[
-      chaveNome(
-       s,
-       i+1
-      )
-     ] || ""
-   )
-  ]);
-
-
-  body.push([
-   "Período",
-   ...Array.from(
-    {length:dias},
-    (_,i)=>
-     dadosMes[
-      chavePeriodo(
-       s,
-       i+1
-      )
-     ] || ""
-   )
-  ]);
-
- }
-
-
- doc.text(
-  `Escala - ${
-   nomesMes[
-    Number(mes)-1
-   ]
-  } ${ANO_ESCALA}`,
-  30,
-  25
- );
-
-
- doc.autoTable({
-  head,
-  body,
-  startY:35,
-  styles:{
-   fontSize:5,
-   cellPadding:2
-  }
- });
-
-
- doc.save(
-  `Escala_${mes}_${ANO_ESCALA}.pdf`
- );
+    }
 
 }
 
 
-/* ============================================================
-   BACKUP
-   ============================================================ */
+/* =========================================================
+   MOSTRAR USUÁRIO ONLINE
+========================================================= */
 
-function backup(){
+function mostrarUsuarioOnline() {
 
- if(!ehAdmin())
-  return;
+    const elemento =
+        document.getElementById(
+            "usuarioOnline"
+        );
 
+    const nomeElemento =
+        document.getElementById(
+            "usuarioNomeOnline"
+        );
 
- const blob =
-  new Blob(
-   [
-    JSON.stringify(
-     dadosPorMes,
-     null,
-     2
-    )
-   ],
-   {
-    type:"application/json"
-   }
-  );
+    if (!elemento) {
+        return;
+    }
 
+    let texto = "";
 
- const a =
-  document.createElement(
-   "a"
-  );
+    if (usuarioEhAdmin()) {
 
+        texto = String(
+            perfilAtual?.nome ||
+            perfilAtual?.email ||
+            usuarioAtual?.email ||
+            "Administrador"
+        ).trim();
 
- a.href =
-  URL.createObjectURL(
-   blob
-  );
+        if (perfilAtual?.role) {
+            texto +=
+                " · " +
+                String(perfilAtual.role).trim();
+        }
 
+    } else {
 
- a.download =
-  `backup_escala_${ANO_ESCALA}.json`;
+        // Para BARBARA e CASTELACI, nunca mostra o e-mail.
+        texto = obterNomeUsuario();
 
+        if (!texto) {
+            texto = "Usuário";
+        }
+    }
 
- a.click();
+    if (nomeElemento) {
+        nomeElemento.textContent = texto;
+    }
 
-
- URL.revokeObjectURL(
-  a.href
- );
-
+    elemento.style.display = "flex";
 }
 
 
-/* ============================================================
-   RESTAURAR
-   ============================================================ */
 
-function restaurar(ev){
-
- if(!ehAdmin())
-  return;
-
-
- const f =
-  ev.target.files[0];
-
-
- if(!f)
-  return;
-
-
- const r =
-  new FileReader();
-
-
- r.onload = ()=>{
-
-  try{
-
-   const x =
-    JSON.parse(
-     r.result
-    );
-
-
-   dadosPorMes =
-    x;
-
-
-   carregarMes();
-
-   salvarLocalAdmin();
-
-   status(
-    "♻️ Backup restaurado localmente. Clique em Salvar."
-   );
-
-
-  }catch(e){
-
-   alert(
-    "Backup inválido."
-   );
-
-  }
-
- };
-
-
- r.readAsText(f);
-
-}
-
-
-/* ============================================================
-   LIMPAR
-   ============================================================ */
-
-async function limpar(){
-
- if(!ehAdmin())
-  return;
-
-
- if(
-  !confirm(
-   "Tem certeza que deseja limpar toda a escala local?"
-  )
- )
-  return;
-
-
- dadosPorMes =
-  Object.fromEntries(
-   Array.from(
-    {length:12},
-    (_,i)=>[
-     String(i+1).padStart(2,"0"),
-     {}
-    ]
-   )
-  );
-
-
- dadosMes = {};
-
-
- salvarLocalAdmin();
-
- carregarMes();
-
-
- status(
-  "🧹 Escala limpa localmente. Clique em Salvar para confirmar na nuvem."
- );
-
-}
-
-
-/* ============================================================
-   PERFIL
-   ============================================================ */
-
-async function obterPerfil(){
-
- const {
-  data,
-  error
- } =
-  await supabaseClient
-   .from("profiles")
-   .select("*")
-   .eq(
-    "id",
-    usuarioAtual.id
-   )
-   .maybeSingle();
-
-
- if(error)
-  throw error;
-
-
- perfilAtual =
-  data;
-
-
- if(ehAdmin()){
-
-  bcAtual = null;
-
-  return;
-
- }
-
-
- const {
-  data:bcs,
-  error:be
- } =
-  await supabaseClient
-   .from("bcs")
-   .select(
-    "id,nome,ativo,auth_user_id"
-   )
-   .eq(
-    "auth_user_id",
-    usuarioAtual.id
-   )
-   .maybeSingle();
-
-
- if(be)
-  throw be;
-
-
- if(
-  !bcs ||
-  !bcs.ativo
- ){
-
-  throw new Error(
-   "Usuário BC não está vinculado a um cadastro ativo."
-  );
-
- }
-
-
- bcAtual =
-  bcs;
-
-}
-
-
-/* ============================================================
-   USUÁRIO ONLINE
-   ============================================================ */
-
-function mostrarUsuario(){
-
- const el =
-  document.getElementById(
-   "usuarioOnline"
-  );
-
-
- document.getElementById(
-  "usuarioNomeOnline"
- ).textContent =
-  ehAdmin()
-   ? `${
-      perfilAtual?.nome ||
-      usuarioAtual.email
-     } · Administrador`
-   : nomeUsuario();
-
-
- el.style.display =
-  "flex";
-
-}
-
-
-/* ============================================================
-   LOGIN
-   ============================================================ */
-
-async function entrar(){
-
- const email =
-  document.getElementById(
-   "loginEmail"
-  ).value.trim();
-
-
- const senha =
-  document.getElementById(
-   "loginSenha"
-  ).value;
-
-
- if(
-  !email ||
-  !senha
- ){
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "Informe e-mail e senha.";
-
-  return;
-
- }
-
-
- document.getElementById(
-  "loginStatus"
- ).textContent =
-  "Entrando...";
-
-
- const {
-  data,
-  error
- } =
-  await supabaseClient.auth
-   .signInWithPassword({
-    email,
-    password:senha
-   });
-
-
- if(error){
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "❌ " +
-   error.message;
-
-  return;
-
- }
-
-
- usuarioAtual =
-  data.user;
-
-
- await preparar();
-
-}
-
-
-/* ============================================================
-   PREPARAR
-   ============================================================ */
-
-async function preparar(){
-
- try{
-
-  await obterPerfil();
-
-  mostrarUsuario();
-
-
-  document.getElementById(
-   "loginOverlay"
-  ).style.display =
-   "none";
-
-
-  if(ehAdmin()){
-
-   carregarLocalAdmin();
-
-   await carregarNuvemAdmin();
-
-  }
-  else{
-
-   /*
-    IMPORTANTE:
-    agora o BC carrega TODOS os lançamentos.
-   */
-
-   await carregarLancamentosBC();
-
-  }
-
-
-  aplicarUI();
-
-
-  status(
-   ehAdmin()
-    ? "☁️ Administrador conectado. Acesso completo."
-    : `☁️ ${nomeUsuario()} conectado. Você pode lançar somente seu próprio nome.`
-  );
-
-
- }catch(e){
-
-  console.error(e);
-
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "❌ " +
-   e.message;
-
-
-  await supabaseClient
-   .auth
-   .signOut();
-
- }
-
-}
-
-
-/* ============================================================
+/* =========================================================
    SAIR
-   ============================================================ */
+========================================================= */
 
-async function sair(){
+async function sairDoSistema() {
 
- await supabaseClient
-  .auth
-  .signOut();
+    try {
 
+        if (
+            supabaseClient
+        ) {
 
- usuarioAtual = null;
- perfilAtual = null;
- bcAtual = null;
-
-
- document.getElementById(
-  "usuarioOnline"
- ).style.display =
-  "none";
+            const {
+                error
+            } =
+                await supabaseClient
+                    .auth
+                    .signOut();
 
 
- document.getElementById(
-  "loginOverlay"
- ).style.display =
-  "flex";
+            if (error) {
+
+                console.error(
+                    error
+                );
+
+            }
+
+        }
+
+    }
+    catch (erro) {
+
+        console.error(
+            erro
+        );
+
+    }
 
 
- status(
-  "Aguardando login."
- );
+    usuarioAtual =
+        null;
+
+
+    perfilAtual =
+        null;
+
+
+    dadosEscalaMemoria =
+        {};
+
+
+    dadosEscalaCompletos =
+        {};
+
+
+    /*
+        Remove sessão offline antiga.
+    */
+
+    localStorage.removeItem(
+        "modoOfflineEscalaBC"
+    );
+
+
+    /*
+        Esconde usuário.
+    */
+
+    const usuario =
+        document.getElementById(
+            "usuarioOnline"
+        );
+
+
+    if (usuario) {
+
+        usuario.style.display =
+            "none";
+
+    }
+
+
+    /*
+        Limpa tabela.
+    */
+
+    const corpo =
+        document.getElementById(
+            "corpoTabela"
+        );
+
+
+    if (corpo) {
+
+        corpo.innerHTML =
+            "";
+
+    }
+
+
+    /*
+        Volta para login.
+    */
+
+    const overlay =
+        document.getElementById(
+            "loginOverlay"
+        );
+
+
+    if (overlay) {
+
+        overlay.style.display =
+            "flex";
+
+    }
+
+
+    /*
+        Limpa senha.
+    */
+
+    const senha =
+        document.getElementById(
+            "loginSenha"
+        );
+
+
+    if (senha) {
+
+        senha.value =
+            "";
+
+    }
+
+
+    setLoginStatus(
+        "Você saiu do sistema.",
+        true
+    );
+
+
+    mostrarStatus(
+        "🔐 Aguardando novo login."
+    );
+
+
+    setTimeout(
+        () => {
+
+            const email =
+                document.getElementById(
+                    "loginEmail"
+                );
+
+
+            if (email) {
+
+                email.focus();
+
+            }
+
+        },
+        200
+    );
 
 }
 
 
-/* ============================================================
-   RECUPERAÇÃO DE SENHA
-   ============================================================ */
+/* =========================================================
+   PRIMEIRO ACESSO / RECUPERAÇÃO DE SENHA
+========================================================= */
+function mostrarTelaNovaSenha() {
+    const btnEntrar = document.getElementById("btnEntrar");
+    const btnPrimeiro = document.getElementById("btnPrimeiroAcesso");
+    const novaSenhaBox = document.getElementById("novaSenhaBox");
+    const email = document.getElementById("loginEmail");
+    const senha = document.getElementById("loginSenha");
+    if (btnEntrar) btnEntrar.style.display = "none";
+    if (btnPrimeiro) btnPrimeiro.style.display = "none";
+    if (senha) senha.style.display = "none";
+    if (novaSenhaBox) novaSenhaBox.style.display = "block";
+    if (email) email.disabled = true;
+    const titulo = document.querySelector("#loginOverlay .login-box h2");
+    const info = document.getElementById("loginInfo");
+    if (titulo) titulo.textContent = "🔐 Criar nova senha";
+    if (info) info.textContent = "Digite e confirme a senha que você deseja usar para entrar na escala.";
+    setLoginStatus("Crie sua nova senha abaixo.");
+}
 
-async function recuperar(){
-
- const email =
-  document.getElementById(
-   "loginEmail"
-  ).value.trim();
-
-
- if(!email){
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "Digite o e-mail.";
-
-  return;
-
- }
-
-
- const {
-  error
- } =
-  await supabaseClient.auth
-   .resetPasswordForEmail(
-    email,
-    {
-     redirectTo:
-      location.origin +
-      location.pathname
+async function solicitarPrimeiroAcesso() {
+    if (!supabaseClient) {
+        setLoginStatus("Supabase não está configurado.");
+        return;
     }
-   );
+    const emailEl = document.getElementById("loginEmail");
+    const email = String(emailEl?.value || "").trim().toLowerCase();
+    if (!email) {
+        setLoginStatus("Digite primeiro o seu e-mail.");
+        if (emailEl) emailEl.focus();
+        return;
+    }
+    setLoginStatus("Enviando e-mail para criar/recuperar sua senha...");
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+    if (error) {
+        setLoginStatus("Não foi possível enviar o e-mail: " + error.message);
+        return;
+    }
+    setLoginStatus("✅ E-mail enviado. Abra o link recebido para criar sua senha. Verifique também a caixa de spam.");
+}
+
+async function salvarNovaSenha() {
+    if (!supabaseClient) {
+        setLoginStatus("Supabase não está configurado.");
+        return;
+    }
+    const novaSenha = document.getElementById("novaSenha")?.value || "";
+    const confirmar = document.getElementById("confirmarNovaSenha")?.value || "";
+    if (novaSenha.length < 6) {
+        setLoginStatus("A senha deve ter pelo menos 6 caracteres.");
+        return;
+    }
+    if (novaSenha !== confirmar) {
+        setLoginStatus("As senhas não são iguais.");
+        return;
+    }
+    setLoginStatus("Salvando sua nova senha...");
+    const { error } = await supabaseClient.auth.updateUser({ password: novaSenha });
+    if (error) {
+        setLoginStatus("Não foi possível salvar a senha: " + error.message);
+        return;
+    }
+    const nova = document.getElementById("novaSenha");
+    const conf = document.getElementById("confirmarNovaSenha");
+    if (nova) nova.value = "";
+    if (conf) conf.value = "";
+    setLoginStatus("✅ Senha criada com sucesso. Entrando na escala...");
+    const { data } = await supabaseClient.auth.getUser();
+    usuarioAtual = data?.user || null;
+    if (usuarioAtual) await prepararUsuarioOnline();
+}
+
+/* =========================================================
+   ENTRAR
+========================================================= */
+
+async function entrarOnline() {
+
+    if (!supabaseClient) {
+
+        setLoginStatus(
+            "Supabase não está configurado."
+        );
 
 
- document.getElementById(
-  "loginStatus"
- ).textContent =
-  error
-   ? "❌ " + error.message
-   : "✅ E-mail de recuperação enviado.";
+        return;
+
+    }
+
+
+    const email =
+        document.getElementById(
+            "loginEmail"
+        ).value
+        .trim()
+        .toLowerCase();
+
+
+    const senha =
+        document.getElementById(
+            "loginSenha"
+        ).value;
+
+
+    if (
+        !email ||
+        !senha
+    ) {
+
+        setLoginStatus(
+            "Informe e-mail e senha."
+        );
+
+
+        return;
+
+    }
+
+
+    setLoginStatus(
+        "Entrando..."
+    );
+
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .auth
+            .signInWithPassword(
+                {
+                    email,
+                    password: senha
+                }
+            );
+
+
+    if (error) {
+
+        setLoginStatus(
+            "Erro: " +
+            error.message
+        );
+
+
+        return;
+
+    }
+
+
+    usuarioAtual =
+        data.user;
+
+
+    await prepararUsuarioOnline();
 
 }
 
 
-/* ============================================================
-   EVENTOS
-   ============================================================ */
+/* =========================================================
+   PREPARAR USUÁRIO
+========================================================= */
 
-document.getElementById(
- "inputMes"
-).addEventListener(
- "change",
- async ()=>{
+async function prepararUsuarioOnline() {
 
-  const mes =
-   document.getElementById(
-    "inputMes"
-   ).value;
+    try {
+
+        if (
+            !usuarioAtual
+        ) {
+
+            throw new Error(
+                "Usuário não identificado."
+            );
+
+        }
 
 
-  /*
-   Para BC, se trocar de mês,
-   os dados já estão em dadosPorMes.
-  */
+        const {
+            data: perfil,
+            error
+        } =
+            await supabaseClient
+                .from(
+                    "profiles"
+                )
+                .select("*")
+                .eq(
+                    "id",
+                    usuarioAtual.id
+                )
+                .single();
 
-  carregarMes();
 
- }
+        if (error) {
+
+            throw error;
+
+        }
+
+
+        perfilAtual =
+            perfil;
+
+
+        /*
+            Para BC:
+
+            1. tenta nome do perfil;
+            2. se estiver vazio, usa o mapa
+               de e-mail.
+        */
+
+        if (
+            !usuarioEhAdmin() &&
+            !obterNomeUsuario()
+        ) {
+
+            throw new Error(
+                "Não foi possível identificar este usuário como BC."
+            );
+
+        }
+
+
+        /*
+            Remove modo offline antigo.
+        */
+
+        localStorage.removeItem(
+            "modoOfflineEscalaBC"
+        );
+
+
+        /*
+            Mostra o nome correto.
+        */
+
+        mostrarUsuarioOnline();
+
+
+        /*
+            Fecha login.
+        */
+
+        const overlay =
+            document.getElementById(
+                "loginOverlay"
+            );
+
+
+        if (overlay) {
+
+            overlay.style.display =
+                "none";
+
+        }
+
+
+        /*
+            Carrega escala.
+        */
+
+        await carregarEscalaNuvem();
+
+
+        /*
+            Aplica permissões.
+        */
+
+        aplicarPermissoesUsuario();
+
+
+        /*
+            Limpa senha.
+        */
+
+        const senha =
+            document.getElementById(
+                "loginSenha"
+            );
+
+
+        if (senha) {
+
+            senha.value =
+                "";
+
+        }
+
+
+        /*
+            Mensagem.
+        */
+
+        mostrarStatus(
+            usuarioEhAdmin()
+
+                ? "☁️ Administrador conectado. Acesso completo à escala."
+
+                : (
+                    "☁️ " +
+                    obterNomeUsuario() +
+                    " conectado. Você pode lançar somente seu próprio nome."
+                )
+        );
+
+    }
+    catch (e) {
+
+        console.error(
+            "Erro ao preparar usuário:",
+            e
+        );
+
+
+        usuarioAtual =
+            null;
+
+
+        perfilAtual =
+            null;
+
+
+        setLoginStatus(
+            "Não foi possível carregar seu perfil: " +
+            e.message
+        );
+
+
+        const overlay =
+            document.getElementById(
+                "loginOverlay"
+            );
+
+
+        if (overlay) {
+
+            overlay.style.display =
+                "flex";
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   INICIALIZAÇÃO ONLINE
+========================================================= */
+
+async function inicializarOnline() {
+
+    if (!supabaseConfigurado()) {
+
+        console.warn(
+            "Supabase ainda não configurado."
+        );
+
+
+        document.getElementById(
+            "loginOverlay"
+        ).style.display =
+            "flex";
+
+
+        setLoginStatus(
+            "O sistema online ainda não está configurado."
+        );
+
+
+        return;
+
+    }
+
+
+    supabaseClient =
+        window.supabase.createClient(
+            window.SUPABASE_URL,
+            window.SUPABASE_PUBLISHABLE_KEY,
+            {
+                auth: {
+
+                    persistSession:
+                        true,
+
+                    autoRefreshToken:
+                        true,
+
+                    detectSessionInUrl:
+                        true
+
+                }
+            }
+        );
+
+
+    /*
+        Botão entrar.
+    */
+
+    const btnEntrar =
+        document.getElementById(
+            "btnEntrar"
+        );
+
+
+    if (btnEntrar) {
+
+        btnEntrar.onclick =
+            entrarOnline;
+
+    }
+
+    const btnPrimeiroAcesso =
+        document.getElementById("btnPrimeiroAcesso");
+
+    if (btnPrimeiroAcesso) {
+        btnPrimeiroAcesso.onclick =
+            solicitarPrimeiroAcesso;
+    }
+
+    const btnSalvarNovaSenha =
+        document.getElementById("btnSalvarNovaSenha");
+
+    if (btnSalvarNovaSenha) {
+        btnSalvarNovaSenha.onclick =
+            salvarNovaSenha;
+    }
+
+
+    /*
+        Botão sair.
+    */
+
+    const btnSair =
+        document.getElementById(
+            "btnSair"
+        );
+
+
+    if (btnSair) {
+
+        btnSair.onclick =
+            sairDoSistema;
+
+    }
+
+
+    /*
+        Enter no campo senha.
+    */
+
+    const loginSenha =
+        document.getElementById(
+            "loginSenha"
+        );
+
+
+    if (loginSenha) {
+
+        loginSenha.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+
+                    event.preventDefault();
+
+                    entrarOnline();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /*
+        Verifica sessão existente.
+    */
+
+    const {
+        data
+    } =
+        await supabaseClient
+            .auth
+            .getSession();
+
+
+    if (
+        data &&
+        data.session
+    ) {
+
+        usuarioAtual =
+            data.session.user;
+
+
+        await prepararUsuarioOnline();
+
+    }
+    else {
+
+        const overlay =
+            document.getElementById(
+                "loginOverlay"
+            );
+
+
+        if (overlay) {
+
+            overlay.style.display =
+                "flex";
+
+        }
+
+    }
+
+
+    /*
+        Monitora sessão.
+    */
+
+    supabaseClient.auth.onAuthStateChange(
+        async (event, session) => {
+
+            if (event === "PASSWORD_RECOVERY") {
+                usuarioAtual = session?.user || null;
+                mostrarTelaNovaSenha();
+                const overlay = document.getElementById("loginOverlay");
+                if (overlay) overlay.style.display = "flex";
+                return;
+            }
+
+            if (
+                event ===
+                "SIGNED_OUT"
+            ) {
+
+                usuarioAtual =
+                    null;
+
+                perfilAtual =
+                    null;
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   INICIALIZAÇÃO DA APLICAÇÃO
+========================================================= */
+
+function inicializarAplicacao() {
+
+    /*
+        Carrega dados locais apenas para
+        preparar a interface.
+    */
+
+    carregarDadosSalvos();
+
+
+    const select =
+        document.getElementById(
+            "inputMes"
+        );
+
+
+    const mes =
+        select.value ||
+        "09";
+
+
+    dadosEscalaCompletos = {
+        ...(escalasPorMes[mes] || {})
+    };
+
+
+    dadosEscalaMemoria = {
+        ...(escalasPorMes[mes] || {})
+    };
+
+
+    /*
+        Protege a tela com login.
+    */
+
+    document.getElementById(
+        "loginOverlay"
+    ).style.display =
+        "flex";
+
+
+    montarCalendarioDireto(
+        mes
+    );
+
+
+    recalcularTurnos();
+
+
+    document.getElementById(
+        "infoMes"
+    ).textContent =
+        `📅 Escala atual: ${obterNomeMes(mes)} de ${ANO_ESCALA} — ${quantidadeDiasDoMes(mes)} dias`;
+
+
+    mostrarStatus(
+        `🔐 Aguardando login — ${obterNomeMes(mes)} de ${ANO_ESCALA}.`
+    );
+
+}
+
+
+/* =========================================================
+   INICIAR APLICAÇÃO
+========================================================= */
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        inicializarAplicacao
+    );
+
+}
+else {
+
+    inicializarAplicacao();
+
+}
+
+
+/* =========================================================
+   INICIALIZAR SISTEMA ONLINE
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        setTimeout(
+            inicializarOnline,
+            300
+        );
+
+    }
 );
-
-
-document.getElementById(
- "filtroNome"
-).addEventListener(
- "input",
- ()=>{
-  if(!ehAdmin())
-   return;
-
-
-  const f =
-   document.getElementById(
-    "filtroNome"
-   ).value
-   .trim()
-   .toUpperCase();
-
-
-  document
-   .querySelectorAll(
-    ".nome-row select"
-   )
-   .forEach(s=>{
-
-    if(!f){
-
-     s.parentElement
-      .parentElement
-      .style.opacity =
-      "1";
-
-     return;
-
-    }
-
-
-    if(
-     s.value !== f &&
-     s.value !== ""
-    ){
-
-     s.parentElement
-      .parentElement
-      .style.opacity =
-      ".45";
-
-    }
-    else{
-
-     s.parentElement
-      .parentElement
-      .style.opacity =
-      "1";
-
-    }
-
-   });
-
- }
-);
-
-
-document.getElementById(
- "btnSalvar"
-).onclick =
- salvar;
-
-
-document.getElementById(
- "btnCopiar"
-).onclick =
- copiarEscala;
-
-
-document.getElementById(
- "btnExcel"
-).onclick =
- exportarExcel;
-
-
-document.getElementById(
- "btnPDF"
-).onclick =
- exportarPDF;
-
-
-document.getElementById(
- "btnBackup"
-).onclick =
- backup;
-
-
-document.getElementById(
- "btnRestaurar"
-).onclick =
- ()=>{
-  document.getElementById(
-   "arquivoBackup"
-  ).click();
- };
-
-
-document.getElementById(
- "arquivoBackup"
-).onchange =
- restaurar;
-
-
-document.getElementById(
- "btnImprimir"
-).onclick =
- ()=>{
-  window.print();
- };
-
-
-document.getElementById(
- "btnLimpar"
-).onclick =
- limpar;
-
-
-document.getElementById(
- "btnEntrar"
-).onclick =
- entrar;
-
-
-document.getElementById(
- "btnSair"
-).onclick =
- sair;
-
-
-document.getElementById(
- "btnPrimeiroAcesso"
-).onclick =
- recuperar;
-
-
-/* ============================================================
-   INICIALIZAÇÃO
-   ============================================================ */
-
-(async function init(){
-
- if(
-  "serviceWorker" in navigator
- ){
-
-  try{
-
-   await navigator.serviceWorker.register(
-    "service-worker.js"
-   );
-
-  }catch(e){
-
-   console.warn(e);
-
-  }
-
- }
-
-
- if(
-  !window.SUPABASE_URL ||
-  !window.SUPABASE_PUBLISHABLE_KEY
- ){
-
-  document.getElementById(
-   "loginOverlay"
-  ).style.display =
-   "flex";
-
-
-  document.getElementById(
-   "loginStatus"
-  ).textContent =
-   "Supabase não configurado.";
-
-
-  return;
-
- }
-
-
- supabaseClient =
-  window.supabase.createClient(
-   window.SUPABASE_URL,
-   window.SUPABASE_PUBLISHABLE_KEY,
-   {
-    auth:{
-     persistSession:true,
-     autoRefreshToken:true,
-     detectSessionInUrl:true
-    }
-   }
-  );
-
-
- const {
-  data
- } =
-  await supabaseClient.auth
-   .getSession();
-
-
- if(data?.session){
-
-  usuarioAtual =
-   data.session.user;
-
-  await preparar();
-
- }
- else{
-
-  document.getElementById(
-   "loginOverlay"
-  ).style.display =
-   "flex";
-
- }
-
-})();
 
 </script>
 
+
+<!-- =========================================================
+     SERVICE WORKER / PWA
+========================================================= -->
+
+<script>
+
+if (
+    "serviceWorker" in navigator
+) {
+
+    window.addEventListener(
+        "load",
+        () => {
+
+            navigator.serviceWorker
+                .register(
+                    "./service-worker.js"
+                )
+                .catch(
+                    erro => {
+
+                        console.error(
+                            "Erro no Service Worker:",
+                            erro
+                        );
+
+                    }
+                );
+
+        }
+    );
+
+}
+
+</script>
+
+
 </body>
+
 </html>
