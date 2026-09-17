@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -317,8 +318,36 @@ async function salvar(){
  if(ehAdmin()) await salvarAdmin(); else await salvarBC();
 }
 function copiarEscala(){
- const mes=document.getElementById("inputMes").value,dias=diasNoMes(mes);
- const linhas=[];
+  const mes=document.getElementById("inputMes").value;
+  const dias=diasNoMes(mes);
+  const linhas=[];
+
+  for(let s=0;s<SLOT_COUNT;s++){
+    const nomes=[];
+    const periodosLinha=[];
+
+    for(let d=1;d<=dias;d++){
+      nomes.push(dadosMes[chaveNome(s,d)]||"");
+    }
+
+    for(let d=1;d<=dias;d++){
+      periodosLinha.push(dadosMes[chavePeriodo(s,d)]||"");
+    }
+
+    linhas.push(nomes);
+    linhas.push(periodosLinha);
+  }
+
+  const texto=linhas.map(linha=>linha.join("\t")).join("\n");
+
+  navigator.clipboard.writeText(texto)
+    .then(()=>{
+      status("📋 Escala copiada. Agora você pode colar na outra escala.");
+    })
+    .catch(()=>{
+      alert("Não foi possível copiar automaticamente.");
+    });
+}
  linhas.push(["",...Array.from({length:dias},(_,i)=>`${String(i+1).padStart(2,"0")}/${mes}/${ANO_ESCALA}`)]);
  linhas.push(["Dia da Semana",...Array.from({length:dias},(_,i)=>diasSemana[new Date(ANO_ESCALA,Number(mes)-1,i+1).getDay()])]);
  for(let s=0;s<SLOT_COUNT;s++){
