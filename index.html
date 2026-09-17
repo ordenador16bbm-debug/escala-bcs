@@ -31,7 +31,7 @@ button{padding:10px 13px;border:0;border-radius:6px;cursor:pointer;font-weight:b
 .btn-backup{background:#0d6efd;color:#fff}.btn-restaurar{background:#fd7e14;color:#fff}
 .btn-imprimir{background:#343a40;color:#fff}.btn-limpar{background:#b02a37;color:#fff}.btn-copiar{background:#6f42c1;color:#fff}
 #usuarioOnline{position:fixed;right:10px;top:10px;z-index:9999;background:#0b5d1e;color:#fff;padding:7px 11px;border-radius:14px;font-size:12px;display:none;gap:8px;align-items:center}
-#btnSair{background:#fff;color:#0b5d1e;padding:7px 10px;border:1px solid #0b5d1e;border-radius:7px;font-weight:700;min-height:32px;width:auto}
+#btnSair{background:#fff;color:#0b5d1e;padding:4px 8px}
 .info{background:#e8f5e9;padding:11px 14px;border-left:5px solid #0b5d1e;font-weight:bold}
 .status{margin-top:10px;padding:10px;border-radius:6px;background:#eef3f7;color:#555;font-size:13px}
 .tabela-wrap{background:#fff;padding:10px;overflow:auto;-webkit-overflow-scrolling:touch;box-shadow:0 2px 6px rgba(0,0,0,.1)}
@@ -63,11 +63,11 @@ thead .coluna-label{background:#0b5d1e;color:#fff}
 .bc-only{}
 .hidden{display:none!important}
 @media(max-width:800px){
- body{padding:52px 4px 4px} header{padding:13px 8px} header h1{font-size:18px} header p{font-size:12px}
+ body{padding:4px} header{padding:13px 8px} header h1{font-size:18px} header p{font-size:12px}
  .painel{padding:10px;flex-direction:column;align-items:stretch}.input,button{width:100%;min-height:44px}
  .tabela-wrap{padding:5px}.coluna-label{min-width:145px;width:145px}.col-dia{min-width:118px;width:118px}
  .select-escala{min-height:42px;font-size:13px}.periodo-select{font-size:12px}
- #usuarioOnline{position:fixed !important;right:6px !important;top:6px !important;z-index:99999 !important;margin:0 !important;justify-content:space-between !important;display:flex !important;max-width:calc(100vw - 12px);box-sizing:border-box;gap:6px}
+ #usuarioOnline{position:static;margin-bottom:5px;justify-content:space-between}
 }
 @media print{
  body{background:#fff;padding:0}header{border-radius:0}.painel,.status,.rodape,.resumo,#usuarioOnline,.bc-only-note{display:none!important}
@@ -150,10 +150,7 @@ thead .coluna-label{background:#0b5d1e;color:#fff}
 const ANO_ESCALA=2026;
 const CHAVE_LOCAL="escalaBCs_formato12_2026_v1";
 const SLOT_COUNT=12;
-const listaBCs=["ADILSON","ALVES","ANDRADE","BARBARA","BATISTA","BORGES","BRAUER","CAMILA","CASTELACI","CLEDISON","DENIS","EDER","FEITOSA","GABRIEL","GERSON","GEYSSON","GLEISSON","IARA","JAIRO","JOSÉ","JUAN","KEVIN","KRAUSE","LARISSA","LILIAN","LIMA","LIRAS","MAICO","MAMINHAQUI","MATIAS","MATUCHESKI","NERIS","PALOMA","PATRICK","PAULO","PEKOCZ","PINHEIRO","PIVA","PRISCILA","REI","REIS","RUDNIK","RYAN","SAMPAIO","SANTOS","SCHENA","SCHÖNE","SILVINA","SIMÃO","STREISKI","TEIXEIRA","TIBURSKI","WITKOWSKI","ZENI"];
-const EMAIL_PARA_BC={
-"adilsonbcjr@yahoo.com.br":"ADILSON","kaiccauw18@gmail.com":"ALVES","junio26.itapoa@gmail.com":"ANDRADE","paah@hotmail.com":"BARBARA","jhonyiammhpm@gmail.com":"BATISTA","lariborgeslari24@gmail.com":"BORGES","brauer@gmail.com":"BRAUER","camilakuboski5@gmail.com":"CAMILA","ahcastelaci@gmail.com":"CASTELACI","cledisondjesus@gmail.com":"CLEDISON","seinao_moreira@hotmail.com":"DENIS","gvceder@gmail.com":"EDER","edilenefeitosa.sofia@gmail.com":"FEITOSA","gabriel91483170@gmail.com":"GABRIEL","gersonpiazzetta@gmail.com":"GERSON","geyssonw@gmail.com":"GEYSSON","gleisson2015leopoldino@gmail.com":"GLEISSON","iarahoepfner1972@gmail.com":"IARA","jairo_pesca@hotmail.com":"JAIRO","jdrossa@hotmail.com":"JOSÉ","maoskijuan@gmail.com":"JUAN","kevingulla273@gmail.com":"KEVIN","kljkrause@gmail.com":"KRAUSE","bodaneselarissa@gmail.com":"LARISSA","liliandasgracasmaoski@gmail.com":"LILIAN","anaclaudialima1981@gmail.com":"LIMA","jair160604@gmail.com":"LIRAS","maico.aurelio@yahoo.com.br":"MAICO","andersonmaminhaqui77@gmail.com":"MAMINHAQUI","silvia.mathias@hotmail.com":"MATIAS","rmatucheski@gmail.com":"MATUCHESKI","sidneineris616@gmail.com":"NERIS","palomadambiski7@gmail.com":"PALOMA","freitasgabry578@gmail.com":"PATRICK","paulodemarqui190@gmail.com":"PAULO","perkocz92@gmail.com":"PEKOCZ","alex.almdpinheiro@gmail.com":"PINHEIRO","abathaingrid08@gmail.com":"PIVA","jessica.organizer@hotmail.com":"PRISCILA","leonardorei280292@gmail.com":"REI","reishalan5@gmail.com":"REIS","danielerudnik@outlook.com":"RUDNIK","atleta_ryancordeiro@hotmail.com":"RYAN","eduardapeixes@icloud.com":"SAMPAIO","luluziinhha-santos@hotmail.com":"SANTOS","lucasschena@gmail.com":"SCHENA","schone.fds@gmail.com":"SCHÖNE","siledasol@gmail.com":"SILVINA","25cristinasimao@gmail.com":"SIMÃO","geizefilhosamados06@gmail.com":"STREISKI","janderson.teixeira@hotmail.com":"TEIXEIRA","lu-ara22@hotmail.com":"TIBURSKI","vagnertikoski@gmail.com":"WITKOWSKI","kamila.apzeni@gmail.com":"ZENI"
-};
+const listaBCs=["ADILSON","ALVES","ANDRADE","BARBARA","BARBOSA","BATISTA","BORGES","BRAUER","CAMILA","CASTELACI","CLEDISON","DENIS","EDER","EVERALDO","FEITOSA","GABRIEL","GERSON","GEYSSON","GLEISSON","IARA","JAIRO","JAQUELINE","JESSICA","JOSÉ","JUAN","KEVIN","KRAUSE","LARISSA","LAURECI","LILIAN","LIMA","LIRAS","LUCHTENBERG","MAICO","MAMINHAQUI","MATIAS","MATUCHESKI","NERIS","PALOMA","PATRICK","PAULO","PEKOCZ","PINHEIRO","PIVA","PRISCILA","REIS","RUDNIK","RYAN","SAMPAIO","SANTOS","SCHENA","SILVINA","SIMÃO","STREISKI","TEIXEIRA","TIBURSKI","WITKOWSKI","ZENI"];
 const periodos=["","DIURNO","NOTURNO","INTEGRAL"];
 const nomesMes=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const diasSemana=["Domingo","Segunda-feira","Terça-feira","Quarta-feira","Quinta-feira","Sexta-feira","Sábado"];
@@ -217,27 +214,11 @@ function montarTabela(){
    const dow=new Date(ANO_ESCALA,Number(mes)-1,d).getDay();
    const tdN=document.createElement("td");tdN.className="col-dia"+(dow===0||dow===6?" fim-semana":"");
    const tdP=document.createElement("td");tdP.className="col-dia"+(dow===0||dow===6?" fim-semana":"");
-   const nomeAtual=String(dadosMes[kN]||"").toUpperCase();
-   const periodoAtual=dadosMes[kP]||"";
-   const sn=document.createElement("select");sn.className="select-escala";opcoesNome(sn,nomeAtual);
-   const sp=document.createElement("select");sp.className="select-escala periodo-select";opcoesPeriodo(sp,periodoAtual);
+   const sn=document.createElement("select");sn.className="select-escala";opcoesNome(sn,dadosMes[kN]||"");
+   const sp=document.createElement("select");sp.className="select-escala periodo-select";opcoesPeriodo(sp,dadosMes[kP]||"");
    sn.dataset.key=kN;sp.dataset.key=kP;
-   if(!ehAdmin()){
-    if(nomeAtual && nomeAtual!==nomeUsuario()){
-     sn.disabled=true;sp.disabled=true;
-     sn.title="Preenchido por outro BC";sp.title="Preenchido por outro BC";
-    }else{
-     sn.disabled=!!nomeAtual;sp.disabled=!nomeAtual || nomeAtual!==nomeUsuario();
-     if(!nomeAtual){
-      sn.addEventListener("change",()=>{if(sn.value!==nomeUsuario()){sn.value="";return;}alterarCampo(kN,sn.value,true);sp.disabled=false;});
-     }else if(nomeAtual===nomeUsuario()){
-      sp.addEventListener("change",()=>alterarCampo(kP,sp.value,false));
-     }
-    }
-   }else{
-    sn.addEventListener("change",()=>alterarCampo(kN,sn.value,true));
-    sp.addEventListener("change",()=>alterarCampo(kP,sp.value,false));
-   }
+   sn.addEventListener("change",()=>alterarCampo(kN,sn.value,true));
+   sp.addEventListener("change",()=>alterarCampo(kP,sp.value,false));
    tdN.appendChild(sn);tdP.appendChild(sp);nr.appendChild(tdN);pr.appendChild(tdP);
   }
   corpo.appendChild(nr);corpo.appendChild(pr);
@@ -245,11 +226,12 @@ function montarTabela(){
  atualizarResumo();
 }
 function alterarCampo(k,v,ehNome){
- if(!ehAdmin()){
-  if(ehNome&&v&&v!==nomeUsuario()){status("🔒 Você só pode lançar seu próprio nome.");montarTabela();return;}
-  if(ehNome){const atual=String(dadosMes[k]||"").toUpperCase();if(atual&&atual!==nomeUsuario()){status("🔒 Esta célula já foi preenchida por outro BC.");montarTabela();return;}}
- }
- dadosMes[k]=v;dadosPorMes[document.getElementById("inputMes").value]=dadosMes;atualizarResumo();status("✏️ Alteração realizada. Clique em Salvar.");
+ if(!ehAdmin()&&ehNome&&v&&v!==nomeUsuario()){status("🔒 Você só pode lançar seu próprio nome.");montarTabela();return;}
+ dadosMes[k]=v;
+ if(!ehAdmin() && ehNome && v==="") dadosMes[k]="";
+ dadosPorMes[document.getElementById("inputMes").value]=dadosMes;
+ atualizarResumo();
+ status("✏️ Alteração realizada. Clique em Salvar.");
 }
 function carregarMes(){
  const mes=document.getElementById("inputMes").value;
@@ -294,16 +276,33 @@ async function carregarNuvemAdmin(){
  }
 }
 async function carregarLancamentosBC(){
- const {data,error}=await supabaseClient.from("bc_lancamentos").select("ano,mes,fila_index,dia_index,bc_id,auth_user_id,periodo,bcs(nome)").eq("ano",ANO_ESCALA);
+ const {data,error}=await supabaseClient.from("bc_lancamentos").select("ano,mes,fila_index,dia_index,bc_id,periodo").eq("ano",ANO_ESCALA).eq("auth_user_id",usuarioAtual.id);
  if(error)throw error;
- dadosPorMes=Object.fromEntries(Array.from({length:12},(_,i)=>[String(i+1).padStart(2,"0"),{}]));
- (data||[]).forEach(r=>{const mes=String(r.mes).padStart(2,"0"),d=Number(r.dia_index)+1,s=Number(r.fila_index),nome=String(r.bcs?.nome||"").trim().toUpperCase();if(!nome)return;if(!dadosPorMes[mes])dadosPorMes[mes]={};dadosPorMes[mes][chaveNome(s,d)]=nome;dadosPorMes[mes][chavePeriodo(s,d)]=r.periodo||"";});
+ dadosPorMes=Object.fromEntries(Array.from({length:12},(_,i)=>[String(i+1).padStart(2,"0",),{}]));
+ (data||[]).forEach(r=>{
+  const mes=String(r.mes).padStart(2,"0"),d=Number(r.dia_index)+1,s=Number(r.fila_index);
+  dadosPorMes[mes][chaveNome(s,d)]=nomeUsuario();
+  if(r.periodo) dadosPorMes[mes][chavePeriodo(s,d)]=r.periodo;
+ });
 }
 async function salvarBC(){
- const mes=document.getElementById("inputMes").value,dias=diasNoMes(mes),registros=[];
- for(let s=0;s<SLOT_COUNT;s++)for(let d=1;d<=dias;d++){const nome=String(dadosMes[chaveNome(s,d)]||"").toUpperCase();if(nome===nomeUsuario())registros.push({ano:ANO_ESCALA,mes:mes,fila_index:s,dia_index:d-1,bc_id:bcAtual.id,auth_user_id:usuarioAtual.id,periodo:dadosMes[chavePeriodo(s,d)]||null});}
- if(registros.length){const {error}=await supabaseClient.from("bc_lancamentos").upsert(registros,{onConflict:"ano,mes,fila_index,dia_index"});if(error){status("❌ Não foi possível salvar: "+error.message);return false;}}
- status("☁️ Seus plantões foram salvos na nuvem sem apagar os dos outros BCs.");return true;
+ const mes=document.getElementById("inputMes").value;
+ // Salva somente os 12 slots/dias que pertencem ao próprio BC.
+ const {error:delError}=await supabaseClient.from("bc_lancamentos").delete().eq("ano",ANO_ESCALA).eq("mes",mes).eq("auth_user_id",usuarioAtual.id);
+ if(delError){status("❌ "+delError.message);return false;}
+ const registros=[];
+ const dias=diasNoMes(mes);
+ for(let s=0;s<SLOT_COUNT;s++)for(let d=1;d<=dias;d++){
+  if(String(dadosMes[chaveNome(s,d)]||"").toUpperCase()===nomeUsuario()){
+   registros.push({ano:ANO_ESCALA,mes:mes,fila_index:s,dia_index:d-1,bc_id:bcAtual.id,auth_user_id:usuarioAtual.id,periodo:dadosMes[chavePeriodo(s,d)]||null});
+  }
+ }
+ if(registros.length){
+  const {error}=await supabaseClient.from("bc_lancamentos").insert(registros);
+  if(error){status("❌ Não foi possível salvar: "+error.message);return false;}
+ }
+ status("☁️ Seus plantões foram salvos na nuvem.");
+ return true;
 }
 async function salvarAdmin(){
  dadosPorMes[document.getElementById("inputMes").value]=dadosMes;
@@ -318,40 +317,16 @@ async function salvar(){
  if(ehAdmin()) await salvarAdmin(); else await salvarBC();
 }
 function copiarEscala(){
- if(!ehAdmin())return;
- const mes=document.getElementById("inputMes").value,dias=diasNoMes(mes),nomes=[];
- for(let s=0;s<SLOT_COUNT;s++)for(let d=1;d<=dias;d++){
-  const n=String(dadosMes[chaveNome(s,d)]||"").trim().toUpperCase();
-  if(n&&!nomes.includes(n))nomes.push(n);
+ const mes=document.getElementById("inputMes").value,dias=diasNoMes(mes);
+ const linhas=[];
+ linhas.push(["",...Array.from({length:dias},(_,i)=>`${String(i+1).padStart(2,"0")}/${mes}/${ANO_ESCALA}`)]);
+ linhas.push(["Dia da Semana",...Array.from({length:dias},(_,i)=>diasSemana[new Date(ANO_ESCALA,Number(mes)-1,i+1).getDay()])]);
+ for(let s=0;s<SLOT_COUNT;s++){
+  linhas.push(["Nome de guerra",...Array.from({length:dias},(_,i)=>dadosMes[chaveNome(s,i+1)]||"")]);
+  linhas.push(["Período",...Array.from({length:dias},(_,i)=>dadosMes[chavePeriodo(s,i+1)]||"")]);
  }
- nomes.sort((a,b)=>a.localeCompare(b,"pt-BR"));
- if(!nomes.length){alert("Não há nomes preenchidos para copiar.");return;}
- const escolha=prompt(`Digite o NOME DE GUERRA que deseja copiar.\n\nNomes disponíveis:\n${nomes.join("\n")}\n\nDeixe vazio para copiar TODOS os nomes.`,nomes[0]);
- if(escolha===null)return;
- const filtro=escolha.trim().toUpperCase();
- const selecionados=filtro?nomes.filter(n=>n===filtro):nomes;
- if(filtro&&!selecionados.length){alert("Nome não encontrado na escala.");return;}
- const linhas=[["NOME DE GUERRA","PERÍODO",...Array.from({length:dias},(_,i)=>String(i+1).padStart(2,"0"))]];
- selecionados.forEach(nome=>{
-  for(let s=0;s<SLOT_COUNT;s++){
-   const tem=Array.from({length:dias},(_,i)=>i+1).some(d=>String(dadosMes[chaveNome(s,d)]||"").toUpperCase()===nome);
-   if(!tem)continue;
-   const diasValores=Array.from({length:dias},(_,i)=>{const d=i+1;return String(dadosMes[chaveNome(s,d)]||"").toUpperCase()===nome?(dadosMes[chavePeriodo(s,d)]||""):"";});
-   const periodo=diasValores.find(Boolean)||"";
-   linhas.push([nome,periodo,...diasValores]);
-  }
- });
  const texto=linhas.map(r=>r.join("\t")).join("\n");
- const concluir=()=>status(`📋 Escala copiada por nome: ${filtro||"TODOS"}. Agora cole na outra escala.`);
- navigator.clipboard.writeText(texto).then(concluir).catch(()=>{
-  const ta=document.createElement("textarea");ta.value=texto;document.body.appendChild(ta);ta.select();
-  try{document.execCommand("copy");concluir();}finally{ta.remove();}
- });
-}
-async function enviarPrimeiroAcesso(){
-  if(!usuarioAtual||!perfilAtual||!ehAdmin()){alert("🔐 Somente o administrador pode enviar os primeiros acessos.");return;}
-  const btn=document.getElementById("btnEnviarPrimeiroAcesso");if(btn){btn.disabled=true;btn.textContent="📧 Enviando...";}
-  try{const {data,error}=await supabaseClient.functions.invoke("enviar-primeiro-acesso-v2",{body:{acao:"enviar_todos"}});if(error)throw error;const r=data||{};alert(`📧 Processo concluído!\n\nTotal processado: ${r.total||0}`);status("📧 Processo de primeiro acesso concluído.");}catch(e){console.error(e);alert("❌ Não foi possível enviar os primeiros acessos: "+(e.message||e));}finally{if(btn){btn.disabled=false;btn.textContent="📧 Enviar primeiro acesso aos BCs";}}
+ navigator.clipboard.writeText(texto).then(()=>status("📋 Escala copiada. Agora você pode colar na outra escala.")).catch(()=>alert("Não foi possível copiar automaticamente."));
 }
 function exportarExcel(){
  if(!ehAdmin())return;
@@ -378,16 +353,8 @@ async function obterPerfil(){
  if(error)throw error;
  perfilAtual=data;
  if(ehAdmin()){bcAtual=null;return;}
- let {data:bcs,error:be}=await supabaseClient.from("bcs").select("id,nome,email,ativo,auth_user_id").eq("auth_user_id",usuarioAtual.id).maybeSingle();
+ const {data:bcs,error:be}=await supabaseClient.from("bcs").select("id,nome,ativo,auth_user_id").eq("auth_user_id",usuarioAtual.id).maybeSingle();
  if(be)throw be;
- if(!bcs && usuarioAtual.email){
-  const nomeMap=EMAIL_PARA_BC[String(usuarioAtual.email).trim().toLowerCase()];
-  if(nomeMap){
-   const r=await supabaseClient.from("bcs").select("id,nome,email,ativo,auth_user_id").eq("nome",nomeMap).eq("ativo",true).maybeSingle();
-   if(r.error)throw r.error;
-   bcs=r.data;
-  }
- }
  if(!bcs||!bcs.ativo)throw new Error("Usuário BC não está vinculado a um cadastro ativo.");
  bcAtual=bcs;
 }
@@ -406,7 +373,18 @@ async function preparar(){
   aplicarUI();status(ehAdmin()?"☁️ Administrador conectado. Acesso completo.":`☁️ ${nomeUsuario()} conectado. Você pode lançar somente seu próprio nome.`);
  }catch(e){console.error(e);document.getElementById("loginStatus").textContent="❌ "+e.message;await supabaseClient.auth.signOut();}
 }
-async function sair(){await supabaseClient.auth.signOut();usuarioAtual=null;perfilAtual=null;bcAtual=null;document.getElementById("usuarioOnline").style.display="none";document.getElementById("loginOverlay").style.display="flex";status("Aguardando login.");}
+async function sair(){
+  try{
+    if(supabaseClient) await supabaseClient.auth.signOut({scope:"local"});
+  }catch(e){console.error("Erro ao encerrar sessão:",e);}
+  usuarioAtual=null;
+  perfilAtual=null;
+  bcAtual=null;
+  try{sessionStorage.clear();}catch(e){}
+  document.getElementById("usuarioOnline").style.display="none";
+  // Recarrega a aplicação para garantir que nenhum estado da conta anterior permaneça na tela.
+  window.location.reload();
+}
 async function recuperar(){
  const email=document.getElementById("loginEmail").value.trim();if(!email){document.getElementById("loginStatus").textContent="Digite o e-mail.";return}
  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
@@ -417,7 +395,6 @@ document.getElementById("inputMes").addEventListener("change",carregarMes);
 document.getElementById("filtroNome").addEventListener("input",()=>{if(!ehAdmin())return;const f=document.getElementById("filtroNome").value.trim().toUpperCase();document.querySelectorAll(".nome-row select").forEach(s=>{if(!f)return; if(s.value!==f&&s.value!=="")s.parentElement.parentElement.style.opacity=".45"; else s.parentElement.parentElement.style.opacity="1";});});
 document.getElementById("btnSalvar").onclick=salvar;
 document.getElementById("btnCopiar").onclick=copiarEscala;
-document.getElementById("btnEnviarPrimeiroAcesso").onclick=enviarPrimeiroAcesso;
 document.getElementById("btnExcel").onclick=exportarExcel;
 document.getElementById("btnPDF").onclick=exportarPDF;
 document.getElementById("btnBackup").onclick=backup;
