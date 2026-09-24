@@ -356,7 +356,7 @@ thead .coluna-label{
  </div>
 </div>
 
-<div id="senhaOverlay" class="overlay">
+<div id="senhaOverlay" class="overlay" style="display:none;">
  <div class="login-box">
   <h2>🔐 Administrador</h2>
   <input id="inpSenhaAdmin" type="password" placeholder="Digite a senha..." class="senha-input">
@@ -365,12 +365,12 @@ thead .coluna-label{
  </div>
 </div>
 
-<div id="usuarioOnline">
+<div id="usuarioOnline" style="display:none;">
  <span id="usuarioNomeOnline"></span>
  <button id="btnSair">Sair</button>
 </div>
 
-<div class="container">
+<div class="container" style="opacity:1;">
 <header>
  <h1>📊 Escala de Plantões - Bombeiros Comunitários</h1>
  <p>Sistema de Gerenciamento de Escala - BCs</p>
@@ -451,7 +451,7 @@ thead .coluna-label{
 
 <script>
 const ANO_ESCALA = 2026;
-const CHAVE_LOCAL = "escalaBCs_formato12_2026_v5";
+const CHAVE_LOCAL = "escalaBCs_formato12_2026_v6";
 const SLOT_COUNT = 12;
 const SENHA_ADMIN = "bombeiro2026";
 
@@ -488,7 +488,6 @@ function chaveNome(slot, dia) { return `${slot}_${dia}_nome`; }
 function chavePeriodo(slot, dia) { return `${slot}_${dia}_periodo`; }
 function mesAtual() { return document.getElementById("inputMes").value; }
 
-// VERIFICA QUAL MÊS ESTÁ LIBERADO
 function mesLiberado() {
  return dadosPorMes.__mesLiberado || null;
 }
@@ -602,7 +601,6 @@ function opcoesPeriodo(select, valor) {
  select.value = valor || "";
 }
 
-// ATUALIZA TODOS OS BLOQUEIOS
 function atualizarEstadoTrava() {
  const liberado = mesLiberado();
  const podeEditar = ehAdmin || mesEstaLiberadoParaEdicao();
@@ -610,12 +608,10 @@ function atualizarEstadoTrava() {
  const aviso = document.getElementById("avisoTravado");
  const selectMes = document.getElementById("inputMes");
  
- // Nome do mês liberado no aviso
  if (liberado) {
   document.getElementById("mesLiberadoNome").textContent = nomesMes[Number(liberado)-1];
  }
  
- // BOTÃO DO ADMIN
  if (liberado) {
   btn.textContent = "🔓 Destravar Todos os Meses";
   btn.classList.remove("btn-travar");
@@ -626,28 +622,22 @@ function atualizarEstadoTrava() {
   btn.classList.add("btn-travar");
  }
  
- // AVISO PARA GVCs
  aviso.style.display = !ehAdmin && liberado ? "block" : "none";
  
- // BLOQUEIA SELEÇÃO DE MÊS FORA DO LIBERADO
  if (!ehAdmin && liberado) {
   selectMes.disabled = true;
-  // Força ficar no mês liberado
   selectMes.value = liberado;
  } else {
   selectMes.disabled = false;
  }
  
- // BLOQUEIA CAMPOS DA TABELA
  document.querySelectorAll(".select-escala").forEach(sel => {
   sel.disabled = !podeEditar;
  });
  
- // BLOQUEIA BOTÃO SALVAR
  document.getElementById("btnSalvar").disabled = !podeEditar;
 }
 
-// AÇÃO DO BOTÃO TRAVAR/DESTRAVAR
 document.getElementById("btnTravarMes").onclick = () => {
  if (!ehAdmin) return;
  const liberado = mesLiberado();
