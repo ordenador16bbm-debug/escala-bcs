@@ -4,14 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Escala BCs</title>
+
+<!-- Ícone personalizado -->
+<link rel="icon" type="image/png" href="icone-escala.png">
+<link rel="apple-touch-icon" href="icone-escala.png">
+
 <meta name="theme-color" content="#0b5d1e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Escala BCs">
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 <style>
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -451,7 +458,7 @@ thead .coluna-label{
 
 <script>
 const ANO_ESCALA = 2026;
-const CHAVE_LOCAL = "escalaBCs_formato12_2026_v6";
+const CHAVE_LOCAL = "escalaBCs_formato12_2026_v7";
 const SLOT_COUNT = 12;
 const SENHA_ADMIN = "bombeiro2026";
 
@@ -644,7 +651,7 @@ document.getElementById("btnTravarMes").onclick = () => {
  
  if (liberado) {
   delete dadosPorMes.__mesLiberado;
-  status("🔓 Destravado — todos os meses liberados para alteração.");
+  status("🔓 Destravar — todos os meses liberados para alteração.");
  } else {
   dadosPorMes.__mesLiberado = mesAtual();
   status(`🔒 Travado — somente ${nomesMes[Number(mesAtual())-1]} liberado para alteração.`);
