@@ -122,7 +122,7 @@ thead .coluna-label{background:#0b5d1e;color:#fff}
  </header>
 
  <div id="avisoBC" class="aviso-bc hidden">
-  👤 Você pode lançar somente o seu próprio nome. Confirme e avise o administrador.
+  👤 Você confirma apenas o seu nome. Todos veem as marcações.
  </div>
 
  <div id="avisoTravado" class="aviso-travado">
@@ -207,14 +207,17 @@ function mesAtual() { return document.getElementById("selMes").value; }
 function chaveNome(vaga, dia) { return `${vaga}_${dia}_nome`; }
 function chavePeriodo(vaga, dia) { return `${vaga}_${dia}_periodo`; }
 function podeEditar() { return ehAdmin || !mesLiberado || mesLiberado === mesAtual(); }
+
 function status(texto, tipo="") {
  const el = document.getElementById("statusSistema");
  el.className = "status " + tipo;
  el.textContent = texto;
 }
+
 function salvarTudo() {
  localStorage.setItem(CHAVE_SALVAMENTO, JSON.stringify({dados:dadosGerais, mesLiberado:mesLiberado}));
 }
+
 function carregarTudo() {
  try {
   const t = JSON.parse(localStorage.getItem(CHAVE_SALVAMENTO) || "{}");
@@ -224,6 +227,7 @@ function carregarTudo() {
   dadosGerais = {}; mesLiberado = null;
  }
 }
+
 function dadosDoMes() { return dadosGerais[mesAtual()] || {}; }
 function salvarDadosMes(dados) { dadosGerais[mesAtual()] = dados; salvarTudo(); }
 
@@ -324,13 +328,20 @@ function montarSelectNome(valorAtual, chave) {
  const sel = document.createElement("select");
  sel.className = "select-escala";
  sel.innerHTML = `<option value="">—</option>`;
+
  if (ehAdmin) {
   listaNomes.forEach(n => sel.innerHTML += `<option value="${n}">${n}</option>`);
  } else {
-  sel.innerHTML += `<option value="${usuario}">${usuario}</option>`;
+  if (valorAtual && valorAtual !== usuario) {
+   sel.innerHTML = `<option value="${valorAtual}" selected>${valorAtual}</option>`;
+   sel.disabled = true;
+  } else {
+   sel.innerHTML += `<option value="${usuario}">${usuario}</option>`;
+   sel.disabled = !podeEditar();
+  }
  }
  sel.value = valorAtual || "";
- sel.disabled = !podeEditar();
+
  sel.onchange = () => {
   if (!ehAdmin && sel.value && sel.value !== usuario) {
    status("🔒 Você só pode lançar seu próprio nome", "aviso");
@@ -340,7 +351,7 @@ function montarSelectNome(valorAtual, chave) {
   const dados = dadosDoMes();
   dados[chave] = sel.value;
   salvarDadosMes(dados);
-  status("✏️ Alterado — lembre de Salvar", "aviso");
+  status("✏️ Alterado — clique em Salvar", "aviso");
  };
  return sel;
 }
@@ -350,12 +361,25 @@ function montarSelectPeriodo(valorAtual, chave) {
  sel.className = "select-escala";
  periodos.forEach(p => sel.innerHTML += `<option value="${p}">${p||"—"}</option>`);
  sel.value = valorAtual || "";
- sel.disabled = !podeEditar();
+
+ if (!ehAdmin) {
+  const dados = dadosDoMes();
+  const chNome = chave.replace("_periodo", "_nome");
+  const nomeMarcado = dados[chNome] || "";
+  if (nomeMarcado && nomeMarcado !== usuario) {
+   sel.disabled = true;
+  } else {
+   sel.disabled = !podeEditar();
+  }
+ } else {
+  sel.disabled = !podeEditar();
+ }
+
  sel.onchange = () => {
   const dados = dadosDoMes();
   dados[chave] = sel.value;
   salvarDadosMes(dados);
-  status("✏️ Alterado — lembre de Salvar", "aviso");
+  status("✏️ Alterado — clique em Salvar", "aviso");
  };
  return sel;
 }
@@ -393,9 +417,11 @@ function montarTabela() {
    const fim = dow === 0 || dow === 6;
    const kNome = chaveNome(v, d);
    const kPer = chavePeriodo(v, d);
+   const valNome = dados[kNome] || "";
+   const valPer = dados[kPer] || "";
 
-   const selNome = montarSelectNome(dados[kNome] || "", kNome);
-   const selPer = montarSelectPeriodo(dados[kPer] || "", kPer);
+   const selNome = montarSelectNome(valNome, kNome);
+   const selPer = montarSelectPeriodo(valPer, kPer);
 
    const tdN = document.createElement("td");
    tdN.className = `col-dia ${fim?"fim-semana":""}`;
@@ -420,7 +446,7 @@ document.getElementById("btnSalvar").onclick = () => {
   return;
  }
  salvarTudo();
- status("✅ Salvo! Guarde o backup e envie para o administrador", "ok");
+ status("✅ Salvo!", "ok");
 };
 
 document.getElementById("selMes").onchange = montarTabela;
@@ -465,7 +491,7 @@ document.getElementById("btnExcel").onclick = () => {
  linhas.push(["Dia", ...Array.from({length:dias}, (_,i) => nomesSemana[new Date(ANO, Number(mes)-1, i+1).getDay()])]);
  for (let v = 0; v < QTD_VAGAS; v++) {
   linhas.push(["Nome", ...Array.from({length:dias}, (_,i) => dados[chaveNome(v,i+1)] || "")]);
-  linhas.push(["Período", ...Array.from({length:dias}, (_,i) => dados[chavePeriodo(v,i+1)] || "")]);
+  linhas.push(["TP Escala", ...Array.from({length:dias}, (_,i) => dados[chavePeriodo(v,i+1)] || "")]);
  }
  const wb = XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(linhas), "Escala");
@@ -492,12 +518,13 @@ document.getElementById("btnPDF").onclick = async () => {
 };
 
 document.getElementById("btnBackup").onclick = () => {
+ if (!ehAdmin) return;
  const blob = new Blob([JSON.stringify({dados:dadosGerais, mesLiberado}, null, 2)], {type:"application/json"});
  const a = document.createElement("a");
  a.href = URL.createObjectURL(blob);
  a.download = `backup_escala_${ANO}_${mesAtual()}.json`;
  a.click();
- status("✅ Backup baixado — envie para o administrador", "ok");
+ status("✅ Backup baixado", "ok");
 };
 
 document.getElementById("btnRestaurar").onclick = () => document.getElementById("arquivoBackup").click();
