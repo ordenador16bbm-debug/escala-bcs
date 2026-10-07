@@ -23,7 +23,6 @@ const NOMES_GUERRA = [
 ];
 
 const PERIODOS = ['', 'DIURNO', 'NOTURNO', 'INTEGRAL'];
-const SLOTS = 12;
 
 // ================= ROTAS PRINCIPAIS =================
 function doGet(e) {
@@ -40,7 +39,7 @@ function doGet(e) {
       }
     }
     return HtmlService.createHtmlOutput(gerarPaginaEscala(usuario, ehAdmin))
-      .setTitle(`${CONFIG.TITULO} — ${usuario}`)
+      .setTitle(CONFIG.TITULO)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
@@ -54,7 +53,6 @@ function doGet(e) {
 function inicializarPlanilhas() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
-  // Aba Usuários
   let abaUsuarios = ss.getSheetByName(CONFIG.ABA_USUARIOS);
   if (!abaUsuarios) {
     abaUsuarios = ss.insertSheet(CONFIG.ABA_USUARIOS);
@@ -63,7 +61,6 @@ function inicializarPlanilhas() {
     ]).setFontWeight('bold');
   }
   
-  // Gera senhas para novos nomes
   const existentes = new Set();
   if (abaUsuarios.getLastRow() > 1) {
     existentes.add(...abaUsuarios.getRange(2, 1, abaUsuarios.getLastRow() - 1, 1).getValues().flat());
@@ -74,7 +71,6 @@ function inicializarPlanilhas() {
     }
   });
   
-  // Aba Escala
   if (!ss.getSheetByName(CONFIG.ABA_ESCALA)) {
     const abaEscala = ss.insertSheet(CONFIG.ABA_ESCALA);
     abaEscala.getRange(1, 1, 1, 5).setValues([
@@ -106,13 +102,13 @@ function verificarAcesso(nomeGuerra, senha) {
       aba.getRange(i + 2, 3).setValue(new Date());
       return {
         ok: true,
-        mensagem: `✅ Bem-vindo, ${nomeGuerra}!`,
+        mensagem: 'Bem-vindo, ' + nomeGuerra + '!',
         usuario: nomeGuerra,
         admin: Boolean(dados[i][3])
       };
     }
   }
-  return { ok: false, mensagem: '❌ Nome de guerra ou código incorretos.' };
+  return { ok: false, mensagem: 'Nome de guerra ou código incorretos.' };
 }
 
 // ================= ALTERAÇÃO DE SENHA =================
@@ -125,10 +121,10 @@ function alterarSenha(nomeGuerra, senhaAtual, novaSenha) {
   for (let i = 0; i < dados.length; i++) {
     if (dados[i][0] === nomeGuerra && dados[i][1] === senhaAtual) {
       aba.getRange(i + 2, 2).setValue(novaSenha);
-      return { ok: true, mensagem: '✅ Senha alterada com sucesso!' };
+      return { ok: true, mensagem: 'Senha alterada com sucesso!' };
     }
   }
-  return { ok: false, mensagem: '❌ Senha atual incorreta.' };
+  return { ok: false, mensagem: 'Senha atual incorreta.' };
 }
 
 // ================= DADOS DA ESCALA =================
@@ -136,15 +132,15 @@ function carregarEscala(mes, usuario, ehAdmin) {
   const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_ESCALA);
   const linhas = aba.getRange(2, 1, Math.max(0, aba.getLastRow() - 1), 5).getValues();
   const dados = {};
-  linhas.forEach(([m, dia, slot, nome, periodo]) => {
+  linhas.forEach(function(linha) {
+    const m = linha[0], dia = linha[1], slot = linha[2], nome = linha[3], periodo = linha[4];
     if (String(m) === String(mes)) {
-      dados[`${slot}_${dia}_nome`] = nome || '';
-      dados[`${slot}_${dia}_periodo`] = periodo || '';
+      dados[slot + '_' + dia + '_nome'] = nome || '';
+      dados[slot + '_' + dia + '_periodo'] = periodo || '';
     }
   });
   return {
-    dados,
-    podeEditar: ehAdmin ? 'todos' : usuario,
+    dados: dados,
     diasNoMes: new Date(CONFIG.ANO_ESCALA, Number(mes), 0).getDate()
   };
 }
@@ -153,260 +149,252 @@ function salvarEscala(mes, alteracoes, usuario, ehAdmin) {
   const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_ESCALA);
   const linhas = aba.getRange(2, 1, Math.max(0, aba.getLastRow() - 1), 5).getValues();
   const manter = [];
-  for (const linha of linhas) {
-    if (String(linha[0]) !== String(mes)) manter.push(linha);
+  for (let i = 0; i < linhas.length; i++) {
+    if (String(linhas[i][0]) !== String(mes)) {
+      manter.push(linhas[i]);
+    }
   }
   for (const [chave, valor] of Object.entries(alteracoes)) {
     const match = chave.match(/^(\d+)_(\d+)_(nome|periodo)$/);
     if (!match) continue;
-    const [, slot, dia, tipo] = match;
+    const slot = match[1], dia = match[2], tipo = match[3];
     if (tipo === 'nome') {
       if (!ehAdmin && valor && valor !== usuario) continue;
-      manter.push([mes, Number(dia), Number(slot), valor, alteracoes[`${slot}_${dia}_periodo`] || '']);
+      manter.push([mes, Number(dia), Number(slot), valor, alteracoes[slot + '_' + dia + '_periodo'] || '']);
     }
   }
   aba.clearContents();
   aba.getRange(1, 1, 1, 5).setValues([['Mes','Dia','Slot','Nome','Periodo']]).setFontWeight('bold');
-  if (manter.length) aba.getRange(2, 1, manter.length, 5).setValues(manter);
-  return { ok: true, mensagem: '✅ Escala salva!' };
+  if (manter.length > 0) {
+    aba.getRange(2, 1, manter.length, 5).setValues(manter);
+  }
+  return { ok: true, mensagem: 'Escala salva!' };
 }
 
-// ================= INTERFACES =================
+// ================= INTERFACE DE LOGIN =================
 function gerarPaginaLogin() {
-  const opcoes = NOMES_GUERRA.map(n => `<option value="${n}">${n}</option>`).join('');
-  return `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${CONFIG.TITULO}</title>
-<style>
-*{box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:linear-gradient(135deg,#0b5d1e,#1a752f);min-height:100vh;margin:0;padding:1rem;display:flex;align-items:center;justify-content:center}
-.card{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-h1{color:#0b5d1e;text-align:center;margin:0 0 .3rem;font-size:1.4rem}
-h2{text-align:center;color:#444;font-weight:normal;margin:0 0 2rem;font-size:1rem}
-label{display:block;margin:1rem 0 .3rem;font-weight:bold;color:#333}
-select,input{width:100%;padding:.9rem;border:2px solid #ddd;border-radius:8px;font-size:1rem}
-select:focus,input:focus{border-color:#0b5d1e;outline:none}
-button{width:100%;margin-top:1.5rem;padding:1rem;background:#0b5d1e;color:#fff;border:none;border-radius:8px;font-size:1.1rem;font-weight:bold;cursor:pointer}
-button:hover{background:#0d7024}
-.msg{margin-top:1rem;padding:1rem;border-radius:8px;text-align:center;display:none}
-.sucesso{background:#e6f9e9;color:#0b5d1e;display:block}
-.erro{background:#ffe9e9;color:#b02030;display:block}
-.info{text-align:center;margin-top:1.5rem;font-size:.9rem;color:#66}
-</style>
-</head>
-<body>
-<div class="card">
-  <h1>🚒 Bombeiros Comunitários Itapoá</h1>
-  <h2>Acesso à Escala de Plantões</h2>
-  <form id="f">
-    <label>Nome de Guerra</label>
-    <select id="ng" required><option value="">— Selecione —</option>${opcoes}</select>
-    <label>Código de Acesso (7 dígitos)</label>
-    <input type="text" id="senha" maxlength="7" inputmode="numeric" placeholder="0000000" required>
-    <button type="submit">Entrar</button>
-  </form>
-  <div id="m" class="msg"></div>
-  <p class="info">Digite o código recebido. Se esqueceu, peça ao administrador.</p>
-</div>
-<script>
-const f=document.getElementById('f'),m=document.getElementById('m');
-f.addEventListener('submit',async e=>{
-  e.preventDefault();m.className='msg';m.textContent='';
-  const ng=document.getElementById('ng').value,s=document.getElementById('senha').value.trim();
-  if(!/^\\d{7}$/.test(s)){m.className='msg erro';m.textContent='Digite exatamente 7 números.';return}
-  const r=await google.script.run.withSuccessHandler(d=>{
-    m.className='msg '+(d.ok?'sucesso':'erro');m.textContent=d.mensagem;
-    if(d.ok)setTimeout(()=>window.location.href='?usuario='+encodeURIComponent(d.usuario),1200);
-  }).verificarAcesso(ng,s);
-});
-</script>
-</body>
-</html>`;
-}
-
-function gerarPaginaEscala(usuario, ehAdmin) {
-  const opcoesMes = CONFIG.MESES.map((n,i) => {
-    const m = String(i+1).padStart(2,'0');
-    return `<option value="${m}" ${Number(m)===new Date().getMonth()+1?'selected':''}>${n}</option>`;
-  }).join('');
-  const opcoesPeriodo = PERIODOS.map(p => `<option value="${p}">${p||'—'}</option>`).join('');
-  const opcoesNome = ehAdmin
-    ? NOMES_GUERRA.map(n => `<option value="${n}">${n}</option>`).join('')
-    : `<option value="${usuario}" selected>${usuario}</option>`;
+  var opcoes = '<option value="">— Selecione —</option>';
+  for (var i = 0; i < NOMES_GUERRA.length; i++) {
+    opcoes += '<option value="' + NOMES_GUERRA[i] + '">' + NOMES_GUERRA[i] + '</option>';
+  }
   
-  return `
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Escala — ${usuario}</title>
-<style>
-*{box-sizing:border-box;font-family:Arial,sans-serif}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;padding:10px;background:#f3f6f9}
-.cabecalho{background:#0b5d1e;color:#fff;padding:15px;border-radius:10px;text-align:center}
-.usuario{position:fixed;top:8px;right:8px;background:#fff;color:#0b5d1e;padding:6px 12px;border-radius:20px;font-weight:bold;font-size:.9rem;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-.btn-sair{margin-left:8px;background:#0b5d1e;color:#fff;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:.8rem}
-.painel{background:#fff;padding:12px;border-radius:8px;margin:10px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-label{font-weight:bold;font-size:.9rem}
-select,input{padding:8px;border:1px solid #bbb;border-radius:6px}
-button{padding:9px 14px;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-.btn-salvar{background:#198754;color:#fff}
-.btn-senha{background:#6f42c1;color:#fff}
-.btn-sair-principal{background:#dc3545;color:#fff;margin-left:auto}
-.aviso{background:#fff8e1;border-left:5px solid #f0ad00;padding:10px;border-radius:4px;margin:10px 0}
-.avisoAdmin{background:#e6f9e9;border-left:5px solid #0b5d1e;padding:10px;border-radius:4px;margin:10px 0}
-table{border-collapse:collapse;width:100%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.1)}
-th,td{border:1px solid #ccc;padding:5px;text-align:center;font-size:.85rem}
-th{background:#0b5d1e;color:#fff}
-.col-fixa{position:sticky;left:0;background:#f0f9f1;font-weight:bold;min-width:130px}
-.fim-semana{background:#fff0f0}
-select{width:100%;border-radius:4px;border:1px solid #ddd;padding:3px}
-.status{margin:10px 0;padding:10px;background:#eef3f7;border-radius:6px;font-size:.9rem}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px}
-.modal.aberto{display:flex}
-.modal-caixa{background:#fff;border-radius:12px;padding:24px;max-width:360px;width:100%}
-.modal-caixa h3{margin-top:0;color:#0b5d1e}
-.oculto{display:none}
-@media(max-width:800px){
-  .painel{flex-direction:column;align-items:stretch}
-  .btn-sair-principal{margin-left:0}
-  table{font-size:.75rem}
-  th,td{padding:3px}
-}
-</style>
-</head>
-<body>
-<div class="usuario">${usuario}${ehAdmin?' ⭐':''}<button class="btn-sair" onclick="sair()">Sair</button></div>
-<div class="cabecalho">
-  <h1>📊 Escala de Plantões — Itapoá/SC</h1>
-  <p>Bombeiros Comunitários — Ano ${CONFIG.ANO_ESCALA}</p>
-</div>
-<div class="painel">
-  <label>Mês:</label>
-  <select id="mes">${opcoesMes}</select>
-  <button id="btnSalvar" class="btn-salvar">💾 Salvar</button>
-  <button id="btnTrocarSenha" class="btn-senha">🔑 Alterar Senha</button>
-  <button class="btn-sair-principal" onclick="sair()">🚪 Sair</button>
-</div>
-${ehAdmin
-  ? '<div id="avisoAdmin" class="avisoAdmin">⭐ <strong>Modo Administrador:</strong> Você pode lançar nomes de todos os membros.</div>'
-  : '<div id="avisoBC" class="aviso">🔒 Você pode lançar apenas seu próprio nome: <strong>'+usuario+'</strong></div>'
-}
-<div id="infoMes" class="status"></div>
-<div id="tabelaContainer"></div>
-<div id="status" class="status">Carregando...</div>
-
-<!-- Modal Alterar Senha -->
-<div id="modalSenha" class="modal">
-  <div class="modal-caixa">
-    <h3>🔑 Alterar Código de Acesso</h3>
-    <p>
-      <label>Senha Atual</label>
-      <input type="text" id="senhaAtual" maxlength="7" inputmode="numeric" placeholder="0000000">
-    </p>
-    <p>
-      <label>Nova Senha (7 dígitos)</label>
-      <input type="text" id="novaSenha" maxlength="7" inputmode="numeric" placeholder="0000000">
-    </p>
-    <p>
-      <label>Repetir Nova Senha</label>
-      <input type="text" id="confNovaSenha" maxlength="7" inputmode="numeric" placeholder="0000000">
-    </p>
-    <button onclick="confirmarSenha()">✅ Confirmar</button>
-    <button style="background:#ccc;color:#000;margin-left:8px" onclick="fecharModal()">Cancelar</button>
-    <p id="msgSenha" style="margin-top:10px"></p>
-  </div>
-</div>
-
-<script>
-const USUARIO = '${usuario}';
-const EH_ADMIN = ${ehAdmin};
-const PERIODOS = ${JSON.stringify(PERIODOS)};
-const NOMES = ${JSON.stringify(NOMES_GUERRA)};
-const OPCOES_NOMES = \`${opcoesNome}\`;
-let dados = {}, dadosOriginais = {};
-
-function carregar(){
-  const mes = document.getElementById('mes').value;
-  document.getElementById('status').textContent = 'Carregando...';
-  google.script.run.withSuccessHandler(r=>{
-    dados = {...r.dados}; dadosOriginais = {...r.dados};
-    montarTabela(mes, r.diasNoMes);
-    document.getElementById('infoMes').textContent = \`📅 \${CONFIG.MESES[Number(mes)-1]} — \${r.diasNoMes} dias\`;
-    document.getElementById('status').textContent = '✅ Pronto';
-  }).carregarEscala(mes, USUARIO, EH_ADMIN);
+  return '<!DOCTYPE html>' +
+'<html lang="pt-BR">' +
+'<head>' +
+'<meta charset="UTF-8">' +
+'<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+'<title>' + CONFIG.TITULO + '</title>' +
+'<style>' +
+'* { box-sizing: border-box; font-family: Arial, sans-serif; margin: 0; padding: 0; }' +
+'body { background: linear-gradient(135deg, #0b5d1e, #1a752f); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }' +
+'.card { background: white; border-radius: 16px; padding: 30px; width: 100%; max-width: 420px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }' +
+'h1 { color: #0b5d1e; text-align: center; font-size: 20px; margin-bottom: 5px; }' +
+'h2 { text-align: center; color: #555; font-size: 16px; margin-bottom: 25px; font-weight: normal; }' +
+'label { display: block; margin: 15px 0 5px; font-weight: bold; color: #333; font-size: 14px; }' +
+'select, input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }' +
+'select:focus, input:focus { border-color: #0b5d1e; outline: none; }' +
+'button { width: 100%; padding: 14px; background: #0b5d1e; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 20px; cursor: pointer; }' +
+'button:hover { background: #0d7024; }' +
+'.mensagem { margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center; display: none; }' +
+'.sucesso { background: #e6f9e9; color: #0b5d1e; display: block; }' +
+'.erro { background: #ffe9e9; color: #b02030; display: block; }' +
+'.info { text-align: center; margin-top: 20px; font-size: 13px; color: #666; }' +
+'</style>' +
+'</head>' +
+'<body>' +
+'<div class="card">' +
+'<h1>Bombeiros Comunitários Itapoá</h1>' +
+'<h2>Acesso à Escala de Plantões</h2>' +
+'<form id="formLogin">' +
+'<label for="nomeGuerra">Nome de Guerra</label>' +
+'<select id="nomeGuerra" required>' + opcoes + '</select>' +
+'<label for="senha">Código de Acesso (7 dígitos)</label>' +
+'<input type="text" id="senha" maxlength="7" inputmode="numeric" placeholder="0000000" required>' +
+'<button type="submit">Entrar</button>' +
+'</form>' +
+'<div id="caixaMensagem" class="mensagem"></div>' +
+'<p class="info">Digite o código recebido. Se esqueceu, peça ao administrador.</p>' +
+'</div>' +
+'<script>' +
+'document.getElementById("formLogin").addEventListener("submit", function(e){' +
+'e.preventDefault();' +
+'var nome = document.getElementById("nomeGuerra").value;' +
+'var senha = document.getElementById("senha").value.trim();' +
+'var msg = document.getElementById("caixaMensagem");' +
+'msg.className = "mensagem"; msg.textContent = "";' +
+'if (!/^\\d{7}$/.test(senha)) { msg.className = "mensagem erro"; msg.textContent = "Digite exatamente 7 números."; return; }' +
+'google.script.run.withSuccessHandler(function(d){' +
+'msg.className = "mensagem " + (d.ok ? "sucesso" : "erro");' +
+'msg.textContent = d.mensagem;' +
+'if (d.ok) { setTimeout(function(){ window.location.href = "?usuario=" + encodeURIComponent(d.usuario); }, 1200); }' +
+'}).verificarAcesso(nome, senha);' +
+'});' +
+'</script>' +
+'</body>' +
+'</html>';
 }
 
-function montarTabela(mes, dias){
-  let html = '<table><thead><tr><th class="col-fixa">Nome / Período</th>';
-  for(let d=1;d<=dias;d++){
-    const s=new Date(${CONFIG.ANO_ESCALA},Number(mes)-1,d).getDay();
-    html += \`<th class="\${s===0||s===6?'fim-semana':''}">\${d}/\${mes}<br><small>\${CONFIG.DIAS_SEMANA[s].slice(0,3)}</small></th>\`;
+// ================= INTERFACE DA ESCALA =================
+function gerarPaginaEscala(usuario, ehAdmin) {
+  var opcoesMes = '';
+  for (var i = 0; i < CONFIG.MESES.length; i++) {
+    var m = String(i+1).padStart(2, '0');
+    var sel = (i+1 === new Date().getMonth() + 1) ? 'selected' : '';
+    opcoesMes += '<option value="' + m + '" ' + sel + '>' + CONFIG.MESES[i] + '</option>';
   }
-  html += '</tr></thead><tbody>';
-  for(let slot=0;slot<12;slot++){
-    html += '<tr>';
-    html += '<td class="col-fixa">Nome de Guerra</td>';
-    for(let d=1;d<=dias;d++){
-      const k = slot+'_'+d+'_nome', v = dados[k]||'';
-      const bloquear = !EH_ADMIN && v && v !== USUARIO;
-      html += \`<td><select data-k="\${k}" onchange="alterar(this)"\${bloquear?' disabled':''}><option value="">—</option>\${OPCOES_NOMES}</select></td>\`;
+  
+  var opcoesNome = '';
+  if (ehAdmin) {
+    for (var j = 0; j < NOMES_GUERRA.length; j++) {
+      opcoesNome += '<option value="' + NOMES_GUERRA[j] + '">' + NOMES_GUERRA[j] + '</option>';
     }
-    html += '</tr><tr>';
-    html += '<td class="col-fixa">Período</td>';
-    for(let d=1;d<=dias;d++){
-      const k = slot+'_'+d+'_periodo', v = dados[k]||'';
-      html += \`<td><select data-k="\${k}" onchange="alterar(this)"><option value="">—</option>\${PERIODOS.map(p=>'<option value="'+p+'"'+(p===v?'selected':'')+'>'+(p||'—')+'</option>').join('')}</select></td>\`;
-    }
-    html += '</tr>';
+  } else {
+    opcoesNome = '<option value="' + usuario + '" selected>' + usuario + '</option>';
   }
-  html += '</tbody></table>';
-  document.getElementById('tabelaContainer').innerHTML = html;
-  document.querySelectorAll('select[data-k]').forEach(s=>s.value = dados[s.dataset.k]||'');
-}
+  
+  var opcoesPeriodo = '<option value="">—</option>';
+  for (var k = 0; k < PERIODOS.length; k++) {
+    if (PERIODOS[k]) opcoesPeriodo += '<option value="' + PERIODOS[k] + '">' + PERIODOS[k] + '</option>';
+  }
+  
+  var aviso = ehAdmin
+    ? '<div style="background:#e6f9e9;border-left:5px solid #0b5d1e;padding:10px;margin:10px 0;border-radius:4px;">⭐ Modo Administrador: você pode lançar todos os nomes.</div>'
+    : '<div style="background:#fff8e1;border-left:5px solid #f0ad00;padding:10px;margin:10px 0;border-radius:4px;">🔒 Você pode lançar apenas seu próprio nome: <strong>' + usuario + '</strong></div>';
+  
+  return '<!DOCTYPE html>' +
+'<html lang="pt-BR">' +
+'<head>' +
+'<meta charset="UTF-8">' +
+'<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+'<title>Escala - ' + usuario + '</title>' +
+'<style>' +
+'* { box-sizing: border-box; font-family: Arial, sans-serif; }' +
+'body { margin: 0; padding: 10px; background: #f3f6f9; }' +
+'.topo { background: #0b5d1e; color: white; padding: 15px; border-radius: 10px; text-align: center; }' +
+'.usuario { position: fixed; top: 10px; right: 10px; background: white; color: #0b5d1e; padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }' +
+'.painel { background: white; padding: 12px; border-radius: 8px; margin: 10px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }' +
+'label { font-weight: bold; font-size: 14px; }' +
+'select, input { padding: 8px; border: 1px solid #bbb; border-radius: 6px; font-size: 14px; }' +
+'button { padding: 9px 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }' +
+'.btnSalvar { background: #198754; color: white; }' +
+'.btnSenha { background: #6f42c1; color: white; }' +
+'.btnSair { background: #dc3545; color: white; margin-left: auto; }' +
+'table { border-collapse: collapse; width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 10px; }' +
+'th, td { border: 1px solid #ccc; padding: 5px; text-align: center; font-size: 13px; }' +
+'th { background: #0b5d1e; color: white; }' +
+'.colFixa { position: sticky; left: 0; background: #f0f9f1; font-weight: bold; min-width: 130px; }' +
+'.fimSemana { background: #fff0f0; }' +
+'select { width: 100%; border: none; background: transparent; }' +
+'.status { margin: 10px 0; padding: 10px; background: #eef3f7; border-radius: 6px; font-size: 14px; }' +
+'.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; padding: 20px; }' +
+'.modal.aberto { display: flex; }' +
+'.modalBox { background: white; border-radius: 12px; padding: 25px; max-width: 360px; width: 100%; }' +
+'.modalBox h3 { margin-top: 0; color: #0b5d1e; }' +
+'.modalBox p { margin: 12px 0; }' +
+'.modalBox button:first-child { background: #0b5d1e; color: white; margin-right: 8px; }' +
+'.btnCancelar { background: #ccc; color: black; }' +
+'@media (max-width: 800px) { .painel { flex-direction: column; align-items: stretch; } .btnSair { margin-left: 0; } th, td { padding: 3px; font-size: 11px; } }' +
+'</style>' +
+'</head>' +
+'<body>' +
+'<div class="usuario">' + usuario + (ehAdmin ? ' ⭐' : '') + '<button onclick="sair()" style="margin-left:8px;background:#0b5d1e;color:white;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:12px;">Sair</button></div>' +
+'<div class="topo"><h1>Escala de Plantões - Itapoá/SC</h1><p>Bombeiros Comunitários - Ano ' + CONFIG.ANO_ESCALA + '</p></div>' +
+'<div class="painel">' +
+'<label>Mês:</label><select id="mes">' + opcoesMes + '</select>' +
+'<button class="btnSalvar" onclick="salvar()">Salvar</button>' +
+'<button class="btnSenha" onclick="abrirModalSenha()">Alterar Senha</button>' +
+'<button class="btnSair" onclick="sair()">Sair</button>' +
+'</div>' + aviso +
+'<div id="infoMes" class="status"></div>' +
+'<div id="tabela"></div>' +
+'<div id="status" class="status">Carregando...</div>' +
 
-function alterar(sel){ dados[sel.dataset.k] = sel.value; }
+'<div id="modalSenha" class="modal">' +
+'<div class="modalBox">' +
+'<h3>Alterar Código de Acesso</h3>' +
+'<p><label>Senha Atual</label><br><input type="text" id="senhaAtual" maxlength="7" inputmode="numeric" placeholder="0000000"></p>' +
+'<p><label>Nova Senha (7 dígitos)</label><br><input type="text" id="novaSenha" maxlength="7" inputmode="numeric" placeholder="0000000"></p>' +
+'<p><label>Repetir Nova Senha</label><br><input type="text" id="confNovaSenha" maxlength="7" inputmode="numeric" placeholder="0000000"></p>' +
+'<button onclick="confirmarSenha()">Confirmar</button>' +
+'<button class="btnCancelar" onclick="fecharModalSenha()">Cancelar</button>' +
+'<p id="msgSenha"></p>' +
+'</div></div>' +
 
-async function salvar(){
-  const mes = document.getElementById('mes').value;
-  const r = await google.script.run.withSuccessHandler(d=>{
-    dadosOriginais = {...dados};
-    document.getElementById('status').textContent = d.mensagem;
-  }).salvarEscala(mes, dados, USUARIO, EH_ADMIN);
-}
+'<script>' +
+'var USUARIO = "' + usuario + '";' +
+'var EH_ADMIN = ' + (ehAdmin ? 'true' : 'false') + ';' +
+'var ANO = ' + CONFIG.ANO_ESCALA + ';' +
+'var MESES = ' + JSON.stringify(CONFIG.MESES) + ';' +
+'var DIAS_SEMANA = ' + JSON.stringify(CONFIG.DIAS_SEMANA) + ';' +
+'var PERIODOS = ' + JSON.stringify(PERIODOS) + ';' +
+'var dados = {};' +
+'var opcoesNome = "' + opcoesNome + '";' +
+'var opcoesPeriodo = "' + opcoesPeriodo + '";' +
 
-function sair(){ if(confirm('Deseja sair?')) window.location.href='?'; }
+'function carregar(){' +
+'var mes = document.getElementById("mes").value;' +
+'document.getElementById("status").textContent = "Carregando...";' +
+'google.script.run.withSuccessHandler(function(r){' +
+'dados = r.dados || {};' +
+'montarTabela(mes, r.diasNoMes);' +
+'document.getElementById("infoMes").textContent = "Mes: " + MESES[Number(mes)-1] + " - " + r.diasNoMes + " dias";' +
+'document.getElementById("status").textContent = "Pronto";' +
+'}).carregarEscala(mes, USUARIO, EH_ADMIN);' +
+'}' +
 
-function abrirModal(){ document.getElementById('modalSenha').classList.add('aberto'); }
-function fecharModal(){ document.getElementById('modalSenha').classList.remove('aberto'); document.getElementById('msgSenha').textContent=''; }
+'function montarTabela(mes, dias){' +
+'var html = "<table><thead><tr><th class=colFixa>Nome / Período</th>";' +
+'for(var d=1;d<=dias;d++){ var s = new Date(ANO, Number(mes)-1, d).getDay();' +
+'html += "<th" + (s===0||s===6?" class=fimSemana":"") + ">" + d + "/" + mes + "<br><small>" + DIAS_SEMANA[s].substring(0,3) + "</small></th>";' +
+'}' +
+'html += "</tr></thead><tbody>";' +
+'for(var slot=0;slot<12;slot++){' +
+'html += "<tr><td class=colFixa>Nome de Guerra</td>";' +
+'for(var d=1;d<=dias;d++){ var k = slot + "_" + d + "_nome"; var v = dados[k]||"";' +
+'dados[k] = v;' +
+'var bloq = !EH_ADMIN && v && v !== USUARIO ? "disabled" : "";' +
+'html += "<td><select data-k="+k+" onchange=\"dados[this.dataset.k]=this.value\" " + bloq + "><option value=\"\">—</option>" + opcoesNome + "</select></td>";' +
+'}' +
+'html += "</tr><tr><td class=colFixa>Período</td>";' +
+'for(var d=1;d<=dias;d++){ var k = slot + "_" + d + "_periodo"; var v = dados[k]||"";' +
+'dados[k] = v;' +
+'html += "<td><select data-k="+k+" onchange=\"dados[this.dataset.k]=this.value\"><option value=\"\">—</option>" + opcoesPeriodo.replace("value=\\""+v+"\\"", "selected") + "</select></td>";' +
+'}' +
+'html += "</tr>";' +
+'}' +
+'html += "</tbody></table>";' +
+'document.getElementById("tabela").innerHTML = html;' +
+'document.querySelectorAll("select[data-k]").forEach(function(s){ s.value = dados[s.dataset.k] || ""; });' +
+'}' +
 
-async function confirmarSenha(){
-  const a = document.getElementById('senhaAtual').value.trim();
-  const n = document.getElementById('novaSenha').value.trim();
-  const c = document.getElementById('confNovaSenha').value.trim();
-  const m = document.getElementById('msgSenha');
-  if(!/^\\d{7}$/.test(n)){m.textContent='❌ Nova senha: 7 dígitos.';return}
-  if(n!==c){m.textContent='❌ As senhas não coincidem.';return}
-  const r = await google.script.run.withSuccessHandler(d=>{
-    m.style.color = d.ok?'green':'red';
-    m.textContent = d.mensagem;
-    if(d.ok) setTimeout(fecharModal,1500);
-  }).alterarSenha(USUARIO,a,n);
-}
+'function salvar(){ var mes = document.getElementById("mes").value;' +
+'google.script.run.withSuccessHandler(function(d){' +
+'document.getElementById("status").textContent = d.mensagem || "Salvo!";' +
+'setTimeout(function(){ document.getElementById("status").textContent = ""; }, 3000);' +
+'}).salvarEscala(mes, dados, USUARIO, EH_ADMIN);' +
+'}' +
 
-document.getElementById('mes').addEventListener('change',carregar);
-document.getElementById('btnSalvar').addEventListener('click',salvar);
-document.getElementById('btnTrocarSenha').addEventListener('click',abrirModal);
-carregar();
-</script>
-</body>
-</html>`;
+'function sair(){ if(confirm("Deseja sair?")) window.location.href="?"; }' +
+'function abrirModalSenha(){ document.getElementById("modalSenha").classList.add("aberto"); }' +
+'function fecharModalSenha(){ document.getElementById("modalSenha").classList.remove("aberto"); document.getElementById("msgSenha").textContent=""; }' +
+'function confirmarSenha(){ var a = document.getElementById("senhaAtual").value.trim();' +
+'var n = document.getElementById("novaSenha").value.trim();' +
+'var c = document.getElementById("confNovaSenha").value.trim();' +
+'var m = document.getElementById("msgSenha");' +
+'if(!/^\\d{7}$/.test(n)){ m.textContent = "Nova senha: 7 dígitos."; return; }' +
+'if(n !== c){ m.textContent = "As senhas não coincidem."; return; }' +
+'google.script.run.withSuccessHandler(function(d){' +
+'m.style.color = d.ok ? "green" : "red";' +
+'m.textContent = d.mensagem;' +
+'if(d.ok) setTimeout(fecharModalSenha, 1500);' +
+'}).alterarSenha(USUARIO, a, n);' +
+'}' +
+
+'document.getElementById("mes").addEventListener("change", carregar);' +
+'carregar();' +
+'</script>' +
+'</body>' +
+'</html>';
 }
 
 // ================= FERRAMENTAS ADMINISTRATIVAS =================
@@ -416,7 +404,7 @@ function gerarTodasSenhas() {
   for (let linha = 2; linha <= aba.getLastRow(); linha++) {
     aba.getRange(linha, 2).setValue(gerarSenhaUnica(aba));
   }
-  SpreadsheetApp.getUi().alert('✅ Todas as senhas foram regeneradas!');
+  SpreadsheetApp.getUi().alert('Todas as senhas foram regeneradas!');
 }
 
 function definirAdmin(nome) {
@@ -425,9 +413,9 @@ function definirAdmin(nome) {
   for (let i = 0; i < linhas.length; i++) {
     if (linhas[i][0] === nome) {
       aba.getRange(i + 2, 4).setValue(true);
-      SpreadsheetApp.getUi().alert(`✅ ${nome} agora é administrador! ⭐`);
+      SpreadsheetApp.getUi().alert(nome + ' agora é administrador! ⭐');
       return;
     }
   }
-  SpreadsheetApp.getUi().alert('❌ Nome não encontrado. Verifique a grafia.');
+  SpreadsheetApp.getUi().alert('Nome não encontrado. Verifique a grafia.');
 }
