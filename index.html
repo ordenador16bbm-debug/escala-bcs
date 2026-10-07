@@ -4,7 +4,7 @@ const CONFIG = {
   ABA_ESCALA: 'Escala',
   SENHA_TAMANHO: 7,
   TITULO: 'Escala BCs — Bombeiros Comunitários Itapoá',
-  ANO_ESCALA: 2026,
+  ANO_ESCALA: new Date().getFullYear(),
   MESES: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
   DIAS_SEMANA: ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado']
 };
@@ -30,7 +30,16 @@ function doGet(e) {
   inicializarPlanilhas();
   const usuario = e.parameter.usuario;
   if (usuario) {
-    return HtmlService.createHtmlOutput(gerarPaginaEscala(usuario))
+    const abaUsuarios = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
+    const dados = abaUsuarios.getRange(2, 1, abaUsuarios.getLastRow() - 1, 4).getValues();
+    let ehAdmin = false;
+    for (let i = 0; i < dados.length; i++) {
+      if (dados[i][0] === usuario) {
+        ehAdmin = Boolean(dados[i][3]);
+        break;
+      }
+    }
+    return HtmlService.createHtmlOutput(gerarPaginaEscala(usuario, ehAdmin))
       .setTitle(`${CONFIG.TITULO} — ${usuario}`)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -122,19 +131,6 @@ function alterarSenha(nomeGuerra, senhaAtual, novaSenha) {
   return { ok: false, mensagem: '❌ Senha atual incorreta.' };
 }
 
-function redefinirSenhaAdmin(nomeAlvo, novaSenha) {
-  if (!/^\d{7}$/.test(novaSenha)) return { ok: false, mensagem: '7 dígitos obrigatórios.' };
-  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
-  const dados = aba.getRange(2, 1, aba.getLastRow() - 1, 2).getValues();
-  for (let i = 0; i < dados.length; i++) {
-    if (dados[i][0] === nomeAlvo) {
-      aba.getRange(i + 2, 2).setValue(novaSenha);
-      return { ok: true, mensagem: `Senha de ${nomeAlvo} atualizada.` };
-    }
-  }
-  return { ok: false, mensagem: 'Usuário não encontrado.' };
-}
-
 // ================= DADOS DA ESCALA =================
 function carregarEscala(mes, usuario, ehAdmin) {
   const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_ESCALA);
@@ -196,8 +192,6 @@ select,input{width:100%;padding:.9rem;border:2px solid #ddd;border-radius:8px;fo
 select:focus,input:focus{border-color:#0b5d1e;outline:none}
 button{width:100%;margin-top:1.5rem;padding:1rem;background:#0b5d1e;color:#fff;border:none;border-radius:8px;font-size:1.1rem;font-weight:bold;cursor:pointer}
 button:hover{background:#0d7024}
-.secundario{background:#fff;color:#0b5d1e;border:2px solid #0b5d1e;margin-top:.8rem}
-.secundario:hover{background:#f0f9f1}
 .msg{margin-top:1rem;padding:1rem;border-radius:8px;text-align:center;display:none}
 .sucesso{background:#e6f9e9;color:#0b5d1e;display:block}
 .erro{background:#ffe9e9;color:#b02030;display:block}
@@ -234,13 +228,16 @@ f.addEventListener('submit',async e=>{
 </html>`;
 }
 
-function gerarPaginaEscala(usuario) {
-  const ehAdmin = false; // Defina manualmente abaixo ou via planilha
+function gerarPaginaEscala(usuario, ehAdmin) {
   const opcoesMes = CONFIG.MESES.map((n,i) => {
     const m = String(i+1).padStart(2,'0');
-    return `<option value="${m}" ${m==='10'?'selected':''}>${n}</option>`;
+    return `<option value="${m}" ${Number(m)===new Date().getMonth()+1?'selected':''}>${n}</option>`;
   }).join('');
   const opcoesPeriodo = PERIODOS.map(p => `<option value="${p}">${p||'—'}</option>`).join('');
+  const opcoesNome = ehAdmin
+    ? NOMES_GUERRA.map(n => `<option value="${n}">${n}</option>`).join('')
+    : `<option value="${usuario}" selected>${usuario}</option>`;
+  
   return `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -263,6 +260,7 @@ button{padding:9px 14px;border:none;border-radius:6px;font-weight:bold;cursor:po
 .btn-senha{background:#6f42c1;color:#fff}
 .btn-sair-principal{background:#dc3545;color:#fff;margin-left:auto}
 .aviso{background:#fff8e1;border-left:5px solid #f0ad00;padding:10px;border-radius:4px;margin:10px 0}
+.avisoAdmin{background:#e6f9e9;border-left:5px solid #0b5d1e;padding:10px;border-radius:4px;margin:10px 0}
 table{border-collapse:collapse;width:100%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.1)}
 th,td{border:1px solid #ccc;padding:5px;text-align:center;font-size:.85rem}
 th{background:#0b5d1e;color:#fff}
@@ -284,7 +282,7 @@ select{width:100%;border-radius:4px;border:1px solid #ddd;padding:3px}
 </style>
 </head>
 <body>
-<div class="usuario">${usuario}<button class="btn-sair" onclick="sair()">Sair</button></div>
+<div class="usuario">${usuario}${ehAdmin?' ⭐':''}<button class="btn-sair" onclick="sair()">Sair</button></div>
 <div class="cabecalho">
   <h1>📊 Escala de Plantões — Itapoá/SC</h1>
   <p>Bombeiros Comunitários — Ano ${CONFIG.ANO_ESCALA}</p>
@@ -296,7 +294,10 @@ select{width:100%;border-radius:4px;border:1px solid #ddd;padding:3px}
   <button id="btnTrocarSenha" class="btn-senha">🔑 Alterar Senha</button>
   <button class="btn-sair-principal" onclick="sair()">🚪 Sair</button>
 </div>
-<div id="avisoBC" class="aviso">🔒 Você pode lançar apenas seu próprio nome: <strong>${usuario}</strong></div>
+${ehAdmin
+  ? '<div id="avisoAdmin" class="avisoAdmin">⭐ <strong>Modo Administrador:</strong> Você pode lançar nomes de todos os membros.</div>'
+  : '<div id="avisoBC" class="aviso">🔒 Você pode lançar apenas seu próprio nome: <strong>'+usuario+'</strong></div>'
+}
 <div id="infoMes" class="status"></div>
 <div id="tabelaContainer"></div>
 <div id="status" class="status">Carregando...</div>
@@ -328,7 +329,7 @@ const USUARIO = '${usuario}';
 const EH_ADMIN = ${ehAdmin};
 const PERIODOS = ${JSON.stringify(PERIODOS)};
 const NOMES = ${JSON.stringify(NOMES_GUERRA)};
-const opcoesNome = EH_ADMIN ? NOMES.map(n=>`<option value="${n}">${n}</option>`).join('') : `<option value="${usuario}" selected>${usuario}</option>`;
+const OPCOES_NOMES = \`${opcoesNome}\`;
 let dados = {}, dadosOriginais = {};
 
 function carregar(){
@@ -337,7 +338,7 @@ function carregar(){
   google.script.run.withSuccessHandler(r=>{
     dados = {...r.dados}; dadosOriginais = {...r.dados};
     montarTabela(mes, r.diasNoMes);
-    document.getElementById('infoMes').textContent = `📅 ${CONFIG.MESES[Number(mes)-1]} — ${r.diasNoMes} dias`;
+    document.getElementById('infoMes').textContent = \`📅 \${CONFIG.MESES[Number(mes)-1]} — \${r.diasNoMes} dias\`;
     document.getElementById('status').textContent = '✅ Pronto';
   }).carregarEscala(mes, USUARIO, EH_ADMIN);
 }
@@ -346,22 +347,22 @@ function montarTabela(mes, dias){
   let html = '<table><thead><tr><th class="col-fixa">Nome / Período</th>';
   for(let d=1;d<=dias;d++){
     const s=new Date(${CONFIG.ANO_ESCALA},Number(mes)-1,d).getDay();
-    html += `<th class="${s===0||s===6?'fim-semana':''}">${d}/${mes}<br><small>${CONFIG.DIAS_SEMANA[s].slice(0,3)}</small></th>`;
+    html += \`<th class="\${s===0||s===6?'fim-semana':''}">\${d}/\${mes}<br><small>\${CONFIG.DIAS_SEMANA[s].slice(0,3)}</small></th>\`;
   }
   html += '</tr></thead><tbody>';
   for(let slot=0;slot<12;slot++){
     html += '<tr>';
-    html += `<td class="col-fixa">Nome de Guerra</td>`;
+    html += '<td class="col-fixa">Nome de Guerra</td>';
     for(let d=1;d<=dias;d++){
       const k = slot+'_'+d+'_nome', v = dados[k]||'';
       const bloquear = !EH_ADMIN && v && v !== USUARIO;
-      html += '<td><select data-k="'+k+'" onchange="alterar(this)"'+(bloquear?' disabled':'')+'><option value="">—</option>'+opcoesNome+'</select></td>';
+      html += \`<td><select data-k="\${k}" onchange="alterar(this)"\${bloquear?' disabled':''}><option value="">—</option>\${OPCOES_NOMES}</select></td>\`;
     }
     html += '</tr><tr>';
-    html += `<td class="col-fixa">Período</td>`;
+    html += '<td class="col-fixa">Período</td>';
     for(let d=1;d<=dias;d++){
       const k = slot+'_'+d+'_periodo', v = dados[k]||'';
-      html += '<td><select data-k="'+k+'" onchange="alterar(this)"><option value="">—</option>'+PERIODOS.map(p=>'<option value="'+p+'"'+(p===v?'selected':'')+'>'+(p||'—')+'</option>').join('')+'</select></td>';
+      html += \`<td><select data-k="\${k}" onchange="alterar(this)"><option value="">—</option>\${PERIODOS.map(p=>'<option value="'+p+'"'+(p===v?'selected':'')+'>'+(p||'—')+'</option>').join('')}</select></td>\`;
     }
     html += '</tr>';
   }
@@ -424,9 +425,9 @@ function definirAdmin(nome) {
   for (let i = 0; i < linhas.length; i++) {
     if (linhas[i][0] === nome) {
       aba.getRange(i + 2, 4).setValue(true);
-      SpreadsheetApp.getUi().alert(`${nome} agora é administrador.`);
+      SpreadsheetApp.getUi().alert(`✅ ${nome} agora é administrador! ⭐`);
       return;
     }
   }
-  SpreadsheetApp.getUi().alert('Nome não encontrado.');
+  SpreadsheetApp.getUi().alert('❌ Nome não encontrado. Verifique a grafia.');
 }
