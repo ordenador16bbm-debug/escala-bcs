@@ -1,354 +1,3240 @@
-// CONFIGURAÇÕES
-const CONFIG = {
-  ABA_USUARIOS: 'Usuarios',
-  ABA_ESCALA: 'Escala',
-  SENHA_TAMANHO: 7,
-  TITULO: 'Escala BCs — Bombeiros Comunitários Itapoá',
-  ANO_ESCALA: new Date().getFullYear(),
-  MESES: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
-  DIAS_SEMANA: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado']
-};
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Escala BCs</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b5d1e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Escala BCs">
+<link rel="apple-touch-icon" href="icon-192.png">
 
-const NOMES_GUERRA = [
-  "ADILSON", "ALVES", "ANDRADE", "BARBARA", "BARBOSA", "BATISTA",
-  "BORGES", "BRAUER", "CAMILA", "CASTELACI", "CLEDISON", "DENIS",
-  "DOS SANTOS", "EDER", "EVERALDO", "FEITOSA", "GABRIEL", "GERSON",
-  "GEYSSON", "GLEISSON", "IARA", "JAIRO", "JAQUELINE", "JESSICA",
-  "JOSÉ", "JUAN", "KEVIN", "KRAUSE", "L.RUDNIK", "LARISSA", "LAURECI",
-  "LIMA", "LIRAS", "LUCHTENBERG", "MAICO", "MAMINHAQUI", "MATIAS",
-  "MATUCHESKI", "NERIS", "PALOMA", "PATRICK", "PAULO", "PEKOCZ",
-  "PINHEIRO", "PIVA", "PRISCILA", "REI", "REIS", "RYAN", "SAMPAIO",
-  "SANTOS", "SCHENA", "SCHÖNE", "SILVINA", "SIMÃO", "STREISKI",
-  "TEIXEIRA", "TIBURSKI", "WITKOWSKI", "ZENI"
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;padding:12px;font-family:Arial,Helvetica,sans-serif;background:#f3f6f9;color:#222}
+.container{max-width:1900px;margin:auto}
+header{background:#0b5d1e;color:#fff;padding:18px;border-radius:10px 10px 0 0;text-align:center}
+header h1{margin:0;font-size:24px}
+header p{margin:7px 0 0;font-size:14px}
+.painel{background:#fff;padding:14px;display:flex;gap:9px;flex-wrap:wrap;align-items:end;border-bottom:1px solid #ddd}
+.campo{display:flex;flex-direction:column;gap:4px}
+.campo label{font-weight:bold;font-size:13px}
+select,input,button{font:inherit}
+.input{padding:10px;border:1px solid #aaa;border-radius:6px;background:#fff;min-width:170px}
+button{padding:10px 13px;border:0;border-radius:6px;cursor:pointer;font-weight:bold}
+.btn-salvar{background:#198754;color:#fff}
+.btn-excel{background:#217346;color:#fff}
+.btn-pdf{background:#dc3545;color:#fff}
+.btn-backup{background:#0d6efd;color:#fff}
+.btn-restaurar{background:#fd7e14;color:#fff}
+.btn-imprimir{background:#343a40;color:#fff}
+.btn-limpar{background:#b02a37;color:#fff}
+.btn-copiar{background:#6f42c1;color:#fff}
+
+#usuarioOnline{
+ position:fixed;
+ right:10px;
+ top:10px;
+ z-index:9999;
+ background:#0b5d1e;
+ color:#fff;
+ padding:7px 11px;
+ border-radius:14px;
+ font-size:12px;
+ display:none;
+ gap:8px;
+ align-items:center
+}
+
+#btnSair{
+ background:#fff;
+ color:#0b5d1e;
+ padding:4px 8px
+}
+
+.info{
+ background:#e8f5e9;
+ padding:11px 14px;
+ border-left:5px solid #0b5d1e;
+ font-weight:bold
+}
+
+.status{
+ margin-top:10px;
+ padding:10px;
+ border-radius:6px;
+ background:#eef3f7;
+ color:#555;
+ font-size:13px
+}
+
+.tabela-wrap{
+ background:#fff;
+ padding:10px;
+ overflow:auto;
+ -webkit-overflow-scrolling:touch;
+ box-shadow:0 2px 6px rgba(0,0,0,.1)
+}
+
+table{
+ border-collapse:collapse;
+ width:max-content;
+ min-width:100%;
+ font-size:12px
+}
+
+th,td{
+ border:1px solid #777;
+ text-align:center;
+ padding:3px
+}
+
+thead th{
+ background:#d9ead3;
+ font-weight:bold
+}
+
+.coluna-label{
+ position:sticky;
+ left:0;
+ z-index:5;
+ background:#fff;
+ min-width:175px;
+ width:175px;
+ font-weight:bold
+}
+
+thead .coluna-label{
+ background:#0b5d1e;
+ color:#fff
+}
+
+.col-dia{
+ min-width:130px;
+ width:130px
+}
+
+.data{font-size:13px;font-weight:bold}
+.semana{font-size:12px}
+.nome-row td{height:38px}
+.periodo-row td{height:34px}
+
+.nome-label,.periodo-label{
+ font-weight:bold;
+ background:#f7f7f7;
+ position:sticky;
+ left:0;
+ z-index:4
+}
+
+.nome-label{font-size:13px}
+.periodo-label{font-size:12px}
+
+.select-escala{
+ width:100%;
+ min-width:118px;
+ min-height:34px;
+ border:1px solid #aaa;
+ border-radius:4px;
+ background:#fff;
+ padding:4px;
+ font-size:12px
+}
+
+.periodo-select{font-size:11px}
+.fim-semana{background:#fff0f0}
+.slot-par{background:#fbfbfb}
+
+.bc-only-note{
+ background:#fff8e1;
+ border-left:5px solid #f0ad00;
+ padding:11px 14px;
+ font-weight:bold
+}
+
+.resumo{
+ margin-top:15px;
+ background:#fff;
+ padding:16px;
+ border-radius:8px;
+ box-shadow:0 2px 6px rgba(0,0,0,.1)
+}
+
+.resumo h2{
+ margin:0 0 12px;
+ color:#0b5d1e;
+ font-size:19px
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
+ gap:8px
+}
+
+.card{
+ border:1px solid #ccc;
+ border-radius:6px;
+ padding:10px;
+ background:#f8f9fa;
+ text-align:center
+}
+
+.card strong{display:block}
+.card b{font-size:21px;color:#0b5d1e}
+
+.rodape{
+ text-align:center;
+ color:#666;
+ font-size:12px;
+ padding:12px
+}
+
+.overlay{
+ display:none;
+ position:fixed;
+ inset:0;
+ background:rgba(0,0,0,.72);
+ z-index:99999;
+ align-items:center;
+ justify-content:center;
+ padding:20px
+}
+
+.login-box{
+ background:#fff;
+ border-radius:16px;
+ padding:24px;
+ max-width:420px;
+ width:100%;
+ box-shadow:0 10px 40px rgba(0,0,0,.35)
+}
+
+.login-box h2{
+ margin-top:0;
+ color:#0b5d1e
+}
+
+.login-box input{
+ width:100%;
+ padding:12px;
+ margin:6px 0;
+ border:1px solid #bbb;
+ border-radius:8px
+}
+
+.login-box button{
+ width:100%;
+ margin-top:8px
+}
+
+.login-primary{
+ background:#0b5d1e;
+ color:#fff
+}
+
+.login-secondary{
+ background:#fff;
+ color:#0b5d1e;
+ border:1px solid #0b5d1e
+}
+
+#loginStatus{
+ font-size:13px;
+ margin-bottom:0
+}
+
+#senhaStatus{
+ font-size:13px;
+ margin-bottom:0
+}
+
+.admin-only{}
+.bc-only{}
+.hidden{display:none!important}
+
+@media(max-width:800px){
+
+ body{padding:4px}
+
+ header{padding:13px 8px}
+
+ header h1{font-size:18px}
+
+ header p{font-size:12px}
+
+ .painel{
+  padding:10px;
+  flex-direction:column;
+  align-items:stretch
+ }
+
+ .input,button{
+  width:100%;
+  min-height:44px
+ }
+
+ .tabela-wrap{padding:5px}
+
+ .coluna-label{
+  min-width:145px;
+  width:145px
+ }
+
+ .col-dia{
+  min-width:118px;
+  width:118px
+ }
+
+ .select-escala{
+  min-height:42px;
+  font-size:13px
+ }
+
+ .periodo-select{font-size:12px}
+
+ #usuarioOnline{
+  position:static;
+  margin-bottom:5px;
+  justify-content:space-between
+ }
+}
+
+@media print{
+
+ body{
+  background:#fff;
+  padding:0
+ }
+
+ header{border-radius:0}
+
+ .painel,
+ .status,
+ .rodape,
+ .resumo,
+ #usuarioOnline,
+ .bc-only-note{
+  display:none!important
+ }
+
+ .tabela-wrap{
+  overflow:visible;
+  box-shadow:none;
+  padding:0
+ }
+
+ table{font-size:8px}
+
+ .col-dia{
+  min-width:80px;
+  width:80px
+ }
+
+ .coluna-label{
+  min-width:125px;
+  width:125px
+ }
+
+ .select-escala{
+  appearance:none;
+  border:0;
+  font-size:8px;
+  min-height:0
+ }
+
+ .periodo-select{font-size:8px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     TELA DE LOGIN
+     ========================================================= -->
+
+<div id="loginOverlay" class="overlay">
+
+ <div class="login-box">
+
+  <h2>🔐 Escala BCs</h2>
+
+  <p id="loginInfo">
+   Entre com seu e-mail e senha.
+  </p>
+
+  <input
+   id="loginEmail"
+   type="email"
+   placeholder="E-mail"
+   autocomplete="username"
+  >
+
+  <input
+   id="loginSenha"
+   type="password"
+   placeholder="Senha"
+   autocomplete="current-password"
+  >
+
+  <button
+   id="btnEntrar"
+   class="login-primary"
+  >
+   Entrar
+  </button>
+
+  <button
+   id="btnPrimeiroAcesso"
+   class="login-secondary"
+  >
+   Esqueci / criar nova senha
+  </button>
+
+  <p id="loginStatus"></p>
+
+ </div>
+
+</div>
+
+
+<!-- =========================================================
+     TELA DE CRIAÇÃO DE NOVA SENHA
+     ========================================================= -->
+
+<div id="senhaOverlay" class="overlay">
+
+ <div class="login-box">
+
+  <h2>🔐 Criar nova senha</h2>
+
+  <p>
+   Digite a nova senha para sua conta.
+  </p>
+
+  <input
+   id="novaSenha"
+   type="password"
+   placeholder="Nova senha"
+   autocomplete="new-password"
+  >
+
+  <input
+   id="confirmarSenha"
+   type="password"
+   placeholder="Confirmar nova senha"
+   autocomplete="new-password"
+  >
+
+  <button
+   id="btnSalvarNovaSenha"
+   class="login-primary"
+  >
+   Salvar nova senha
+  </button>
+
+  <p id="senhaStatus"></p>
+
+ </div>
+
+</div>
+
+
+<!-- =========================================================
+     USUÁRIO CONECTADO
+     ========================================================= -->
+
+<div id="usuarioOnline">
+
+ <span id="usuarioNomeOnline"></span>
+
+ <button id="btnSair">
+  Sair
+ </button>
+
+</div>
+
+
+<div class="container">
+
+<header>
+
+ <h1>
+  📊 Escala de Plantões - Bombeiros Comunitários
+ </h1>
+
+ <p>
+  Sistema de Gerenciamento de Escala - BCs
+ </p>
+
+</header>
+
+
+<div id="avisoBC" class="bc-only-note hidden">
+
+ 👤 Você está conectado como
+ <span id="nomeBCAviso"></span>.
+ Você pode lançar somente o seu próprio nome.
+
+</div>
+
+
+<div class="painel">
+
+ <div class="campo">
+
+  <label for="inputMes">
+   📅 Mês da Escala
+  </label>
+
+  <select id="inputMes" class="input">
+
+   <option value="01">Janeiro</option>
+   <option value="02">Fevereiro</option>
+   <option value="03">Março</option>
+   <option value="04">Abril</option>
+   <option value="05">Maio</option>
+   <option value="06">Junho</option>
+   <option value="07">Julho</option>
+   <option value="08">Agosto</option>
+   <option value="09" selected>Setembro</option>
+   <option value="10">Outubro</option>
+   <option value="11">Novembro</option>
+   <option value="12">Dezembro</option>
+
+  </select>
+
+ </div>
+
+
+ <div id="campoFiltro" class="campo admin-only">
+
+  <label for="filtroNome">
+   🔎 Filtrar BC
+  </label>
+
+  <input
+   id="filtroNome"
+   class="input"
+   placeholder="Digite o nome..."
+  >
+
+ </div>
+
+
+ <button id="btnSalvar" class="btn-salvar">
+  💾 Salvar
+ </button>
+
+ <button id="btnCopiar" class="btn-copiar admin-only">
+  📋 Copiar escala
+ </button>
+
+ <button id="btnExcel" class="btn-excel admin-only">
+  📊 Excel
+ </button>
+
+ <button id="btnPDF" class="btn-pdf admin-only">
+  📄 PDF
+ </button>
+
+ <button id="btnBackup" class="btn-backup admin-only">
+  💾 Backup
+ </button>
+
+ <button id="btnRestaurar" class="btn-restaurar admin-only">
+  ♻️ Restaurar
+ </button>
+
+ <input
+  type="file"
+  id="arquivoBackup"
+  accept=".json"
+  class="hidden"
+ >
+
+ <button id="btnImprimir" class="btn-imprimir admin-only">
+  🖨️ Imprimir
+ </button>
+
+ <button id="btnLimpar" class="btn-limpar admin-only">
+  🧹 Limpar
+ </button>
+
+</div>
+
+
+<div id="infoMes" class="info"></div>
+
+
+<div class="tabela-wrap">
+
+<table id="tabelaEscala">
+
+<thead>
+
+<tr id="rowDatas">
+
+ <th class="coluna-label">
+  Nome de guerra / Período
+ </th>
+
+</tr>
+
+
+<tr id="rowSemanas">
+
+ <th class="coluna-label">
+  Dia da semana
+ </th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="corpoTabela"></tbody>
+
+</table>
+
+</div>
+
+
+<div id="resumoContainer" class="resumo admin-only">
+
+ <h2>
+  📈 Placar de Plantões Acumulados por Integrante (BC)
+ </h2>
+
+ <div id="gridResumo" class="grid"></div>
+
+</div>
+
+
+<div id="statusSistema" class="status">
+ Aguardando login.
+</div>
+
+
+<div class="rodape">
+
+ Sistema de Gerenciamento de Escala - Bombeiros Comunitários / BCs<br>
+
+ Ano da escala: 2026
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   CONFIGURAÇÕES
+   ========================================================= */
+
+const ANO_ESCALA=2026;
+
+const CHAVE_LOCAL=
+ "escalaBCs_formato12_2026_v1";
+
+const SLOT_COUNT=12;
+
+/*
+   URL OFICIAL DO APLICATIVO
+*/
+const URL_APP=
+ "https://ordenador16bbm-debug.github.io/escala-bcs/";
+
+
+/* =========================================================
+   LISTA DE BCs
+   ========================================================= */
+
+const listaBCs=[
+
+ "ADILSON",
+ "ALVES",
+ "ANDRADE",
+ "BARBARA",
+ "BARBOSA",
+ "BATISTA",
+ "BORGES",
+ "BRAUER",
+ "CAMILA",
+ "CASTELACI",
+ "CLEDISON",
+ "DENIS",
+ "EDER",
+ "EVERALDO",
+ "FEITOSA",
+ "GABRIEL",
+ "GERSON",
+ "GEYSSON",
+ "GLEISSON",
+ "IARA",
+ "JAIRO",
+ "JAQUELINE",
+ "JESSICA",
+ "JOSÉ",
+ "JUAN",
+ "KEVIN",
+ "KRAUSE",
+ "LARISSA",
+ "LAURECI",
+ "LILIAN",
+ "LIMA",
+ "LIRAS",
+ "LUCHTENBERG",
+ "MAICO",
+ "MAMINHAQUI",
+ "MATIAS",
+ "MATUCHESKI",
+ "NERIS",
+ "PALOMA",
+ "PATRICK",
+ "PAULO",
+ "PEKOCZ",
+ "PINHEIRO",
+ "PIVA",
+ "PRISCILA",
+ "REIS",
+ "RUDNIK",
+ "RYAN",
+ "SAMPAIO",
+ "SANTOS",
+ "SCHENA",
+ "SILVINA",
+ "SIMÃO",
+ "STREISKI",
+ "TEIXEIRA",
+ "TIBURSKI",
+ "WITKOWSKI",
+ "ZENI"
+
 ];
 
-const PERIODOS = ['', 'DIURNO', 'NOTURNO', 'INTEGRAL'];
 
-// PÁGINA PRINCIPAL
-function doGet(e) {
-  inicializarPlanilhas();
-  if (e.parameter.usuario) {
-    const usuario = e.parameter.usuario;
-    const abaUsuarios = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
-    const dados = abaUsuarios.getRange(2, 1, abaUsuarios.getLastRow() - 1, 4).getValues();
-    let ehAdmin = false;
-    for (let i = 0; i < dados.length; i++) {
-      if (dados[i][0] === usuario) { ehAdmin = Boolean(dados[i][3]); break; }
-    }
-    return HtmlService.createHtmlOutput(gerarPaginaEscala(usuario, ehAdmin))
-      .setTitle(CONFIG.TITULO)
-      .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
-  }
-  return HtmlService.createHtmlOutput(gerarPaginaLogin())
-    .setTitle(CONFIG.TITULO)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
+const periodos=[
+ "",
+ "DIURNO",
+ "NOTURNO",
+ "INTEGRAL"
+];
+
+
+const nomesMes=[
+
+ "Janeiro",
+ "Fevereiro",
+ "Março",
+ "Abril",
+ "Maio",
+ "Junho",
+ "Julho",
+ "Agosto",
+ "Setembro",
+ "Outubro",
+ "Novembro",
+ "Dezembro"
+
+];
+
+
+const diasSemana=[
+
+ "Domingo",
+ "Segunda-feira",
+ "Terça-feira",
+ "Quarta-feira",
+ "Quinta-feira",
+ "Sexta-feira",
+ "Sábado"
+
+];
+
+
+/* =========================================================
+   VARIÁVEIS
+   ========================================================= */
+
+let supabaseClient=null;
+
+let usuarioAtual=null;
+
+let perfilAtual=null;
+
+let bcAtual=null;
+
+let modoRecuperacaoSenha=false;
+
+
+let dadosPorMes=
+ Object.fromEntries(
+  Array.from(
+   {length:12},
+   (_,i)=>[
+    String(i+1).padStart(2,"0"),
+    {}
+   ]
+  )
+ );
+
+
+let dadosMes={};
+
+
+/* =========================================================
+   FUNÇÕES BÁSICAS
+   ========================================================= */
+
+function ehAdmin(){
+
+ const r=
+  String(
+   perfilAtual?.role||""
+  )
+  .trim()
+  .toLowerCase();
+
+ return(
+  r==="admin"||
+  r==="administrador"
+ );
+
 }
 
-// INICIALIZAR PLANILHAS
-function inicializarPlanilhas() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let abaUsuarios = ss.getSheetByName(CONFIG.ABA_USUARIOS);
-  if (!abaUsuarios) {
-    abaUsuarios = ss.insertSheet(CONFIG.ABA_USUARIOS);
-    abaUsuarios.getRange(1, 1, 1, 4).setValues([['NomeGuerra','SenhaAcesso','UltimoAcesso','EhAdmin']]).setFontWeight('bold');
+
+function nomeUsuario(){
+
+ if(ehAdmin())
+
+  return String(
+   perfilAtual?.nome||
+   "Administrador"
+  )
+  .trim()
+  .toUpperCase();
+
+
+ return String(
+  bcAtual?.nome||""
+ )
+ .trim()
+ .toUpperCase();
+
+}
+
+
+function status(t){
+
+ document.getElementById(
+  "statusSistema"
+ ).textContent=t;
+
+}
+
+
+function diasNoMes(m){
+
+ return new Date(
+  ANO_ESCALA,
+  Number(m),
+  0
+ ).getDate();
+
+}
+
+
+function chaveNome(slot,dia){
+
+ return `${slot}_${dia}_nome`;
+
+}
+
+
+function chavePeriodo(slot,dia){
+
+ return `${slot}_${dia}_periodo`;
+
+}
+
+
+/* =========================================================
+   ARMAZENAMENTO LOCAL
+   ========================================================= */
+
+function salvarLocalAdmin(){
+
+ if(!ehAdmin())return;
+
+ localStorage.setItem(
+  CHAVE_LOCAL,
+  JSON.stringify(dadosPorMes)
+ );
+
+}
+
+
+function carregarLocalAdmin(){
+
+ if(!ehAdmin())return;
+
+ try{
+
+  const x=
+   JSON.parse(
+    localStorage.getItem(
+     CHAVE_LOCAL
+    )||"null"
+   );
+
+  if(
+   x&&
+   typeof x==="object"
+  ){
+
+   Object.assign(
+    dadosPorMes,
+    x
+   );
+
   }
-  const existentes = new Set();
-  if (abaUsuarios.getLastRow() > 1) {
-    existentes.add(...abaUsuarios.getRange(2, 1, abaUsuarios.getLastRow() - 1, 1).getValues().flat());
-  }
-  NOMES_GUERRA.forEach(nome => {
-    if (!existentes.has(nome)) {
-      abaUsuarios.appendRow([nome, gerarSenhaUnica(abaUsuarios), '', false]);
-    }
+
+ }catch(e){}
+
+}
+
+
+/* =========================================================
+   OPÇÕES
+   ========================================================= */
+
+function opcoesNome(select,valor){
+
+ select.innerHTML="";
+
+
+ const vazio=
+  document.createElement(
+   "option"
+  );
+
+ vazio.value="";
+ vazio.textContent="—";
+
+ select.appendChild(
+  vazio
+ );
+
+
+ if(ehAdmin()){
+
+  listaBCs.forEach(n=>{
+
+   const o=
+    document.createElement(
+     "option"
+    );
+
+   o.value=n;
+   o.textContent=n;
+
+   select.appendChild(o);
+
   });
-  if (!ss.getSheetByName(CONFIG.ABA_ESCALA)) {
-    const abaEscala = ss.insertSheet(CONFIG.ABA_ESCALA);
-    abaEscala.getRange(1, 1, 1, 5).setValues([['Mes','Dia','Slot','Nome','Periodo']]).setFontWeight('bold');
+
+ }else{
+
+  const n=nomeUsuario();
+
+  if(n){
+
+   const o=
+    document.createElement(
+     "option"
+    );
+
+   o.value=n;
+   o.textContent=n;
+
+   select.appendChild(o);
+
   }
+
+ }
+
+ select.value=valor||"";
+
 }
 
-function gerarSenhaUnica(aba) {
-  const existentes = new Set(aba.getRange(2, 2, Math.max(0, aba.getLastRow() - 1), 1).getValues().flat());
-  let s;
-  do { s = Array.from({length:7}, () => Math.floor(Math.random()*10)).join(''); } while (existentes.has(s));
-  return s;
+
+function opcoesPeriodo(select,valor){
+
+ select.innerHTML="";
+
+ periodos.forEach(p=>{
+
+  const o=
+   document.createElement(
+    "option"
+   );
+
+  o.value=p;
+  o.textContent=p||"—";
+
+  select.appendChild(o);
+
+ });
+
+ select.value=valor||"";
+
 }
 
-// LOGIN
-function verificarAcesso(nomeGuerra, senha) {
-  if (!/^\d{7}$/.test(senha)) return {ok:false,mensagem:'Digite 7 números.'};
-  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
-  const dados = aba.getRange(2, 1, aba.getLastRow() - 1, 4).getValues();
-  for (let i=0; i<dados.length; i++) {
-    if (dados[i][0] === nomeGuerra && dados[i][1] === senha) {
-      aba.getRange(i+2, 3).setValue(new Date());
-      return {ok:true, mensagem:'Bem-vindo, '+nomeGuerra+'!', usuario:nomeGuerra, admin:Boolean(dados[i][3])};
-    }
+
+/* =========================================================
+   MONTAR TABELA
+   ========================================================= */
+
+function montarTabela(){
+
+ const mes=
+  document.getElementById(
+   "inputMes"
+  ).value;
+
+ const dias=diasNoMes(mes);
+
+ const rd=
+  document.getElementById(
+   "rowDatas"
+  );
+
+ const rs=
+  document.getElementById(
+   "rowSemanas"
+  );
+
+ const corpo=
+  document.getElementById(
+   "corpoTabela"
+  );
+
+
+ rd.innerHTML=
+  '<th class="coluna-label">Nome de guerra / Período</th>';
+
+ rs.innerHTML=
+  '<th class="coluna-label">Dia da semana</th>';
+
+
+ for(let d=1;d<=dias;d++){
+
+  const dt=
+   new Date(
+    ANO_ESCALA,
+    Number(mes)-1,
+    d
+   );
+
+  const dow=dt.getDay();
+
+
+  const th=
+   document.createElement(
+    "th"
+   );
+
+  th.className=
+   "col-dia"+
+   (
+    dow===0||
+    dow===6
+     ?" fim-semana"
+     :""
+   );
+
+
+  th.innerHTML=
+   `<div class="data">${String(d).padStart(2,"0")}/${mes}/${ANO_ESCALA}</div>`;
+
+
+  rd.appendChild(th);
+
+
+  const sh=
+   document.createElement(
+    "th"
+   );
+
+  sh.className=
+   "col-dia"+
+   (
+    dow===0||
+    dow===6
+     ?" fim-semana"
+     :""
+   );
+
+
+  sh.innerHTML=
+   `<div class="semana">${diasSemana[dow]}</div>`;
+
+
+  rs.appendChild(sh);
+
+ }
+
+
+ corpo.innerHTML="";
+
+
+ for(
+  let s=0;
+  s<SLOT_COUNT;
+  s++
+ ){
+
+  const nr=
+   document.createElement(
+    "tr"
+   );
+
+  nr.className="nome-row";
+
+
+  const nl=
+   document.createElement(
+    "td"
+   );
+
+  nl.className="nome-label";
+
+  nl.textContent=
+   "Nome de guerra";
+
+  nr.appendChild(nl);
+
+
+  const pr=
+   document.createElement(
+    "tr"
+   );
+
+  pr.className=
+   "periodo-row";
+
+
+  const pl=
+   document.createElement(
+    "td"
+   );
+
+  pl.className=
+   "periodo-label";
+
+  pl.textContent="Período";
+
+  pr.appendChild(pl);
+
+
+  for(
+   let d=1;
+   d<=dias;
+   d++
+  ){
+
+   const kN=
+    chaveNome(s,d);
+
+   const kP=
+    chavePeriodo(s,d);
+
+
+   const dow=
+    new Date(
+     ANO_ESCALA,
+     Number(mes)-1,
+     d
+    ).getDay();
+
+
+   const tdN=
+    document.createElement(
+     "td"
+    );
+
+   tdN.className=
+    "col-dia"+
+    (
+     dow===0||
+     dow===6
+      ?" fim-semana"
+      :""
+    );
+
+
+   const tdP=
+    document.createElement(
+     "td"
+    );
+
+   tdP.className=
+    "col-dia"+
+    (
+     dow===0||
+     dow===6
+      ?" fim-semana"
+      :""
+    );
+
+
+   const sn=
+    document.createElement(
+     "select"
+    );
+
+   sn.className=
+    "select-escala";
+
+
+   opcoesNome(
+    sn,
+    dadosMes[kN]||""
+   );
+
+
+   const sp=
+    document.createElement(
+     "select"
+    );
+
+   sp.className=
+    "select-escala periodo-select";
+
+
+   opcoesPeriodo(
+    sp,
+    dadosMes[kP]||""
+   );
+
+
+   sn.dataset.key=kN;
+   sp.dataset.key=kP;
+
+
+   sn.addEventListener(
+    "change",
+    ()=>alterarCampo(
+     kN,
+     sn.value,
+     true
+    )
+   );
+
+
+   sp.addEventListener(
+    "change",
+    ()=>alterarCampo(
+     kP,
+     sp.value,
+     false
+    )
+   );
+
+
+   tdN.appendChild(sn);
+
+   tdP.appendChild(sp);
+
+   nr.appendChild(tdN);
+
+   pr.appendChild(tdP);
+
   }
-  return {ok:false, mensagem:'Nome ou código incorretos.'};
+
+
+  corpo.appendChild(nr);
+
+  corpo.appendChild(pr);
+
+ }
+
+
+ atualizarResumo();
+
 }
 
-// TROCAR SENHA
-function alterarSenha(nome, senhaAtual, nova) {
-  if (!/^\d{7}$/.test(nova)) return {ok:false, mensagem:'7 dígitos obrigatórios.'};
-  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
-  const dados = aba.getRange(2, 1, aba.getLastRow() - 1, 2).getValues();
-  for (let i=0; i<dados.length; i++) {
-    if (dados[i][0] === nome && dados[i][1] === senhaAtual) {
-      aba.getRange(i+2, 2).setValue(nova);
-      return {ok:true, mensagem:'Senha alterada!'};
-    }
-  }
-  return {ok:false, mensagem:'Senha atual incorreta.'};
+
+/* =========================================================
+   ALTERAR CAMPO
+   ========================================================= */
+
+function alterarCampo(k,v,ehNome){
+
+ if(
+  !ehAdmin()&&
+  ehNome&&
+  v&&
+  v!==nomeUsuario()
+ ){
+
+  status(
+   "🔒 Você só pode lançar seu próprio nome."
+  );
+
+  montarTabela();
+
+  return;
+
+ }
+
+
+ dadosMes[k]=v;
+
+
+ if(
+  !ehAdmin()&&
+  ehNome&&
+  v===""
+ ){
+
+  dadosMes[k]="";
+
+ }
+
+
+ dadosPorMes[
+  document.getElementById(
+   "inputMes"
+  ).value
+ ]=dadosMes;
+
+
+ atualizarResumo();
+
+
+ status(
+  "✏️ Alteração realizada. Clique em Salvar."
+ );
+
 }
 
-// CARREGAR E SALVAR ESCALA
-function carregarEscala(mes) {
-  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_ESCALA);
-  const linhas = aba.getRange(2, 1, Math.max(0, aba.getLastRow()-1), 5).getValues();
-  const dados = {};
-  linhas.forEach(l => {
-    if (String(l[0]) === String(mes)) {
-      dados[l[2]+'_'+l[1]+'_nome'] = l[3] || '';
-      dados[l[2]+'_'+l[1]+'_periodo'] = l[4] || '';
-    }
+
+/* =========================================================
+   CARREGAR MÊS
+   ========================================================= */
+
+function carregarMes(){
+
+ const mes=
+  document.getElementById(
+   "inputMes"
+  ).value;
+
+
+ dadosMes={
+  ...(dadosPorMes[mes]||{})
+ };
+
+
+ document.getElementById(
+  "infoMes"
+ ).textContent=
+  `📅 Escala: ${nomesMes[Number(mes)-1]} de ${ANO_ESCALA} — ${diasNoMes(mes)} dias`;
+
+
+ montarTabela();
+
+}
+
+
+/* =========================================================
+   RESUMO
+   ========================================================= */
+
+function atualizarResumo(){
+
+ if(!ehAdmin())return;
+
+
+ const c={};
+
+
+ Object.values(
+  dadosMes
+ ).forEach(v=>{
+
+  const s=
+   String(v||"")
+   .trim()
+   .toUpperCase();
+
+
+  if(listaBCs.includes(s))
+   c[s]=(c[s]||0)+1;
+
+ });
+
+
+ const nomes=
+  Object.keys(c).sort(
+   (a,b)=>
+    (c[b]-c[a])||
+    a.localeCompare(
+     b,
+     "pt-BR"
+    )
+  );
+
+
+ const g=
+  document.getElementById(
+   "gridResumo"
+  );
+
+
+ g.innerHTML="";
+
+
+ nomes.forEach(n=>{
+
+  const x=
+   document.createElement(
+    "div"
+   );
+
+  x.className="card";
+
+  x.innerHTML=
+   `<strong>${n}</strong><b>${c[n]}</b>`;
+
+  g.appendChild(x);
+
+ });
+
+}
+
+
+/* =========================================================
+   INTERFACE
+   ========================================================= */
+
+function aplicarUI(){
+
+ const admin=ehAdmin();
+
+
+ document
+  .querySelectorAll(
+   ".admin-only"
+  )
+  .forEach(
+   el=>
+    el.classList.toggle(
+     "hidden",
+     !admin
+    )
+  );
+
+
+ const aviso=
+  document.getElementById(
+   "avisoBC"
+  );
+
+
+ aviso.classList.toggle(
+  "hidden",
+  admin
+ );
+
+
+ if(!admin){
+
+  document.getElementById(
+   "nomeBCAviso"
+  ).textContent=
+   nomeUsuario();
+
+ }
+
+
+ carregarMes();
+
+}
+
+
+/* =========================================================
+   CARREGAR ESCALA DO ADMINISTRADOR
+   ========================================================= */
+
+async function carregarNuvemAdmin(){
+
+ const {data,error}=
+  await supabaseClient
+   .from("escalas_mensais")
+   .select("mes,dados")
+   .eq(
+    "ano",
+    ANO_ESCALA
+   );
+
+
+ if(error)throw error;
+
+
+ (data||[]).forEach(r=>{
+
+  dadosPorMes[
+   String(r.mes)
+   .padStart(2,"0")
+  ]=r.dados||{};
+
+ });
+
+
+ const {
+  data:bcRows,
+  error:bcError
+ }=
+  await supabaseClient
+   .from("bc_lancamentos")
+   .select(
+    "mes,fila_index,dia_index,bc_id,periodo,bcs(nome)"
+   )
+   .eq(
+    "ano",
+    ANO_ESCALA
+   );
+
+
+ if(!bcError){
+
+  (bcRows||[]).forEach(r=>{
+
+   const mes=
+    String(r.mes)
+    .padStart(2,"0");
+
+   const d=
+    Number(r.dia_index)+1;
+
+   const s=
+    Number(r.fila_index);
+
+   const nome=
+    String(
+     r.bcs?.nome||""
+    ).toUpperCase();
+
+
+   if(nome){
+
+    if(!dadosPorMes[mes])
+     dadosPorMes[mes]={};
+
+
+    dadosPorMes[mes][
+     chaveNome(s,d)
+    ]=nome;
+
+
+    if(r.periodo)
+
+     dadosPorMes[mes][
+      chavePeriodo(s,d)
+     ]=r.periodo;
+
+   }
+
   });
-  return {dados:dados, diasNoMes: new Date(CONFIG.ANO_ESCALA, Number(mes), 0).getDate()};
+
+ }
+
 }
 
-function salvarEscala(mes, alteracoes, usuario, ehAdmin) {
-  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_ESCALA);
-  const linhas = aba.getRange(2, 1, Math.max(0, aba.getLastRow()-1), 5).getValues();
-  const manter = [];
-  linhas.forEach(l => { if (String(l[0]) !== String(mes)) manter.push(l); });
-  for (const [chave, valor] of Object.entries(alteracoes)) {
-    const m = chave.match(/^(\d+)_(\d+)_(nome|periodo)$/);
-    if (!m) continue;
-    if (m[3] === 'nome') {
-      if (!ehAdmin && valor && valor !== usuario) continue;
-      manter.push([mes, Number(m[2]), Number(m[1]), valor, alteracoes[m[1]+'_'+m[2]+'_periodo'] || '']);
-    }
+
+/* =========================================================
+   CARREGAR LANÇAMENTOS DO BC
+   ========================================================= */
+
+async function carregarLancamentosBC(){
+
+ const {
+  data,
+  error
+ }=
+  await supabaseClient
+   .from("bc_lancamentos")
+   .select(
+    "ano,mes,fila_index,dia_index,bc_id,periodo"
+   )
+   .eq(
+    "ano",
+    ANO_ESCALA
+   )
+   .eq(
+    "auth_user_id",
+    usuarioAtual.id
+   );
+
+
+ if(error)throw error;
+
+
+ dadosPorMes=
+  Object.fromEntries(
+   Array.from(
+    {length:12},
+    (_,i)=>[
+     String(i+1).padStart(2,"0"),
+     {}
+    ]
+   )
+  );
+
+
+ (data||[]).forEach(r=>{
+
+  const mes=
+   String(r.mes)
+   .padStart(2,"0");
+
+  const d=
+   Number(r.dia_index)+1;
+
+  const s=
+   Number(r.fila_index);
+
+
+  dadosPorMes[mes][
+   chaveNome(s,d)
+  ]=nomeUsuario();
+
+
+  if(r.periodo)
+
+   dadosPorMes[mes][
+    chavePeriodo(s,d)
+   ]=r.periodo;
+
+ });
+
+}
+
+
+/* =========================================================
+   SALVAR BC
+   ========================================================= */
+
+async function salvarBC(){
+
+ const mes=
+  document.getElementById(
+   "inputMes"
+  ).value;
+
+
+ const {
+  error:delError
+ }=
+  await supabaseClient
+   .from("bc_lancamentos")
+   .delete()
+   .eq(
+    "ano",
+    ANO_ESCALA
+   )
+   .eq(
+    "mes",
+    mes
+   )
+   .eq(
+    "auth_user_id",
+    usuarioAtual.id
+   );
+
+
+ if(delError){
+
+  status(
+   "❌ "+delError.message
+  );
+
+  return false;
+
+ }
+
+
+ const registros=[];
+
+ const dias=diasNoMes(mes);
+
+
+ for(
+  let s=0;
+  s<SLOT_COUNT;
+  s++
+ ){
+
+  for(
+   let d=1;
+   d<=dias;
+   d++
+  ){
+
+   if(
+    String(
+     dadosMes[
+      chaveNome(s,d)
+     ]||""
+    ).toUpperCase()
+    ===
+    nomeUsuario()
+   ){
+
+    registros.push({
+
+     ano:ANO_ESCALA,
+
+     mes:mes,
+
+     fila_index:s,
+
+     dia_index:d-1,
+
+     bc_id:bcAtual.id,
+
+     auth_user_id:
+      usuarioAtual.id,
+
+     periodo:
+      dadosMes[
+       chavePeriodo(s,d)
+      ]||null
+
+    });
+
+   }
+
   }
-  aba.clearContents();
-  aba.getRange(1, 1, 1, 5).setValues([['Mes','Dia','Slot','Nome','Periodo']]).setFontWeight('bold');
-  if (manter.length) aba.getRange(2, 1, manter.length, 5).setValues(manter);
-  return {ok:true, mensagem:'Salvo!'};
+
+ }
+
+
+ if(registros.length){
+
+  const {error}=
+   await supabaseClient
+    .from("bc_lancamentos")
+    .insert(registros);
+
+
+  if(error){
+
+   status(
+    "❌ Não foi possível salvar: "+
+    error.message
+   );
+
+   return false;
+
+  }
+
+ }
+
+
+ status(
+  "☁️ Seus plantões foram salvos na nuvem."
+ );
+
+ return true;
+
 }
 
-// PÁGINA DE LOGIN
-function gerarPaginaLogin() {
-  let opts = '<option value="">— Selecione —</option>';
-  NOMES_GUERRA.forEach(n => opts += '<option value="'+n+'">'+n+'</option>');
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${CONFIG.TITULO}</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:linear-gradient(135deg,#0b5d1e,#1a752f);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:#fff;border-radius:16px;padding:30px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-h1{color:#0b5d1e;text-align:center;font-size:20px;margin-bottom:5px}
-h2{text-align:center;color:#555;font-size:16px;margin-bottom:25px;font-weight:normal}
-label{display:block;margin:15px 0 5px;font-weight:bold;color:#333;font-size:14px}
-select,input{width:100%;padding:12px;border:2px solid #ddd;border-radius:8px;font-size:16px}
-select:focus,input:focus{border-color:#0b5d1e;outline:none}
-button{width:100%;padding:14px;background:#0b5d1e;color:#fff;border:none;border-radius:8px;font-size:18px;font-weight:bold;margin-top:20px;cursor:pointer}
-button:hover{background:#0d7024}
-.msg{margin-top:15px;padding:12px;border-radius:8px;text-align:center;display:none}
-.sucesso{background:#e6f9e9;color:#0b5d1e;display:block}
-.erro{background:#ffe9e9;color:#b02030;display:block}
-.info{text-align:center;margin-top:20px;font-size:13px;color:#666}
-</style>
-</head>
-<body>
-<div class="card">
-<h1>🚒 Bombeiros Comunitários Itapoá</h1>
-<h2>Acesso à Escala de Plantões</h2>
-<form id="f">
-<label>Nome de Guerra</label>
-<select id="ng" required>${opts}</select>
-<label>Código de Acesso (7 dígitos)</label>
-<input type="text" id="senha" maxlength="7" inputmode="numeric" placeholder="0000000" required>
-<button type="submit">Entrar</button>
-</form>
-<div id="m" class="msg"></div>
-<p class="info">Digite o código recebido. Se esqueceu, peça ao administrador.</p>
-</div>
-<script>
-document.getElementById('f').addEventListener('submit',e=>{
-  e.preventDefault();
-  const ng=document.getElementById('ng').value, s=document.getElementById('senha').value.trim(), m=document.getElementById('m');
-  m.className='msg'; m.textContent='';
-  if(!/^\\d{7}$/.test(s)){m.className='msg erro';m.textContent='Digite exatamente 7 números.';return}
-  google.script.run.withSuccessHandler(d=>{
-    m.className='msg '+(d.ok?'sucesso':'erro'); m.textContent=d.mensagem;
-    if(d.ok) setTimeout(()=>window.location.href='?usuario='+encodeURIComponent(d.usuario),1200);
-  }).verificarAcesso(ng,s);
-});
+
+/* =========================================================
+   SALVAR ADMINISTRADOR
+   ========================================================= */
+
+async function salvarAdmin(){
+
+ dadosPorMes[
+  document.getElementById(
+   "inputMes"
+  ).value
+ ]=dadosMes;
+
+
+ salvarLocalAdmin();
+
+
+ const registros=
+  Object.keys(
+   dadosPorMes
+  ).map(m=>({
+
+   ano:ANO_ESCALA,
+
+   mes:m,
+
+   dados:
+    dadosPorMes[m]||{},
+
+   updated_by:
+    usuarioAtual.id,
+
+   updated_at:
+    new Date().toISOString()
+
+  }));
+
+
+ const {error}=
+  await supabaseClient
+   .from("escalas_mensais")
+   .upsert(
+    registros,
+    {
+     onConflict:"ano,mes"
+    }
+   );
+
+
+ if(error){
+
+  status(
+   "❌ Erro ao salvar: "+
+   error.message
+  );
+
+  return false;
+
+ }
+
+
+ status(
+  "☁️ Escala salva localmente e na nuvem."
+ );
+
+ return true;
+
+}
+
+
+/* =========================================================
+   SALVAR
+   ========================================================= */
+
+async function salvar(){
+
+ if(!usuarioAtual){
+
+  alert("Faça login.");
+
+  return;
+
+ }
+
+
+ if(ehAdmin())
+
+  await salvarAdmin();
+
+ else
+
+  await salvarBC();
+
+}
+
+
+/* =========================================================
+   COPIAR ESCALA
+   =========================================================
+
+   COPIA SOMENTE:
+
+   - Nome de guerra
+   - Período
+
+   NÃO copia:
+
+   - datas
+   - dias da semana
+   - cabeçalhos
+   - outras informações
+   ========================================================= */
+
+function copiarEscala(){
+
+ const mes=
+  document.getElementById(
+   "inputMes"
+  ).value;
+
+
+ const dias=diasNoMes(mes);
+
+
+ const linhas=[];
+
+
+ for(
+  let s=0;
+  s<SLOT_COUNT;
+  s++
+ ){
+
+  const linhaNome=[];
+
+  const linhaPeriodo=[];
+
+
+  for(
+   let d=1;
+   d<=dias;
+   d++
+  ){
+
+   linhaNome.push(
+    dadosMes[
+     chaveNome(s,d)
+    ]||""
+   );
+
+  }
+
+
+  for(
+   let d=1;
+   d<=dias;
+   d++
+  ){
+
+   linhaPeriodo.push(
+    dadosMes[
+     chavePeriodo(s,d)
+    ]||""
+   );
+
+  }
+
+
+  linhas.push(linhaNome);
+
+  linhas.push(linhaPeriodo);
+
+ }
+
+
+ const texto=
+  linhas
+   .map(
+    linha=>linha.join("\t")
+   )
+   .join("\n");
+
+
+ if(!texto){
+
+  status(
+   "⚠️ Não há dados para copiar."
+  );
+
+  return;
+
+ }
+
+
+ if(
+  navigator.clipboard &&
+  window.isSecureContext
+ ){
+
+  navigator.clipboard
+   .writeText(texto)
+   .then(()=>{
+
+    status(
+     "📋 Escala copiada. Agora você pode colar na outra escala."
+    );
+
+   })
+   .catch(()=>{
+
+    copiarEscalaFallback(texto);
+
+   });
+
+ }else{
+
+  copiarEscalaFallback(texto);
+
+ }
+
+}
+
+
+/* =========================================================
+   COPIAR - MÉTODO ALTERNATIVO
+   ========================================================= */
+
+function copiarEscalaFallback(texto){
+
+ const area=
+  document.createElement(
+   "textarea"
+  );
+
+
+ area.value=texto;
+
+ area.style.position="fixed";
+ area.style.left="-9999px";
+ area.style.top="0";
+ area.style.width="1px";
+ area.style.height="1px";
+ area.style.opacity="0";
+
+ area.setAttribute(
+  "readonly",
+  ""
+ );
+
+
+ document.body.appendChild(area);
+
+ area.focus();
+
+ area.select();
+
+
+ try{
+
+  const sucesso=
+   document.execCommand(
+    "copy"
+   );
+
+
+  if(sucesso){
+
+   status(
+    "📋 Escala copiada. Agora você pode colar na outra escala."
+   );
+
+  }else{
+
+   alert(
+    "Não foi possível copiar automaticamente."
+   );
+
+  }
+
+ }catch(e){
+
+  console.error(
+   "Erro ao copiar escala:",
+   e
+  );
+
+  alert(
+   "Não foi possível copiar automaticamente."
+  );
+
+ }
+
+
+ document.body.removeChild(area);
+
+}
+
+
+/* =========================================================
+   EXPORTAR EXCEL
+   ========================================================= */
+
+function exportarExcel(){
+
+ if(!ehAdmin())return;
+
+
+ const mes=
+  document.getElementById(
+   "inputMes"
+  ).value;
+
+
+ const dias=diasNoMes(mes);
+
+ const rows=[];
+
+
+ rows.push([
+
+  "",
+
+  ...Array.from(
+   {length:dias},
+   (_,i)=>
+    `${String(i+1).padStart(2,"0")}/${mes}/${ANO_ESCALA}`
+  )
+
+ ]);
+
+
+ rows.push([
+
+  "Dia da Semana",
+
+  ...Array.from(
+   {length:dias},
+   (_,i)=>
+    diasSemana[
+     new Date(
+      ANO_ESCALA,
+      Number(mes)-1,
+      i+1
+     ).getDay()
+    ]
+  )
+
+ ]);
+
+
+ for(
+  let s=0;
+  s<SLOT_COUNT;
+  s++
+ ){
+
+  rows.push([
+
+   "Nome de guerra",
+
+   ...Array.from(
+    {length:dias},
+    (_,i)=>
+     dadosMes[
+      chaveNome(s,i+1)
+     ]||""
+   )
+
+  ]);
+
+
+  rows.push([
+
+   "Período",
+
+   ...Array.from(
+    {length:dias},
+    (_,i)=>
+     dadosMes[
+      chavePeriodo(s,i+1)
+     ]||""
+   )
+
+  ]);
+
+ }
+
+
+ const ws=
+  XLSX.utils.aoa_to_sheet(
+   rows
+  );
+
+
+ const wb=
+  XLSX.utils.book_new();
+
+
+ XLSX.utils.book_append_sheet(
+  wb,
+  ws,
+  "Escala"
+ );
+
+
+ XLSX.writeFile(
+  wb,
+  `Escala_${nomesMes[Number(mes)-1]}_${ANO_ESCALA}.xlsx`
+ );
+
+}
+
+
+/* =========================================================
+   EXPORTAR PDF
+   ========================================================= */
+
+function exportarPDF(){
+
+ if(!ehAdmin())return;
+
+
+ const {jsPDF}=
+  window.jspdf;
+
+
+ const doc=
+  new jsPDF({
+
+   orientation:"landscape",
+
+   unit:"pt",
+
+   format:"a4"
+
+  });
+
+
+ const mes=
+  document.getElementById(
+   "inputMes"
+  ).value;
+
+
+ const dias=diasNoMes(mes);
+
+
+ const head=[
+
+  [
+
+   "",
+
+   ...Array.from(
+    {length:dias},
+    (_,i)=>
+     `${String(i+1).padStart(2,"0")}/${mes}`
+   )
+
+  ]
+
+ ];
+
+
+ const body=[
+
+  [
+
+   "Dia da Semana",
+
+   ...Array.from(
+    {length:dias},
+    (_,i)=>
+     diasSemana[
+      new Date(
+       ANO_ESCALA,
+       Number(mes)-1,
+       i+1
+      ).getDay()
+     ]
+   )
+
+  ]
+
+ ];
+
+
+ for(
+  let s=0;
+  s<SLOT_COUNT;
+  s++
+ ){
+
+  body.push([
+
+   "Nome de guerra",
+
+   ...Array.from(
+    {length:dias},
+    (_,i)=>
+     dadosMes[
+      chaveNome(s,i+1)
+     ]||""
+   )
+
+  ]);
+
+
+  body.push([
+
+   "Período",
+
+   ...Array.from(
+    {length:dias},
+    (_,i)=>
+     dadosMes[
+      chavePeriodo(s,i+1)
+     ]||""
+   )
+
+  ]);
+
+ }
+
+
+ doc.text(
+  `Escala - ${nomesMes[Number(mes)-1]} ${ANO_ESCALA}`,
+  30,
+  25
+ );
+
+
+ doc.autoTable({
+
+  head,
+
+  body,
+
+  startY:35,
+
+  styles:{
+   fontSize:5,
+   cellPadding:2
+  }
+
+ });
+
+
+ doc.save(
+  `Escala_${mes}_${ANO_ESCALA}.pdf`
+ );
+
+}
+
+
+/* =========================================================
+   BACKUP
+   ========================================================= */
+
+function backup(){
+
+ if(!ehAdmin())return;
+
+
+ const blob=
+  new Blob(
+
+   [
+    JSON.stringify(
+     dadosPorMes,
+     null,
+     2
+    )
+   ],
+
+   {
+    type:"application/json"
+   }
+
+  );
+
+
+ const a=
+  document.createElement(
+   "a"
+  );
+
+
+ a.href=
+  URL.createObjectURL(
+   blob
+  );
+
+
+ a.download=
+  `backup_escala_${ANO_ESCALA}.json`;
+
+
+ a.click();
+
+
+ URL.revokeObjectURL(
+  a.href
+ );
+
+}
+
+
+/* =========================================================
+   RESTAURAR
+   ========================================================= */
+
+function restaurar(ev){
+
+ if(!ehAdmin())return;
+
+
+ const f=
+  ev.target.files[0];
+
+
+ if(!f)return;
+
+
+ const r=
+  new FileReader();
+
+
+ r.onload=()=>{
+
+  try{
+
+   const x=
+    JSON.parse(
+     r.result
+    );
+
+
+   dadosPorMes=x;
+
+   carregarMes();
+
+   salvarLocalAdmin();
+
+
+   status(
+    "♻️ Backup restaurado localmente. Clique em Salvar."
+   );
+
+
+  }catch(e){
+
+   alert(
+    "Backup inválido."
+   );
+
+  }
+
+ };
+
+
+ r.readAsText(f);
+
+}
+
+
+/* =========================================================
+   LIMPAR
+   ========================================================= */
+
+async function limpar(){
+
+ if(!ehAdmin())return;
+
+
+ if(
+  !confirm(
+   "Tem certeza que deseja limpar toda a escala local?"
+  )
+ )return;
+
+
+ dadosPorMes=
+  Object.fromEntries(
+
+   Array.from(
+    {length:12},
+
+    (_,i)=>[
+     String(i+1).padStart(2,"0"),
+     {}
+    ]
+
+   )
+
+  );
+
+
+ dadosMes={};
+
+
+ salvarLocalAdmin();
+
+ carregarMes();
+
+
+ status(
+  "🧹 Escala limpa localmente. Clique em Salvar para confirmar na nuvem."
+ );
+
+}
+
+
+/* =========================================================
+   PERFIL
+   ========================================================= */
+
+async function obterPerfil(){
+
+ const {data,error}=
+  await supabaseClient
+   .from("profiles")
+   .select("*")
+   .eq(
+    "id",
+    usuarioAtual.id
+   )
+   .maybeSingle();
+
+
+ if(error)throw error;
+
+
+ perfilAtual=data;
+
+
+ if(ehAdmin()){
+
+  bcAtual=null;
+
+  return;
+
+ }
+
+
+ const {
+  data:bcs,
+  error:be
+ }=
+  await supabaseClient
+   .from("bcs")
+   .select(
+    "id,nome,ativo,auth_user_id"
+   )
+   .eq(
+    "auth_user_id",
+    usuarioAtual.id
+   )
+   .maybeSingle();
+
+
+ if(be)throw be;
+
+
+ if(
+  !bcs||
+  !bcs.ativo
+ ){
+
+  throw new Error(
+   "Usuário BC não está vinculado a um cadastro ativo."
+  );
+
+ }
+
+
+ bcAtual=bcs;
+
+}
+
+
+/* =========================================================
+   MOSTRAR USUÁRIO
+   ========================================================= */
+
+function mostrarUsuario(){
+
+ const el=
+  document.getElementById(
+   "usuarioOnline"
+  );
+
+
+ document.getElementById(
+  "usuarioNomeOnline"
+ ).textContent=
+
+  ehAdmin()
+
+   ?`${perfilAtual?.nome||usuarioAtual.email} · Administrador`
+
+   :nomeUsuario();
+
+
+ el.style.display="flex";
+
+}
+
+
+/* =========================================================
+   ENTRAR
+   ========================================================= */
+
+async function entrar(){
+
+ const email=
+  document.getElementById(
+   "loginEmail"
+  ).value.trim();
+
+
+ const senha=
+  document.getElementById(
+   "loginSenha"
+  ).value;
+
+
+ if(!email||!senha){
+
+  document.getElementById(
+   "loginStatus"
+  ).textContent=
+   "Informe e-mail e senha.";
+
+  return;
+
+ }
+
+
+ document.getElementById(
+  "loginStatus"
+ ).textContent=
+  "Entrando...";
+
+
+ const {
+  data,
+  error
+ }=
+  await supabaseClient.auth.signInWithPassword({
+
+   email,
+
+   password:senha
+
+  });
+
+
+ if(error){
+
+  document.getElementById(
+   "loginStatus"
+  ).textContent=
+   "❌ "+error.message;
+
+  return;
+
+ }
+
+
+ usuarioAtual=data.user;
+
+
+ await preparar();
+
+}
+
+
+/* =========================================================
+   PREPARAR SISTEMA
+   ========================================================= */
+
+async function preparar(){
+
+ try{
+
+  await obterPerfil();
+
+
+  mostrarUsuario();
+
+
+  document.getElementById(
+   "loginOverlay"
+  ).style.display="none";
+
+
+  if(ehAdmin()){
+
+   carregarLocalAdmin();
+
+   await carregarNuvemAdmin();
+
+  }else{
+
+   await carregarLancamentosBC();
+
+  }
+
+
+  aplicarUI();
+
+
+  status(
+
+   ehAdmin()
+
+    ?"☁️ Administrador conectado. Acesso completo."
+
+    :`☁️ ${nomeUsuario()} conectado. Você pode lançar somente seu próprio nome.`
+
+  );
+
+
+ }catch(e){
+
+  console.error(e);
+
+
+  document.getElementById(
+   "loginStatus"
+  ).textContent=
+   "❌ "+e.message;
+
+
+  await supabaseClient.auth.signOut();
+
+ }
+
+}
+
+
+/* =========================================================
+   SAIR
+   ========================================================= */
+
+async function sair(){
+
+ try{
+
+  if(supabaseClient)
+
+   await supabaseClient.auth.signOut({
+    scope:"local"
+   });
+
+
+ }catch(e){
+
+  console.error(
+   "Erro ao encerrar sessão:",
+   e
+  );
+
+ }
+
+
+ usuarioAtual=null;
+
+ perfilAtual=null;
+
+ bcAtual=null;
+
+
+ try{
+
+  sessionStorage.clear();
+
+ }catch(e){}
+
+
+ document.getElementById(
+  "usuarioOnline"
+ ).style.display="none";
+
+
+ window.location.reload();
+
+}
+
+
+/* =========================================================
+   RECUPERAÇÃO DE SENHA
+   ========================================================= */
+
+async function recuperar(){
+
+ const email=
+  document.getElementById(
+   "loginEmail"
+  ).value.trim();
+
+
+ if(!email){
+
+  document.getElementById(
+   "loginStatus"
+  ).textContent=
+   "Digite o e-mail.";
+
+  return;
+
+ }
+
+
+ document.getElementById(
+  "loginStatus"
+ ).textContent=
+  "Enviando e-mail de recuperação...";
+
+
+ const {error}=
+  await supabaseClient.auth.resetPasswordForEmail(
+
+   email,
+
+   {
+    redirectTo:URL_APP
+   }
+
+  );
+
+
+ document.getElementById(
+  "loginStatus"
+ ).textContent=
+
+  error
+
+   ?"❌ "+error.message
+
+   :"✅ E-mail de recuperação enviado. Verifique sua caixa de entrada.";
+
+}
+
+
+/* =========================================================
+   SALVAR NOVA SENHA
+   ========================================================= */
+
+async function salvarNovaSenha(){
+
+ const nova=
+  document.getElementById(
+   "novaSenha"
+  ).value;
+
+
+ const confirma=
+  document.getElementById(
+   "confirmarSenha"
+  ).value;
+
+
+ const st=
+  document.getElementById(
+   "senhaStatus"
+  );
+
+
+ if(nova.length<6){
+
+  st.textContent=
+   "❌ A senha deve ter pelo menos 6 caracteres.";
+
+  return;
+
+ }
+
+
+ if(nova!==confirma){
+
+  st.textContent=
+   "❌ As senhas não são iguais.";
+
+  return;
+
+ }
+
+
+ st.textContent=
+  "Salvando nova senha...";
+
+
+ const {error}=
+  await supabaseClient.auth.updateUser({
+
+   password:nova
+
+  });
+
+
+ if(error){
+
+  st.textContent=
+   "❌ "+error.message;
+
+  return;
+
+ }
+
+
+ st.textContent=
+  "✅ Senha alterada com sucesso!";
+
+
+ setTimeout(
+  async()=>{
+
+   try{
+
+    await supabaseClient.auth.signOut({
+     scope:"local"
+    });
+
+   }catch(e){
+
+    console.error(e);
+
+   }
+
+
+   usuarioAtual=null;
+
+   perfilAtual=null;
+
+   bcAtual=null;
+
+   modoRecuperacaoSenha=false;
+
+
+   document.getElementById(
+    "senhaOverlay"
+   ).style.display="none";
+
+
+   document.getElementById(
+    "novaSenha"
+   ).value="";
+
+
+   document.getElementById(
+    "confirmarSenha"
+   ).value="";
+
+
+   document.getElementById(
+    "loginStatus"
+   ).textContent=
+    "✅ Senha alterada. Entre com a nova senha.";
+
+
+   document.getElementById(
+    "loginOverlay"
+   ).style.display="flex";
+
+  },
+  1200
+ );
+
+}
+
+
+/* =========================================================
+   EVENTOS DOS BOTÕES
+   ========================================================= */
+
+document.getElementById(
+ "inputMes"
+).addEventListener(
+ "change",
+ carregarMes
+);
+
+
+document.getElementById(
+ "filtroNome"
+).addEventListener(
+ "input",
+ ()=>{
+
+  if(!ehAdmin())return;
+
+
+  const f=
+   document.getElementById(
+    "filtroNome"
+   ).value
+   .trim()
+   .toUpperCase();
+
+
+  document
+   .querySelectorAll(
+    ".nome-row select"
+   )
+   .forEach(s=>{
+
+    if(!f){
+
+     s.parentElement
+      .parentElement
+      .style.opacity="1";
+
+     return;
+
+    }
+
+
+    if(
+     s.value!==f&&
+     s.value!==""
+    ){
+
+     s.parentElement
+      .parentElement
+      .style.opacity=".45";
+
+    }else{
+
+     s.parentElement
+      .parentElement
+      .style.opacity="1";
+
+    }
+
+   });
+
+ }
+);
+
+
+document.getElementById(
+ "btnSalvar"
+).onclick=salvar;
+
+
+document.getElementById(
+ "btnCopiar"
+).onclick=copiarEscala;
+
+
+document.getElementById(
+ "btnExcel"
+).onclick=exportarExcel;
+
+
+document.getElementById(
+ "btnPDF"
+).onclick=exportarPDF;
+
+
+document.getElementById(
+ "btnBackup"
+).onclick=backup;
+
+
+document.getElementById(
+ "btnRestaurar"
+).onclick=
+ ()=>{
+
+  document.getElementById(
+   "arquivoBackup"
+  ).click();
+
+ };
+
+
+document.getElementById(
+ "arquivoBackup"
+).onchange=restaurar;
+
+
+document.getElementById(
+ "btnImprimir"
+).onclick=
+ ()=>window.print();
+
+
+document.getElementById(
+ "btnLimpar"
+).onclick=limpar;
+
+
+document.getElementById(
+ "btnEntrar"
+).onclick=entrar;
+
+
+document.getElementById(
+ "btnSair"
+).onclick=sair;
+
+
+document.getElementById(
+ "btnPrimeiroAcesso"
+).onclick=recuperar;
+
+
+document.getElementById(
+ "btnSalvarNovaSenha"
+).onclick=salvarNovaSenha;
+
+
+/* =========================================================
+   INICIALIZAÇÃO
+   ========================================================= */
+
+(async function init(){
+
+ if(
+  "serviceWorker" in navigator
+ ){
+
+  try{
+
+   await navigator.serviceWorker.register(
+    "service-worker.js"
+   );
+
+  }catch(e){
+
+   console.warn(e);
+
+  }
+
+ }
+
+
+ if(
+  !window.SUPABASE_URL||
+  !window.SUPABASE_PUBLISHABLE_KEY
+ ){
+
+  document.getElementById(
+   "loginOverlay"
+  ).style.display="flex";
+
+
+  document.getElementById(
+   "loginStatus"
+  ).textContent=
+   "Supabase não configurado.";
+
+  return;
+
+ }
+
+
+ /* =====================================================
+    CRIA CLIENTE SUPABASE
+    ===================================================== */
+
+ supabaseClient=
+  window.supabase.createClient(
+
+   window.SUPABASE_URL,
+
+   window.SUPABASE_PUBLISHABLE_KEY,
+
+   {
+
+    auth:{
+
+     persistSession:true,
+
+     autoRefreshToken:true,
+
+     detectSessionInUrl:true
+
+    }
+
+   }
+
+  );
+
+
+ /* =====================================================
+    DETECTAR RECUPERAÇÃO DE SENHA
+    ===================================================== */
+
+ supabaseClient.auth.onAuthStateChange(
+  (event,session)=>{
+
+   console.log(
+    "Evento de autenticação:",
+    event
+   );
+
+
+   if(
+    event==="PASSWORD_RECOVERY"
+   ){
+
+    modoRecuperacaoSenha=true;
+
+    usuarioAtual=
+     session?.user||null;
+
+
+    document.getElementById(
+     "loginOverlay"
+    ).style.display="none";
+
+
+    document.getElementById(
+     "senhaOverlay"
+    ).style.display="flex";
+
+
+    document.getElementById(
+     "senhaStatus"
+    ).textContent=
+     "Digite sua nova senha.";
+
+   }
+
+  }
+ );
+
+
+ /* =====================================================
+    VERIFICAR SESSÃO
+    ===================================================== */
+
+ const {
+  data
+ }=
+  await supabaseClient.auth.getSession();
+
+
+ /*
+    Se for recuperação de senha,
+    NÃO entra automaticamente na escala.
+    Primeiro deve criar a nova senha.
+ */
+
+ if(
+  data?.session&&
+  !modoRecuperacaoSenha
+ ){
+
+  usuarioAtual=
+   data.session.user;
+
+  await preparar();
+
+ }else if(
+  !modoRecuperacaoSenha
+ ){
+
+  document.getElementById(
+   "loginOverlay"
+  ).style.display="flex";
+
+ }
+
+})();
+
 </script>
+
 </body>
-</html>`;
-}
-
-// PÁGINA DA ESCALA
-function gerarPaginaEscala(usuario, ehAdmin) {
-  let optsMes = '';
-  for (let i=0; i<CONFIG.MESES.length; i++) {
-    const m = String(i+1).padStart(2,'0');
-    optsMes += '<option value="'+m+'" '+(i+1===new Date().getMonth()+1?'selected':'')+'>'+CONFIG.MESES[i]+'</option>';
-  }
-  let optsNome = '';
-  if (ehAdmin) {
-    NOMES_GUERRA.forEach(n => optsNome += '<option value="'+n+'">'+n+'</option>');
-  } else {
-    optsNome = '<option value="'+usuario+'" selected>'+usuario+'</option>';
-  }
-  let optsPer = '<option value="">—</option>';
-  PERIODOS.forEach(p => { if(p) optsPer += '<option value="'+p+'">'+p+'</option>'; });
-  const aviso = ehAdmin
-    ? '<div style="background:#e6f9e9;border-left:5px solid #0b5d1e;padding:10px;margin:10px 0;border-radius:4px;">⭐ Administrador: pode lançar todos os nomes.</div>'
-    : '<div style="background:#fff8e1;border-left:5px solid #f0ad00;padding:10px;margin:10px 0;border-radius:4px;">🔒 Pode lançar apenas: <strong>'+usuario+'</strong></div>';
-
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Escala - ${usuario}</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{padding:10px;background:#f3f6f9}
-.topo{background:#0b5d1e;color:#fff;padding:15px;border-radius:10px;text-align:center;margin-bottom:10px}
-.usuario{position:fixed;top:10px;right:10px;background:#fff;color:#0b5d1e;padding:6px 12px;border-radius:20px;font-weight:bold;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-.painel{background:#fff;padding:12px;border-radius:8px;margin:10px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-button{padding:9px 14px;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
-.btnSalvar{background:#198754;color:#fff}
-.btnSenha{background:#6f42c1;color:#fff}
-.btnSair{background:#dc3545;color:#fff;margin-left:auto}
-table{border-collapse:collapse;width:100%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-top:10px}
-th,td{border:1px solid #ccc;padding:5px;text-align:center;font-size:12px}
-th{background:#0b5d1e;color:#fff}
-.colFixa{position:sticky;left:0;background:#f0f9f1;font-weight:bold;min-width:130px}
-.fimSemana{background:#fff0f0}
-select{width:100%;border:none;background:transparent}
-.status{margin:10px 0;padding:10px;background:#eef3f7;border-radius:6px;font-size:14px}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px}
-.modal.aberto{display:flex}
-.modalBox{background:#fff;border-radius:12px;padding:25px;max-width:360px;width:100%}
-.modalBox h3{margin-bottom:15px;color:#0b5d1e}
-input{width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;margin:5px 0 15px}
-.btnCancelar{background:#ccc;color:#000;margin-left:8px}
-@media(max-width:800px){.painel{flex-direction:column;align-items:stretch}.btnSair{margin-left:0}th,td{padding:3px;font-size:11px}}
-</style>
-</head>
-<body>
-<div class="usuario">${usuario}${ehAdmin?' ⭐':''}<button onclick="sair()" style="margin-left:8px;background:#0b5d1e;color:#fff;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:12px">Sair</button></div>
-<div class="topo"><h1>📊 Escala de Plantões — Itapoá/SC</h1><p>Bombeiros Comunitários — ${CONFIG.ANO_ESCALA}</p></div>
-<div class="painel">
-<label>Mês:</label><select id="mes">${optsMes}</select>
-<button class="btnSalvar" onclick="salvar()">💾 Salvar</button>
-<button class="btnSenha" onclick="abrirModal()">🔑 Alterar Senha</button>
-<button class="btnSair" onclick="sair()">🚪 Sair</button>
-</div>
-${aviso}
-<div id="infoMes" class="status"></div>
-<div id="tabela"></div>
-<div id="status" class="status">Carregando...</div>
-
-<div id="modal" class="modal">
-<div class="modalBox">
-<h3>🔑 Alterar Senha</h3>
-<label>Senha Atual</label><input type="text" id="senhaAtual" maxlength="7" inputmode="numeric" placeholder="0000000">
-<label>Nova Senha (7 dígitos)</label><input type="text" id="novaSenha" maxlength="7" inputmode="numeric" placeholder="0000000">
-<label>Repetir Nova Senha</label><input type="text" id="confSenha" maxlength="7" inputmode="numeric" placeholder="0000000">
-<button onclick="confirmar()">✅ Confirmar</button>
-<button class="btnCancelar" onclick="fechar()">Cancelar</button>
-<p id="msgSenha" style="margin-top:10px"></p>
-</div></div>
-
-<script>
-const USUARIO='${usuario}', EH_ADMIN=${ehAdmin}, ANO=${CONFIG.ANO_ESCALA};
-const MESES=${JSON.stringify(CONFIG.MESES)}, DIAS_SEMANA=${JSON.stringify(CONFIG.DIAS_SEMANA)};
-const PERIODOS=${JSON.stringify(PERIODOS)}, opcoesNome='${optsNome}', opcoesPer='${optsPer}';
-let dados={};
-
-function carregar(){
-  const mes=document.getElementById('mes').value;
-  document.getElementById('status').textContent='Carregando...';
-  google.script.run.withSuccessHandler(r=>{
-    dados=r.dados||{}; montarTabela(mes, r.diasNoMes);
-    document.getElementById('infoMes').textContent='📅 '+MESES[Number(mes)-1]+' — '+r.diasNoMes+' dias';
-    document.getElementById('status').textContent='✅ Pronto';
-  }).carregarEscala(mes);
-}
-
-function montarTabela(mes, dias){
-  let h='<table><thead><tr><th class=colFixa>Nome / Período</th>';
-  for(let d=1;d<=dias;d++){
-    const s=new Date(ANO,Number(mes)-1,d).getDay();
-    h+='<th'+(s===0||s===6?' class=fimSemana':'')+'>'+d+'/'+mes+'<br><small>'+DIAS_SEMANA[s].slice(0,3)+'</small></th>';
-  }
-  h+='</tr></thead><tbody>';
-  for(let slot=0;slot<12;slot++){
-    h+='<tr><td class=colFixa>Nome de Guerra</td>';
-    for(let d=1;d<=dias;d++){
-      const k=slot+'_'+d+'_nome', v=dados[k]||'';
-      const bloq=!EH_ADMIN && v && v!==USUARIO ? 'disabled' : '';
-      h+='<td><select data-k="'+k+'" onchange="dados[this.dataset.k]=this.value" '+bloq+'><option value="">—</option>'+opcoesNome+'</select></td>';
-    }
-    h+='</tr><tr><td class=colFixa>Período</td>';
-    for(let d=1;d<=dias;d++){
-      const k=slot+'_'+d+'_periodo', v=dados[k]||'';
-      h+='<td><select data-k="'+k+'" onchange="dados[this.dataset.k]=this.value"><option value="">—</option>'+opcoesPer.replace('value="'+v+'"','value="'+v+'" selected')+'</select></td>';
-    }
-    h+='</tr>';
-  }
-  h+='</tbody></table>';
-  document.getElementById('tabela').innerHTML=h;
-  document.querySelectorAll('select[data-k]').forEach(s=>s.value=dados[s.dataset.k]||'');
-}
-
-function salvar(){
-  const mes=document.getElementById('mes').value;
-  google.script.run.withSuccessHandler(d=>{
-    document.getElementById('status').textContent=d.mensagem;
-    setTimeout(()=>document.getElementById('status').textContent='',3000);
-  }).salvarEscala(mes, dados, USUARIO, EH_ADMIN);
-}
-
-function sair(){ if(confirm('Sair?')) window.location.href='?'; }
-function abrirModal(){ document.getElementById('modal').classList.add('aberto'); }
-function fechar(){ document.getElementById('modal').classList.remove('aberto'); document.getElementById('msgSenha').textContent=''; }
-function confirmar(){
-  const a=document.getElementById('senhaAtual').value.trim(), n=document.getElementById('novaSenha').value.trim(), c=document.getElementById('confSenha').value.trim();
-  const m=document.getElementById('msgSenha');
-  if(!/^\\d{7}$/.test(n)){m.textContent='❌ 7 dígitos.';return}
-  if(n!==c){m.textContent='❌ Não coincidem.';return}
-  google.script.run.withSuccessHandler(d=>{
-    m.style.color=d.ok?'green':'red'; m.textContent=d.mensagem;
-    if(d.ok) setTimeout(fechar,1500);
-  }).alterarSenha(USUARIO,a,n);
-}
-
-document.getElementById('mes').addEventListener('change',carregar);
-carregar();
-</script>
-</body>
-</html>`;
-}
-
-// FERRAMENTAS
-function definirAdmin(nome) {
-  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
-  const linhas = aba.getRange(2, 1, aba.getLastRow() - 1, 2).getValues();
-  for (let i=0; i<linhas.length; i++) {
-    if (linhas[i][0] === nome) {
-      aba.getRange(i+2, 4).setValue(true);
-      SpreadsheetApp.getUi().alert(nome + ' agora é administrador! ⭐');
-      return;
-    }
-  }
-  SpreadsheetApp.getUi().alert('Nome não encontrado.');
-}
+</html>
