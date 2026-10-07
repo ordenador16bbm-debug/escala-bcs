@@ -1,561 +1,432 @@
+// ================= CONFIGURAÇÕES =================
+const CONFIG = {
+  ABA_USUARIOS: 'Usuarios',
+  ABA_ESCALA: 'Escala',
+  SENHA_TAMANHO: 7,
+  TITULO: 'Escala BCs — Bombeiros Comunitários Itapoá',
+  ANO_ESCALA: 2026,
+  MESES: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+  DIAS_SEMANA: ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado']
+};
+
+const NOMES_GUERRA = [
+  "ADILSON", "ALVES", "ANDRADE", "BARBARA", "BARBOSA", "BATISTA",
+  "BORGES", "BRAUER", "CAMILA", "CASTELACI", "CLEDISON", "DENIS",
+  "DOS SANTOS", "EDER", "EVERALDO", "FEITOSA", "GABRIEL", "GERSON",
+  "GEYSSON", "GLEISSON", "IARA", "JAIRO", "JAQUELINE", "JESSICA",
+  "JOSÉ", "JUAN", "KEVIN", "KRAUSE", "L.RUDNIK", "LARISSA", "LAURECI",
+  "LIMA", "LIRAS", "LUCHTENBERG", "MAICO", "MAMINHAQUI", "MATIAS",
+  "MATUCHESKI", "NERIS", "PALOMA", "PATRICK", "PAULO", "PEKOCZ",
+  "PINHEIRO", "PIVA", "PRISCILA", "REI", "REIS", "RYAN", "SAMPAIO",
+  "SANTOS", "SCHENA", "SCHÖNE", "SILVINA", "SIMÃO", "STREISKI",
+  "TEIXEIRA", "TIBURSKI", "WITKOWSKI", "ZENI"
+];
+
+const PERIODOS = ['', 'DIURNO', 'NOTURNO', 'INTEGRAL'];
+const SLOTS = 12;
+
+// ================= ROTAS PRINCIPAIS =================
+function doGet(e) {
+  inicializarPlanilhas();
+  const usuario = e.parameter.usuario;
+  if (usuario) {
+    return HtmlService.createHtmlOutput(gerarPaginaEscala(usuario))
+      .setTitle(`${CONFIG.TITULO} — ${usuario}`)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+  return HtmlService.createHtmlOutput(gerarPaginaLogin())
+    .setTitle(CONFIG.TITULO)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// ================= INICIALIZAÇÃO =================
+function inicializarPlanilhas() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Aba Usuários
+  let abaUsuarios = ss.getSheetByName(CONFIG.ABA_USUARIOS);
+  if (!abaUsuarios) {
+    abaUsuarios = ss.insertSheet(CONFIG.ABA_USUARIOS);
+    abaUsuarios.getRange(1, 1, 1, 4).setValues([
+      ['NomeGuerra', 'SenhaAcesso', 'UltimoAcesso', 'EhAdmin']
+    ]).setFontWeight('bold');
+  }
+  
+  // Gera senhas para novos nomes
+  const existentes = new Set();
+  if (abaUsuarios.getLastRow() > 1) {
+    existentes.add(...abaUsuarios.getRange(2, 1, abaUsuarios.getLastRow() - 1, 1).getValues().flat());
+  }
+  NOMES_GUERRA.forEach(nome => {
+    if (!existentes.has(nome)) {
+      abaUsuarios.appendRow([nome, gerarSenhaUnica(abaUsuarios), '', false]);
+    }
+  });
+  
+  // Aba Escala
+  if (!ss.getSheetByName(CONFIG.ABA_ESCALA)) {
+    const abaEscala = ss.insertSheet(CONFIG.ABA_ESCALA);
+    abaEscala.getRange(1, 1, 1, 5).setValues([
+      ['Mes', 'Dia', 'Slot', 'Nome', 'Periodo']
+    ]).setFontWeight('bold');
+  }
+}
+
+function gerarSenhaUnica(abaUsuarios) {
+  const existentes = new Set(
+    abaUsuarios.getRange(2, 2, Math.max(0, abaUsuarios.getLastRow() - 1), 1).getValues().flat()
+  );
+  let senha;
+  do {
+    senha = Array.from({length: CONFIG.SENHA_TAMANHO}, () => Math.floor(Math.random() * 10)).join('');
+  } while (existentes.has(senha));
+  return senha;
+}
+
+// ================= AUTENTICAÇÃO =================
+function verificarAcesso(nomeGuerra, senha) {
+  if (!nomeGuerra || !/^\d{7}$/.test(senha)) {
+    return { ok: false, mensagem: 'Preencha corretamente todos os campos.' };
+  }
+  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
+  const dados = aba.getRange(2, 1, aba.getLastRow() - 1, 4).getValues();
+  for (let i = 0; i < dados.length; i++) {
+    if (dados[i][0] === nomeGuerra && dados[i][1] === senha) {
+      aba.getRange(i + 2, 3).setValue(new Date());
+      return {
+        ok: true,
+        mensagem: `✅ Bem-vindo, ${nomeGuerra}!`,
+        usuario: nomeGuerra,
+        admin: Boolean(dados[i][3])
+      };
+    }
+  }
+  return { ok: false, mensagem: '❌ Nome de guerra ou código incorretos.' };
+}
+
+// ================= ALTERAÇÃO DE SENHA =================
+function alterarSenha(nomeGuerra, senhaAtual, novaSenha) {
+  if (!/^\d{7}$/.test(novaSenha)) {
+    return { ok: false, mensagem: 'A nova senha deve ter exatamente 7 números.' };
+  }
+  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
+  const dados = aba.getRange(2, 1, aba.getLastRow() - 1, 2).getValues();
+  for (let i = 0; i < dados.length; i++) {
+    if (dados[i][0] === nomeGuerra && dados[i][1] === senhaAtual) {
+      aba.getRange(i + 2, 2).setValue(novaSenha);
+      return { ok: true, mensagem: '✅ Senha alterada com sucesso!' };
+    }
+  }
+  return { ok: false, mensagem: '❌ Senha atual incorreta.' };
+}
+
+function redefinirSenhaAdmin(nomeAlvo, novaSenha) {
+  if (!/^\d{7}$/.test(novaSenha)) return { ok: false, mensagem: '7 dígitos obrigatórios.' };
+  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
+  const dados = aba.getRange(2, 1, aba.getLastRow() - 1, 2).getValues();
+  for (let i = 0; i < dados.length; i++) {
+    if (dados[i][0] === nomeAlvo) {
+      aba.getRange(i + 2, 2).setValue(novaSenha);
+      return { ok: true, mensagem: `Senha de ${nomeAlvo} atualizada.` };
+    }
+  }
+  return { ok: false, mensagem: 'Usuário não encontrado.' };
+}
+
+// ================= DADOS DA ESCALA =================
+function carregarEscala(mes, usuario, ehAdmin) {
+  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_ESCALA);
+  const linhas = aba.getRange(2, 1, Math.max(0, aba.getLastRow() - 1), 5).getValues();
+  const dados = {};
+  linhas.forEach(([m, dia, slot, nome, periodo]) => {
+    if (String(m) === String(mes)) {
+      dados[`${slot}_${dia}_nome`] = nome || '';
+      dados[`${slot}_${dia}_periodo`] = periodo || '';
+    }
+  });
+  return {
+    dados,
+    podeEditar: ehAdmin ? 'todos' : usuario,
+    diasNoMes: new Date(CONFIG.ANO_ESCALA, Number(mes), 0).getDate()
+  };
+}
+
+function salvarEscala(mes, alteracoes, usuario, ehAdmin) {
+  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_ESCALA);
+  const linhas = aba.getRange(2, 1, Math.max(0, aba.getLastRow() - 1), 5).getValues();
+  const manter = [];
+  for (const linha of linhas) {
+    if (String(linha[0]) !== String(mes)) manter.push(linha);
+  }
+  for (const [chave, valor] of Object.entries(alteracoes)) {
+    const match = chave.match(/^(\d+)_(\d+)_(nome|periodo)$/);
+    if (!match) continue;
+    const [, slot, dia, tipo] = match;
+    if (tipo === 'nome') {
+      if (!ehAdmin && valor && valor !== usuario) continue;
+      manter.push([mes, Number(dia), Number(slot), valor, alteracoes[`${slot}_${dia}_periodo`] || '']);
+    }
+  }
+  aba.clearContents();
+  aba.getRange(1, 1, 1, 5).setValues([['Mes','Dia','Slot','Nome','Periodo']]).setFontWeight('bold');
+  if (manter.length) aba.getRange(2, 1, manter.length, 5).setValues(manter);
+  return { ok: true, mensagem: '✅ Escala salva!' };
+}
+
+// ================= INTERFACES =================
+function gerarPaginaLogin() {
+  const opcoes = NOMES_GUERRA.map(n => `<option value="${n}">${n}</option>`).join('');
+  return `
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Escala BCs — Bombeiros Comunitários</title>
-<link rel="icon" type="image/png" href="icone-escala.png">
-<link rel="apple-touch-icon" href="icone-escala.png">
-<meta name="theme-color" content="#0b5d1e">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Escala BCs">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${CONFIG.TITULO}</title>
 <style>
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;padding:12px;font-family:Arial,Helvetica,sans-serif;background:#f3f6f9;color:#222}
-.container{max-width:1900px;margin:auto}
-header{background:#0b5d1e;color:#fff;padding:18px;border-radius:10px;text-align:center;margin-bottom:15px}
-header h1{margin:0;font-size:22px}
-header p{margin:7px 0 0;font-size:14px}
-.painel{background:#fff;padding:14px;display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end;border-radius:8px;margin-bottom:15px}
-.campo{display:flex;flex-direction:column;gap:4px}
-.campo label{font-weight:bold;font-size:13px}
-select,input,button{font:inherit}
-.input{padding:10px;border:1px solid #aaa;border-radius:6px;background:#fff;min-width:170px}
-.input:disabled{background:#e9ecef;opacity:.7}
-button{padding:10px 13px;border:0;border-radius:6px;cursor:pointer;font-weight:bold;transition:.2s}
-button:active{transform:scale(.98)}
-.btn-salvar{background:#198754;color:#fff}
-.btn-excel{background:#217346;color:#fff}
-.btn-pdf{background:#dc3545;color:#fff}
-.btn-backup{background:#0d6efd;color:#fff}
-.btn-restaurar{background:#fd7e14;color:#fff}
-.btn-limpar{background:#b02a37;color:#fff}
-.btn-travar{background:#ffc107;color:#212}
-.btn-destravar{background:#28a745;color:#fff}
-.btn-sair{background:#6c757d;color:#fff;margin-left:auto}
-.status{margin:10px 0;padding:10px;border-radius:6px;background:#eef3f7;color:#555;font-size:13px}
-.status.ok{background:#d4edda;color:#155724}
-.status.aviso{background:#fff3cd;color:#856404}
-.status.erro{background:#f8d7da;color:#721c24}
-.tabela-wrap{background:#fff;padding:10px;overflow:auto;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
-table{border-collapse:collapse;width:max-content;min-width:100%;font-size:12px}
-th,td{border:1px solid #777;text-align:center;padding:4px}
-thead th{background:#d9ead3;font-weight:bold}
-.coluna-label{position:sticky;left:0;z-index:5;background:#fff;min-width:170px;width:170px;font-weight:bold}
-thead .coluna-label{background:#0b5d1e;color:#fff}
-.col-dia{min-width:120px;width:120px}
-.data{font-size:13px;font-weight:bold}
-.semana{font-size:11px}
-.fim-semana{background:#fff0f0}
-.select-escala{width:100%;border:1px solid #aaa;border-radius:4px;padding:4px;font-size:12px;min-height:34px}
-.select-escala:disabled{background:#e9ecef;opacity:.7;cursor:not-allowed}
-.resumo{margin-top:15px;background:#fff;padding:16px;border-radius:8px}
-.resumo h2{margin:0 0 12px;color:#0b5d1e;font-size:18px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-.card{border:1px solid #ccc;border-radius:6px;padding:10px;background:#f8f9fa;text-align:center}
-.card strong{display:block;font-size:13px}
-.card b{font-size:20px;color:#0b5d1e}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
-.login-box{background:#fff;border-radius:16px;padding:24px;max-width:500px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);margin:20px 0}
-.login-box h2{margin-top:0;color:#0b5d1e;text-align:center}
-.lista-nomes{display:flex;flex-direction:column;gap:10px;margin:20px 0;max-height:70vh;overflow-y:auto;padding-right:4px}
-.nome-btn{padding:14px;background:linear-gradient(135deg,#0b5d1e,#158030);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:15px;text-align:center;transition:.2s;width:100%}
-.nome-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.nome-btn.admin{background:linear-gradient(135deg,#b00020,#d62030);font-weight:bold}
-.senha-input{width:100%;padding:14px;margin:12px 0;border:1px solid #bbb;border-radius:8px;font-size:16px}
-.btn-entrar{width:100%;background:#b00020;color:#fff;border:none;padding:14px;border-radius:8px;font-size:16px;cursor:pointer;font-weight:bold}
-.btn-voltar{width:100%;background:#eee;color:#333;border:none;padding:12px;border-radius:8px;margin-top:10px;cursor:pointer;font-size:15px}
-.aviso-bc{background:#fff8e1;border-left:5px solid #f0ad00;padding:12px 15px;margin:10px 0;border-radius:0 6px 6px 0}
-.aviso-travado{background:#fff3cd;border-left:5px solid #ffc107;padding:12px 15px;margin:10px 0;border-radius:0 6px 6px 0;display:none}
-.hidden{display:none!important}
-@media(max-width:800px){
- body{padding:4px}
- header{padding:12px 6px}
- .painel{flex-direction:column;align-items:stretch}
- .input,button{width:100%;min-height:44px}
- .coluna-label{min-width:140px;width:140px}
- .col-dia{min-width:105px;width:105px}
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:linear-gradient(135deg,#0b5d1e,#1a752f);min-height:100vh;margin:0;padding:1rem;display:flex;align-items:center;justify-content:center}
+.card{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+h1{color:#0b5d1e;text-align:center;margin:0 0 .3rem;font-size:1.4rem}
+h2{text-align:center;color:#444;font-weight:normal;margin:0 0 2rem;font-size:1rem}
+label{display:block;margin:1rem 0 .3rem;font-weight:bold;color:#333}
+select,input{width:100%;padding:.9rem;border:2px solid #ddd;border-radius:8px;font-size:1rem}
+select:focus,input:focus{border-color:#0b5d1e;outline:none}
+button{width:100%;margin-top:1.5rem;padding:1rem;background:#0b5d1e;color:#fff;border:none;border-radius:8px;font-size:1.1rem;font-weight:bold;cursor:pointer}
+button:hover{background:#0d7024}
+.secundario{background:#fff;color:#0b5d1e;border:2px solid #0b5d1e;margin-top:.8rem}
+.secundario:hover{background:#f0f9f1}
+.msg{margin-top:1rem;padding:1rem;border-radius:8px;text-align:center;display:none}
+.sucesso{background:#e6f9e9;color:#0b5d1e;display:block}
+.erro{background:#ffe9e9;color:#b02030;display:block}
+.info{text-align:center;margin-top:1.5rem;font-size:.9rem;color:#66}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🚒 Bombeiros Comunitários Itapoá</h1>
+  <h2>Acesso à Escala de Plantões</h2>
+  <form id="f">
+    <label>Nome de Guerra</label>
+    <select id="ng" required><option value="">— Selecione —</option>${opcoes}</select>
+    <label>Código de Acesso (7 dígitos)</label>
+    <input type="text" id="senha" maxlength="7" inputmode="numeric" placeholder="0000000" required>
+    <button type="submit">Entrar</button>
+  </form>
+  <div id="m" class="msg"></div>
+  <p class="info">Digite o código recebido. Se esqueceu, peça ao administrador.</p>
+</div>
+<script>
+const f=document.getElementById('f'),m=document.getElementById('m');
+f.addEventListener('submit',async e=>{
+  e.preventDefault();m.className='msg';m.textContent='';
+  const ng=document.getElementById('ng').value,s=document.getElementById('senha').value.trim();
+  if(!/^\\d{7}$/.test(s)){m.className='msg erro';m.textContent='Digite exatamente 7 números.';return}
+  const r=await google.script.run.withSuccessHandler(d=>{
+    m.className='msg '+(d.ok?'sucesso':'erro');m.textContent=d.mensagem;
+    if(d.ok)setTimeout(()=>window.location.href='?usuario='+encodeURIComponent(d.usuario),1200);
+  }).verificarAcesso(ng,s);
+});
+</script>
+</body>
+</html>`;
 }
-@media print{
- body{background:#fff;padding:0}
- header{border-radius:0}
- .painel,.status,.resumo,.overlay,.btn-sair{display:none!important}
- .tabela-wrap{overflow:visible;box-shadow:none}
- table{font-size:9px}
- .select-escala{appearance:none;border:0;font-size:9px}
+
+function gerarPaginaEscala(usuario) {
+  const ehAdmin = false; // Defina manualmente abaixo ou via planilha
+  const opcoesMes = CONFIG.MESES.map((n,i) => {
+    const m = String(i+1).padStart(2,'0');
+    return `<option value="${m}" ${m==='10'?'selected':''}>${n}</option>`;
+  }).join('');
+  const opcoesPeriodo = PERIODOS.map(p => `<option value="${p}">${p||'—'}</option>`).join('');
+  return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escala — ${usuario}</title>
+<style>
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;padding:10px;background:#f3f6f9}
+.cabecalho{background:#0b5d1e;color:#fff;padding:15px;border-radius:10px;text-align:center}
+.usuario{position:fixed;top:8px;right:8px;background:#fff;color:#0b5d1e;padding:6px 12px;border-radius:20px;font-weight:bold;font-size:.9rem;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.btn-sair{margin-left:8px;background:#0b5d1e;color:#fff;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:.8rem}
+.painel{background:#fff;padding:12px;border-radius:8px;margin:10px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{font-weight:bold;font-size:.9rem}
+select,input{padding:8px;border:1px solid #bbb;border-radius:6px}
+button{padding:9px 14px;border:none;border-radius:6px;font-weight:bold;cursor:pointer}
+.btn-salvar{background:#198754;color:#fff}
+.btn-senha{background:#6f42c1;color:#fff}
+.btn-sair-principal{background:#dc3545;color:#fff;margin-left:auto}
+.aviso{background:#fff8e1;border-left:5px solid #f0ad00;padding:10px;border-radius:4px;margin:10px 0}
+table{border-collapse:collapse;width:100%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+th,td{border:1px solid #ccc;padding:5px;text-align:center;font-size:.85rem}
+th{background:#0b5d1e;color:#fff}
+.col-fixa{position:sticky;left:0;background:#f0f9f1;font-weight:bold;min-width:130px}
+.fim-semana{background:#fff0f0}
+select{width:100%;border-radius:4px;border:1px solid #ddd;padding:3px}
+.status{margin:10px 0;padding:10px;background:#eef3f7;border-radius:6px;font-size:.9rem}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px}
+.modal.aberto{display:flex}
+.modal-caixa{background:#fff;border-radius:12px;padding:24px;max-width:360px;width:100%}
+.modal-caixa h3{margin-top:0;color:#0b5d1e}
+.oculto{display:none}
+@media(max-width:800px){
+  .painel{flex-direction:column;align-items:stretch}
+  .btn-sair-principal{margin-left:0}
+  table{font-size:.75rem}
+  th,td{padding:3px}
 }
 </style>
 </head>
 <body>
-
-<div id="loginOverlay" class="overlay">
- <div class="login-box">
-  <h2>🚒 Escala — Bombeiros Comunitários</h2>
-  <p style="text-align:center;color:#555;margin:10px 0">Clique no seu nome para acessar:</p>
-  <div class="lista-nomes" id="listaNomes">
-   <p style="text-align:center;color:#888;padding:20px">Carregando...</p>
-  </div>
- </div>
+<div class="usuario">${usuario}<button class="btn-sair" onclick="sair()">Sair</button></div>
+<div class="cabecalho">
+  <h1>📊 Escala de Plantões — Itapoá/SC</h1>
+  <p>Bombeiros Comunitários — Ano ${CONFIG.ANO_ESCALA}</p>
 </div>
-
-<div id="senhaOverlay" class="overlay hidden">
- <div class="login-box">
-  <h2>🔐 Administrador</h2>
-  <input type="password" id="inpSenhaAdmin" class="senha-input" placeholder="Digite a senha...">
-  <button id="btnEntrarAdmin" class="btn-entrar">Entrar</button>
-  <button id="btnVoltarLista" class="btn-voltar">Voltar</button>
- </div>
-</div>
-
-<div class="container hidden" id="corpoSistema">
- <header>
-  <h1>📊 Escala de Plantões — Bombeiros Comunitários</h1>
-  <p id="infoUsuario">Conectado como: <strong></strong></p>
- </header>
-
- <div id="avisoBC" class="aviso-bc hidden">
-  👤 Você confirma apenas o seu nome. Todos veem as marcações.
- </div>
-
- <div id="avisoTravado" class="aviso-travado">
-  🔒 Somente o mês <strong id="nomeMesLiberado"></strong> está liberado para confirmação.
- </div>
-
- <div class="painel">
-  <div class="campo">
-   <label>Mês da Escala</label>
-   <select id="selMes" class="input">
-    <option value="01">Janeiro</option>
-    <option value="02">Fevereiro</option>
-    <option value="03">Março</option>
-    <option value="04">Abril</option>
-    <option value="05">Maio</option>
-    <option value="06">Junho</option>
-    <option value="07">Julho</option>
-    <option value="08">Agosto</option>
-    <option value="09" selected>Setembro</option>
-    <option value="10">Outubro</option>
-    <option value="11">Novembro</option>
-    <option value="12">Dezembro</option>
-   </select>
-  </div>
-  <button id="btnTravarMes" class="btn-travar hidden">🔒 Travar Mês</button>
+<div class="painel">
+  <label>Mês:</label>
+  <select id="mes">${opcoesMes}</select>
   <button id="btnSalvar" class="btn-salvar">💾 Salvar</button>
-  <button id="btnExcel" class="btn-excel hidden">📊 Excel</button>
-  <button id="btnPDF" class="btn-pdf hidden">📄 PDF</button>
-  <button id="btnBackup" class="btn-backup hidden">💾 Baixar Backup</button>
-  <button id="btnRestaurar" class="btn-restaurar hidden">♻️ Restaurar</button>
-  <input type="file" id="arquivoBackup" accept=".json" class="hidden">
-  <button id="btnLimpar" class="btn-limpar hidden">🧹 Limpar Mês</button>
-  <button id="btnSair" class="btn-sair">🚪 Sair</button>
- </div>
+  <button id="btnTrocarSenha" class="btn-senha">🔑 Alterar Senha</button>
+  <button class="btn-sair-principal" onclick="sair()">🚪 Sair</button>
+</div>
+<div id="avisoBC" class="aviso">🔒 Você pode lançar apenas seu próprio nome: <strong>${usuario}</strong></div>
+<div id="infoMes" class="status"></div>
+<div id="tabelaContainer"></div>
+<div id="status" class="status">Carregando...</div>
 
- <div id="statusSistema" class="status">Carregando...</div>
-
- <div class="tabela-wrap">
-  <table id="tabelaEscala">
-   <thead>
-    <tr id="linhaDatas"><th class="coluna-label">Nome / Período</th></tr>
-    <tr id="linhaSemana"><th class="coluna-label">Dia</th></tr>
-   </thead>
-   <tbody id="corpoTabela"></tbody>
-  </table>
- </div>
-
- <div id="resumo" class="resumo hidden">
-  <h2>📈 Plantões por Integrante</h2>
-  <div class="grid" id="gridResumo"></div>
- </div>
+<!-- Modal Alterar Senha -->
+<div id="modalSenha" class="modal">
+  <div class="modal-caixa">
+    <h3>🔑 Alterar Código de Acesso</h3>
+    <p>
+      <label>Senha Atual</label>
+      <input type="text" id="senhaAtual" maxlength="7" inputmode="numeric" placeholder="0000000">
+    </p>
+    <p>
+      <label>Nova Senha (7 dígitos)</label>
+      <input type="text" id="novaSenha" maxlength="7" inputmode="numeric" placeholder="0000000">
+    </p>
+    <p>
+      <label>Repetir Nova Senha</label>
+      <input type="text" id="confNovaSenha" maxlength="7" inputmode="numeric" placeholder="0000000">
+    </p>
+    <button onclick="confirmarSenha()">✅ Confirmar</button>
+    <button style="background:#ccc;color:#000;margin-left:8px" onclick="fecharModal()">Cancelar</button>
+    <p id="msgSenha" style="margin-top:10px"></p>
+  </div>
 </div>
 
 <script>
-const ANO = 2026;
-const SENHA_ADMIN = "bombeiro2026";
-const QTD_VAGAS = 12;
-const CHAVE_SALVAMENTO = "escala_bcs_itapoa_2026";
+const USUARIO = '${usuario}';
+const EH_ADMIN = ${ehAdmin};
+const PERIODOS = ${JSON.stringify(PERIODOS)};
+const NOMES = ${JSON.stringify(NOMES_GUERRA)};
+const opcoesNome = EH_ADMIN ? NOMES.map(n=>`<option value="${n}">${n}</option>`).join('') : `<option value="${usuario}" selected>${usuario}</option>`;
+let dados = {}, dadosOriginais = {};
 
-const listaNomes = [
- "ADILSON","ALVES","ANDRADE","BARBARA","BARBOSA","BATISTA","BORGES",
- "BRAUER","CAMILA","CASTELACI","CLEDISON","DENIS","EDER","EVERALDO",
- "FEITOSA","GABRIEL","GERSON","GEYSSON","GLEISSON","IARA","JAIRO",
- "JAQUELINE","JESSICA","JOSÉ","JUAN","KEVIN","KRAUSE","LARISSA",
- "LAURECI","LILIAN","LIMA","LIRAS","LUCHTENBERG","MAICO","MAMINHAQUI",
- "MATIAS","MATUCHESKI","NERIS","PALOMA","PATRICK","PAULO","PEKOCZ",
- "PINHEIRO","PIVA","PRISCILA","REIS","RUDNIK","RYAN","SAMPAIO",
- "SANTOS","SCHENA","SILVINA","SIMÃO","STREISKI","TEIXEIRA","TIBURSKI",
- "WITKOWSKI","ZENI"
-];
-const periodos = ["", "DIURNO", "NOTURNO", "INTEGRAL"];
-const nomesMes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const nomesSemana = ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"];
-
-let usuario = null;
-let ehAdmin = false;
-let dadosGerais = {};
-let mesLiberado = null;
-
-function qtdDiasMes(mes) { return new Date(ANO, Number(mes), 0).getDate(); }
-function mesAtual() { return document.getElementById("selMes").value; }
-function chaveNome(vaga, dia) { return `${vaga}_${dia}_nome`; }
-function chavePeriodo(vaga, dia) { return `${vaga}_${dia}_periodo`; }
-function podeEditar() { return ehAdmin || !mesLiberado || mesLiberado === mesAtual(); }
-
-function status(texto, tipo="") {
- const el = document.getElementById("statusSistema");
- el.className = "status " + tipo;
- el.textContent = texto;
+function carregar(){
+  const mes = document.getElementById('mes').value;
+  document.getElementById('status').textContent = 'Carregando...';
+  google.script.run.withSuccessHandler(r=>{
+    dados = {...r.dados}; dadosOriginais = {...r.dados};
+    montarTabela(mes, r.diasNoMes);
+    document.getElementById('infoMes').textContent = `📅 ${CONFIG.MESES[Number(mes)-1]} — ${r.diasNoMes} dias`;
+    document.getElementById('status').textContent = '✅ Pronto';
+  }).carregarEscala(mes, USUARIO, EH_ADMIN);
 }
 
-function salvarTudo() {
- localStorage.setItem(CHAVE_SALVAMENTO, JSON.stringify({dados:dadosGerais, mesLiberado:mesLiberado}));
-}
-
-function carregarTudo() {
- try {
-  const t = JSON.parse(localStorage.getItem(CHAVE_SALVAMENTO) || "{}");
-  dadosGerais = t.dados || {};
-  mesLiberado = t.mesLiberado || null;
- } catch {
-  dadosGerais = {}; mesLiberado = null;
- }
-}
-
-function dadosDoMes() { return dadosGerais[mesAtual()] || {}; }
-function salvarDadosMes(dados) { dadosGerais[mesAtual()] = dados; salvarTudo(); }
-
-function montarListaEntrada() {
- const lista = document.getElementById("listaNomes");
- lista.innerHTML = "";
-
- const btnAdm = document.createElement("button");
- btnAdm.className = "nome-btn admin";
- btnAdm.textContent = "🔐 ADMINISTRADOR";
- btnAdm.onclick = () => {
-  document.getElementById("loginOverlay").classList.add("hidden");
-  document.getElementById("senhaOverlay").classList.remove("hidden");
- };
- lista.appendChild(btnAdm);
-
- listaNomes.forEach(nome => {
-  const btn = document.createElement("button");
-  btn.className = "nome-btn";
-  btn.textContent = nome;
-  btn.onclick = () => { entrarComoUsuario(nome, false); };
-  lista.appendChild(btn);
- });
-}
-
-function entrarComoUsuario(nome, admin=false) {
- usuario = nome; ehAdmin = admin;
- carregarTudo();
-
- document.getElementById("loginOverlay").classList.add("hidden");
- document.getElementById("senhaOverlay").classList.add("hidden");
- document.getElementById("corpoSistema").classList.remove("hidden");
- document.getElementById("infoUsuario").querySelector("strong").textContent = nome + (admin ? " · Administrador" : "");
-
- ajustarInterface();
- montarTabela();
- atualizarTrava();
- status("✅ Pronto! Marque seus dias e clique em Salvar", "ok");
-}
-
-document.getElementById("btnEntrarAdmin").onclick = () => {
- const senha = document.getElementById("inpSenhaAdmin").value;
- if (senha === SENHA_ADMIN) {
-  entrarComoUsuario("ADMINISTRADOR", true);
- } else {
-  status("Senha incorreta!", "erro");
-  document.getElementById("inpSenhaAdmin").value = "";
- }
-};
-
-document.getElementById("btnVoltarLista").onclick = () => {
- document.getElementById("senhaOverlay").classList.add("hidden");
- document.getElementById("loginOverlay").classList.remove("hidden");
- document.getElementById("inpSenhaAdmin").value = "";
-};
-
-document.getElementById("btnSair").onclick = () => {
- usuario = null; ehAdmin = false;
- document.getElementById("corpoSistema").classList.add("hidden");
- document.getElementById("loginOverlay").classList.remove("hidden");
- montarListaEntrada();
-};
-
-function atualizarTrava() {
- const selMes = document.getElementById("selMes");
- const aviso = document.getElementById("avisoTravado");
- const btnTravar = document.getElementById("btnTravarMes");
- const nomeMesLib = document.getElementById("nomeMesLiberado");
-
- if (mesLiberado) {
-  nomeMesLib.textContent = nomesMes[Number(mesLiberado)-1];
-  btnTravar.textContent = "🔓 Destravar Todos";
-  btnTravar.classList.remove("btn-travar");
-  btnTravar.classList.add("btn-destravar");
- } else {
-  btnTravar.textContent = "🔒 Travar Neste Mês";
-  btnTravar.classList.remove("btn-destravar");
-  btnTravar.classList.add("btn-travar");
- }
-
- aviso.style.display = !ehAdmin && mesLiberado ? "block" : "none";
- selMes.disabled = !ehAdmin && mesLiberado;
- if (!ehAdmin && mesLiberado) selMes.value = mesLiberado;
-
- document.querySelectorAll(".select-escala").forEach(el => el.disabled = !podeEditar());
- document.getElementById("btnSalvar").disabled = !podeEditar();
-}
-
-document.getElementById("btnTravarMes").onclick = () => {
- if (!ehAdmin) return;
- mesLiberado = mesLiberado ? null : mesAtual();
- salvarTudo();
- atualizarTrava();
- status(mesLiberado ? `🔒 Travado em ${nomesMes[Number(mesAtual())-1]}` : "🔓 Todos os meses liberados", "ok");
-};
-
-function montarSelectNome(valorAtual, chave) {
- const sel = document.createElement("select");
- sel.className = "select-escala";
- sel.innerHTML = `<option value="">—</option>`;
-
- if (ehAdmin) {
-  listaNomes.forEach(n => sel.innerHTML += `<option value="${n}">${n}</option>`);
- } else {
-  if (valorAtual && valorAtual !== usuario) {
-   sel.innerHTML = `<option value="${valorAtual}" selected>${valorAtual}</option>`;
-   sel.disabled = true;
-  } else {
-   sel.innerHTML += `<option value="${usuario}">${usuario}</option>`;
-   sel.disabled = !podeEditar();
+function montarTabela(mes, dias){
+  let html = '<table><thead><tr><th class="col-fixa">Nome / Período</th>';
+  for(let d=1;d<=dias;d++){
+    const s=new Date(${CONFIG.ANO_ESCALA},Number(mes)-1,d).getDay();
+    html += `<th class="${s===0||s===6?'fim-semana':''}">${d}/${mes}<br><small>${CONFIG.DIAS_SEMANA[s].slice(0,3)}</small></th>`;
   }
- }
- sel.value = valorAtual || "";
-
- sel.onchange = () => {
-  if (!ehAdmin && sel.value && sel.value !== usuario) {
-   status("🔒 Você só pode lançar seu próprio nome", "aviso");
-   sel.value = valorAtual || "";
-   return;
+  html += '</tr></thead><tbody>';
+  for(let slot=0;slot<12;slot++){
+    html += '<tr>';
+    html += `<td class="col-fixa">Nome de Guerra</td>`;
+    for(let d=1;d<=dias;d++){
+      const k = slot+'_'+d+'_nome', v = dados[k]||'';
+      const bloquear = !EH_ADMIN && v && v !== USUARIO;
+      html += '<td><select data-k="'+k+'" onchange="alterar(this)"'+(bloquear?' disabled':'')+'><option value="">—</option>'+opcoesNome+'</select></td>';
+    }
+    html += '</tr><tr>';
+    html += `<td class="col-fixa">Período</td>`;
+    for(let d=1;d<=dias;d++){
+      const k = slot+'_'+d+'_periodo', v = dados[k]||'';
+      html += '<td><select data-k="'+k+'" onchange="alterar(this)"><option value="">—</option>'+PERIODOS.map(p=>'<option value="'+p+'"'+(p===v?'selected':'')+'>'+(p||'—')+'</option>').join('')+'</select></td>';
+    }
+    html += '</tr>';
   }
-  const dados = dadosDoMes();
-  dados[chave] = sel.value;
-  salvarDadosMes(dados);
-  status("✏️ Alterado — clique em Salvar", "aviso");
- };
- return sel;
+  html += '</tbody></table>';
+  document.getElementById('tabelaContainer').innerHTML = html;
+  document.querySelectorAll('select[data-k]').forEach(s=>s.value = dados[s.dataset.k]||'');
 }
 
-function montarSelectPeriodo(valorAtual, chave) {
- const sel = document.createElement("select");
- sel.className = "select-escala";
- periodos.forEach(p => sel.innerHTML += `<option value="${p}">${p||"—"}</option>`);
- sel.value = valorAtual || "";
+function alterar(sel){ dados[sel.dataset.k] = sel.value; }
 
- if (!ehAdmin) {
-  const dados = dadosDoMes();
-  const chNome = chave.replace("_periodo", "_nome");
-  const nomeMarcado = dados[chNome] || "";
-  if (nomeMarcado && nomeMarcado !== usuario) {
-   sel.disabled = true;
-  } else {
-   sel.disabled = !podeEditar();
-  }
- } else {
-  sel.disabled = !podeEditar();
- }
-
- sel.onchange = () => {
-  const dados = dadosDoMes();
-  dados[chave] = sel.value;
-  salvarDadosMes(dados);
-  status("✏️ Alterado — clique em Salvar", "aviso");
- };
- return sel;
+async function salvar(){
+  const mes = document.getElementById('mes').value;
+  const r = await google.script.run.withSuccessHandler(d=>{
+    dadosOriginais = {...dados};
+    document.getElementById('status').textContent = d.mensagem;
+  }).salvarEscala(mes, dados, USUARIO, EH_ADMIN);
 }
 
-function montarTabela() {
- const mes = mesAtual();
- const dias = qtdDiasMes(mes);
- const dados = dadosDoMes();
+function sair(){ if(confirm('Deseja sair?')) window.location.href='?'; }
 
- const linhasDatas = document.getElementById("linhaDatas");
- const linhasSemana = document.getElementById("linhaSemana");
- const corpo = document.getElementById("corpoTabela");
+function abrirModal(){ document.getElementById('modalSenha').classList.add('aberto'); }
+function fecharModal(){ document.getElementById('modalSenha').classList.remove('aberto'); document.getElementById('msgSenha').textContent=''; }
 
- linhasDatas.innerHTML = '<th class="coluna-label">Nome / Período</th>';
- linhasSemana.innerHTML = '<th class="coluna-label">Dia</th>';
-
- for (let d = 1; d <= dias; d++) {
-  const dt = new Date(ANO, Number(mes)-1, d);
-  const dow = dt.getDay();
-  const fim = dow === 0 || dow === 6;
-  linhasDatas.innerHTML += `<th class="col-dia ${fim?"fim-semana":""}"><div class="data">${String(d).padStart(2,"0")}/${mes}</div></th>`;
-  linhasSemana.innerHTML += `<th class="col-dia ${fim?"fim-semana":""}"><div class="semana">${nomesSemana[dow]}</div></th>`;
- }
-
- corpo.innerHTML = "";
- for (let v = 0; v < QTD_VAGAS; v++) {
-  const trNome = document.createElement("tr");
-  const trPer = document.createElement("tr");
-  trNome.innerHTML = `<td class="coluna-label">Nome</td>`;
-  trPer.innerHTML = `<td class="coluna-label">Período</td>`;
-
-  for (let d = 1; d <= dias; d++) {
-   const dt = new Date(ANO, Number(mes)-1, d);
-   const dow = dt.getDay();
-   const fim = dow === 0 || dow === 6;
-   const kNome = chaveNome(v, d);
-   const kPer = chavePeriodo(v, d);
-   const valNome = dados[kNome] || "";
-   const valPer = dados[kPer] || "";
-
-   const selNome = montarSelectNome(valNome, kNome);
-   const selPer = montarSelectPeriodo(valPer, kPer);
-
-   const tdN = document.createElement("td");
-   tdN.className = `col-dia ${fim?"fim-semana":""}`;
-   tdN.appendChild(selNome);
-
-   const tdP = document.createElement("td");
-   tdP.className = `col-dia ${fim?"fim-semana":""}`;
-   tdP.appendChild(selPer);
-
-   trNome.appendChild(tdN);
-   trPer.appendChild(tdP);
-  }
-  corpo.appendChild(trNome);
-  corpo.appendChild(trPer);
- }
- atualizarResumo();
+async function confirmarSenha(){
+  const a = document.getElementById('senhaAtual').value.trim();
+  const n = document.getElementById('novaSenha').value.trim();
+  const c = document.getElementById('confNovaSenha').value.trim();
+  const m = document.getElementById('msgSenha');
+  if(!/^\\d{7}$/.test(n)){m.textContent='❌ Nova senha: 7 dígitos.';return}
+  if(n!==c){m.textContent='❌ As senhas não coincidem.';return}
+  const r = await google.script.run.withSuccessHandler(d=>{
+    m.style.color = d.ok?'green':'red';
+    m.textContent = d.mensagem;
+    if(d.ok) setTimeout(fecharModal,1500);
+  }).alterarSenha(USUARIO,a,n);
 }
 
-document.getElementById("btnSalvar").onclick = () => {
- if (!podeEditar()) {
-  status("🔒 Bloqueado — não é possível salvar", "erro");
-  return;
- }
- salvarTudo();
- status("✅ Salvo!", "ok");
-};
-
-document.getElementById("selMes").onchange = montarTabela;
-
-function atualizarResumo() {
- if (!ehAdmin) return;
- const dados = dadosDoMes();
- const contagem = {};
- Object.entries(dados).forEach(([chave, val]) => {
-  if (!chave.endsWith("_nome") || !val) return;
-  contagem[val] = (contagem[val] || 0) + 1;
- });
- const div = document.getElementById("gridResumo");
- div.innerHTML = "";
- Object.entries(contagem).sort((a,b) => b[1] - a[1]).forEach(([nome, qtd]) => {
-  div.innerHTML += `<div class="card"><strong>${nome}</strong><b>${qtd}</b></div>`;
- });
-}
-
-function ajustarInterface() {
- if (ehAdmin) {
-  document.getElementById("avisoBC").classList.add("hidden");
-  document.getElementById("btnTravarMes").classList.remove("hidden");
-  document.getElementById("btnExcel").classList.remove("hidden");
-  document.getElementById("btnPDF").classList.remove("hidden");
-  document.getElementById("btnBackup").classList.remove("hidden");
-  document.getElementById("btnRestaurar").classList.remove("hidden");
-  document.getElementById("btnLimpar").classList.remove("hidden");
-  document.getElementById("resumo").classList.remove("hidden");
- } else {
-  document.getElementById("avisoBC").classList.remove("hidden");
- }
-}
-
-document.getElementById("btnExcel").onclick = () => {
- if (!ehAdmin) return;
- const mes = mesAtual();
- const dias = qtdDiasMes(mes);
- const dados = dadosDoMes();
- const linhas = [["Cidade","Itapoá"],["Praia","Itapoá"],[""],["CPF","Nome","TP Escala","Dt Escala"]];
- linhas.push(["", ...Array.from({length:dias}, (_,i) => `${String(i+1).padStart(2,"0")}/${mes}`)]);
- linhas.push(["Dia", ...Array.from({length:dias}, (_,i) => nomesSemana[new Date(ANO, Number(mes)-1, i+1).getDay()])]);
- for (let v = 0; v < QTD_VAGAS; v++) {
-  linhas.push(["Nome", ...Array.from({length:dias}, (_,i) => dados[chaveNome(v,i+1)] || "")]);
-  linhas.push(["TP Escala", ...Array.from({length:dias}, (_,i) => dados[chavePeriodo(v,i+1)] || "")]);
- }
- const wb = XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(linhas), "Escala");
- XLSX.writeFile(wb, `Escala_BCs_${nomesMes[Number(mes)-1]}_${ANO}.xlsx`);
-};
-
-document.getElementById("btnPDF").onclick = async () => {
- if (!ehAdmin) return;
- const {jsPDF} = window.jspdf;
- const mes = mesAtual();
- const dias = qtdDiasMes(mes);
- const dados = dadosDoMes();
- const corpo = [["", ...Array.from({length:dias}, (_,i) => `${String(i+1).padStart(2,"0")}/${mes}`)]];
- corpo.push(["Dia", ...Array.from({length:dias}, (_,i) => nomesSemana[new Date(ANO, Number(mes)-1, i+1).getDay()])]);
- for (let v = 0; v < QTD_VAGAS; v++) {
-  corpo.push(["Nome", ...Array.from({length:dias}, (_,i) => dados[chaveNome(v,i+1)] || "")]);
-  corpo.push(["Período", ...Array.from({length:dias}, (_,i) => dados[chavePeriodo(v,i+1)] || "")]);
- }
- const doc = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
- doc.setFontSize(16);
- doc.text(`Escala — ${nomesMes[Number(mes)-1]} de ${ANO}`, 15, 15);
- doc.autoTable({body:corpo, startY:25, styles:{fontSize:7}});
- doc.save(`Escala_BCs_${mes}_${ANO}.pdf`);
-};
-
-document.getElementById("btnBackup").onclick = () => {
- if (!ehAdmin) return;
- const blob = new Blob([JSON.stringify({dados:dadosGerais, mesLiberado}, null, 2)], {type:"application/json"});
- const a = document.createElement("a");
- a.href = URL.createObjectURL(blob);
- a.download = `backup_escala_${ANO}_${mesAtual()}.json`;
- a.click();
- status("✅ Backup baixado", "ok");
-};
-
-document.getElementById("btnRestaurar").onclick = () => document.getElementById("arquivoBackup").click();
-
-document.getElementById("arquivoBackup").onchange = (ev) => {
- const f = ev.target.files[0]; if (!f) return;
- const r = new FileReader();
- r.onload = () => {
-  try {
-   const t = JSON.parse(r.result);
-   dadosGerais = t.dados || {};
-   mesLiberado = t.mesLiberado || null;
-   salvarTudo();
-   montarTabela();
-   atualizarTrava();
-   status("✅ Backup restaurado!", "ok");
-  } catch { status("Arquivo inválido", "erro"); }
- };
- r.readAsText(f);
-};
-
-document.getElementById("btnLimpar").onclick = () => {
- if (!ehAdmin) return;
- if (!confirm("⚠️ Apagar TODA a escala deste mês?")) return;
- delete dadosGerais[mesAtual()];
- salvarTudo();
- montarTabela();
- status("✅ Escala limpa!", "ok");
-};
-
-montarListaEntrada();
+document.getElementById('mes').addEventListener('change',carregar);
+document.getElementById('btnSalvar').addEventListener('click',salvar);
+document.getElementById('btnTrocarSenha').addEventListener('click',abrirModal);
+carregar();
 </script>
 </body>
-</html>
+</html>`;
+}
+
+// ================= FERRAMENTAS ADMINISTRATIVAS =================
+function gerarTodasSenhas() {
+  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
+  if (!aba) return;
+  for (let linha = 2; linha <= aba.getLastRow(); linha++) {
+    aba.getRange(linha, 2).setValue(gerarSenhaUnica(aba));
+  }
+  SpreadsheetApp.getUi().alert('✅ Todas as senhas foram regeneradas!');
+}
+
+function definirAdmin(nome) {
+  const aba = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.ABA_USUARIOS);
+  const linhas = aba.getRange(2, 1, aba.getLastRow() - 1, 2).getValues();
+  for (let i = 0; i < linhas.length; i++) {
+    if (linhas[i][0] === nome) {
+      aba.getRange(i + 2, 4).setValue(true);
+      SpreadsheetApp.getUi().alert(`${nome} agora é administrador.`);
+      return;
+    }
+  }
+  SpreadsheetApp.getUi().alert('Nome não encontrado.');
+}
